@@ -18,6 +18,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history, not just the latest commit - otherwise the push
+          # below has no common ancestor with the server's main and git
+          # rejects it as a non-fast-forward.
+          fetch-depth: 0
 
       - uses: webfactory/ssh-agent@v0.9.0
         with:
