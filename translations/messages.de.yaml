@@ -71,14 +71,18 @@ capo_trainer:
   title: Kapo-Trainer
   description: "Griffbild, Kapo-Bund und klingenden Akkord ineinander umrechnen."
   settings:
+    intro: "Du rechnest Griffbild, Kapo-Bund und klingenden Akkord ineinander um (z.B. \"Kapo im 2. Bund, gegriffen G – welcher Akkord klingt wirklich?\"). Wähle unten die Shapes und die Frage-Richtung(en)."
     shapes_label: "Shapes"
     mode_label: "Frage-Richtung"
+    mode_hint: "Mehrfachauswahl möglich – bei mehreren wechselt die Richtung zufällig pro Frage."
     mode_1: "Griffbild + Kapo → klingender Akkord"
     mode_2: "Zielakkord + Kapo → Griffbild"
     mode_3: "Griffbild + Zielakkord → Kapo-Bund"
     max_fret_label: "Kapo-Bereich bis Bund"
-    apply: Übernehmen
+    question_count_label: "Anzahl Fragen"
+    continue: Weiter
   practice:
+    question_progress: "Frage %current% von %total%"
     mode_1_hint: "Kapo im %fret%. Bund, gegriffen wird %shape%."
     mode_1_prompt: "Welcher Akkord klingt wirklich?"
     mode_2_hint: "Kapo im %fret%. Bund, du willst %sounding% hören."
@@ -87,8 +91,14 @@ capo_trainer:
     mode_3_prompt: "Auf welchen Bund kommt der Kapo?"
     correct: "Richtig!"
     incorrect: "Leider falsch."
-    would_have_been: "Richtig wäre %expected% gewesen (%shape% + Kapo %fret% = %sounding%)."
-    stats: "%correct% / %attempts% richtig · Serie: %streak%"
+    your_guess: "Du hast %guess% gewählt."
+    correct_is: "%shape% + Kapo %fret% = %sounding%."
+  summary:
+    title: "Runde beendet"
+    result: "%correct% von %total% richtig"
+    time: "in %time% Min."
+    restart: "Neue Runde"
+    change_settings: "Einstellungen ändern"
 
 fretboard:
   title: Griffbrett

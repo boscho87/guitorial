@@ -26,7 +26,7 @@ final class ToolRegistry
                 'id' => 'kapo-trainer',
                 'title' => 'capo_trainer.title',
                 'description' => 'capo_trainer.description',
-                'route' => 'capo_trainer_practice',
+                'route' => 'capo_trainer_settings',
             ],
             [
                 'id' => 'funktion-bestimmen',

@@ -14,15 +14,20 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * Grading always recomputes the sounding chord from the guess rather than
+ * comparing to a single stored "expected" value, so it stays correct
+ * regardless of which direction was asked.
+ */
 #[Route('/kapo-trainer')]
 final class CapoTrainerController extends AbstractController
 {
     private const TOOL = 'kapo-trainer';
-    private const SESSION_SHAPES = 'capo_trainer.active_shapes';
-    private const SESSION_MAX_FRET = 'capo_trainer.max_fret';
-    private const SESSION_MODE = 'capo_trainer.mode';
-    private const SESSION_CURRENT = 'capo_trainer.current';
+    private const SESSION_ROUND = 'capo_trainer.round';
     private const CSRF_INTENTION = 'capo_trainer';
+    private const DEFAULT_QUESTION_COUNT = 10;
+    private const MIN_QUESTION_COUNT = 3;
+    private const MAX_QUESTION_COUNT = 30;
     private const DEFAULT_MAX_FRET = 7;
     private const MODES = ['1', '2', '3'];
 
@@ -30,17 +35,23 @@ final class CapoTrainerController extends AbstractController
     {
     }
 
-    #[Route('', name: 'capo_trainer_practice', methods: ['GET'])]
-    public function practice(Request $request): Response
+    #[Route('', name: 'capo_trainer_settings', methods: ['GET'])]
+    public function settings(Request $request): Response
     {
-        [$shapes, $maxFret, $mode] = $this->settingsFromSession($request);
-        $this->ensureCurrentQuestion($request, $shapes, $maxFret, $mode);
+        $round = $this->currentRound($request);
 
-        return $this->render('capo_trainer/practice.html.twig', $this->viewData($request, $shapes, $maxFret, $mode));
+        return $this->render('capo_trainer/settings.html.twig', [
+            'allShapes' => CapoShape::all(),
+            'activeShapes' => $round !== null ? $round['shapes'] : array_keys(CapoShape::all()),
+            'activeModes' => $round !== null ? $round['modes'] : self::MODES,
+            'maxFret' => $round !== null ? $round['maxFret'] : self::DEFAULT_MAX_FRET,
+            'questionCount' => $round !== null ? $round['totalQuestions'] : self::DEFAULT_QUESTION_COUNT,
+            'csrfIntention' => self::CSRF_INTENTION,
+        ]);
     }
 
-    #[Route('/einstellungen', name: 'capo_trainer_settings', methods: ['POST'])]
-    public function settings(Request $request): Response
+    #[Route('/start', name: 'capo_trainer_start', methods: ['POST'])]
+    public function start(Request $request): Response
     {
         $this->assertValidCsrf($request);
 
@@ -52,59 +63,98 @@ final class CapoTrainerController extends AbstractController
             $shapes = array_keys(CapoShape::all());
         }
 
-        $maxFret = max(1, min(11, (int) $request->request->get('max_fret', self::DEFAULT_MAX_FRET)));
-        $mode = $request->request->get('mode', '1');
-        if (!in_array($mode, self::MODES, true)) {
-            $mode = '1';
+        $modes = array_values(array_intersect($request->request->all('modes'), self::MODES));
+        if ($modes === []) {
+            $modes = self::MODES;
         }
 
-        $session = $request->getSession();
-        $session->set(self::SESSION_SHAPES, $shapes);
-        $session->set(self::SESSION_MAX_FRET, $maxFret);
-        $session->set(self::SESSION_MODE, $mode);
-        $session->remove(self::SESSION_CURRENT);
+        $maxFret = max(1, min(11, (int) $request->request->get('max_fret', self::DEFAULT_MAX_FRET)));
 
-        $this->ensureCurrentQuestion($request, $shapes, $maxFret, $mode);
+        $questionCount = max(
+            self::MIN_QUESTION_COUNT,
+            min(self::MAX_QUESTION_COUNT, (int) $request->request->get('question_count', self::DEFAULT_QUESTION_COUNT)),
+        );
 
-        return $this->render('capo_trainer/practice.html.twig', $this->viewData($request, $shapes, $maxFret, $mode));
+        $this->beginRound($request, $shapes, $modes, $maxFret, $questionCount);
+
+        return $this->redirectToRoute('capo_trainer_practice');
+    }
+
+    #[Route('/uebung', name: 'capo_trainer_practice', methods: ['GET'])]
+    public function practice(Request $request): Response
+    {
+        if ($this->currentRound($request) === null) {
+            return $this->redirectToRoute('capo_trainer_settings');
+        }
+
+        $this->ensureCurrentQuestion($request);
+
+        return $this->render('capo_trainer/practice.html.twig', $this->viewData($request));
     }
 
     /**
-     * Grades the answer and immediately generates the next question in the
-     * same response - the result is shown as a toast alongside the new
-     * question rather than as a separate click-through step.
+     * Grades the answer and immediately advances to the next question (or
+     * the summary) in the same response, result shown as a toast.
      */
     #[Route('/antwort', name: 'capo_trainer_answer', methods: ['POST'])]
     public function answer(Request $request): Response
     {
         $this->assertValidCsrf($request);
 
-        [$shapes, $maxFret, $mode] = $this->settingsFromSession($request);
         $session = $request->getSession();
-        $current = $session->get(self::SESSION_CURRENT);
+        $round = $this->currentRound($request);
+        if ($round === null) {
+            return $this->redirectToRoute('capo_trainer_settings');
+        }
 
+        $current = $round['current'];
         $guess = (string) $request->request->get('guess');
-        $expected = is_array($current) ? (string) ($current['expected'] ?? '') : '';
-        $isCorrect = $expected !== '' && $guess === $expected;
+        $isCorrect = $current !== null && $this->isCorrectGuess($guess, $current);
 
         $toast = null;
-        if ($expected !== '') {
-            $questionKey = $mode . ':' . $current['shapeId'];
+        if ($current !== null) {
+            $questionKey = $current['mode'] . ':' . $current['shapeId'] . ':' . $current['fret'];
             $this->attempts->record(self::TOOL, $questionKey, $isCorrect);
+            if ($isCorrect) {
+                $round['correctCount']++;
+            }
             $toast = [
                 'correct' => $isCorrect,
                 'guess' => $guess,
-                'expected' => $expected,
                 'shapeId' => $current['shapeId'],
                 'fret' => $current['fret'],
                 'sounding' => $current['sounding'],
             ];
         }
 
-        $session->remove(self::SESSION_CURRENT);
-        $this->ensureCurrentQuestion($request, $shapes, $maxFret, $mode);
+        if ($round['questionIndex'] >= $round['totalQuestions']) {
+            $round['finished'] = true;
+            $round['current'] = null;
+            $session->set(self::SESSION_ROUND, $round);
+        } else {
+            $round['questionIndex']++;
+            $round['current'] = null;
+            $session->set(self::SESSION_ROUND, $round);
+            $this->ensureCurrentQuestion($request);
+        }
 
-        return $this->render('capo_trainer/practice.html.twig', $this->viewData($request, $shapes, $maxFret, $mode, $toast));
+        return $this->render('capo_trainer/practice.html.twig', $this->viewData($request, $toast));
+    }
+
+    #[Route('/neue-runde', name: 'capo_trainer_restart', methods: ['POST'])]
+    public function restart(Request $request): Response
+    {
+        $this->assertValidCsrf($request);
+
+        $round = $this->currentRound($request);
+        $shapes = $round !== null ? $round['shapes'] : array_keys(CapoShape::all());
+        $modes = $round !== null ? $round['modes'] : self::MODES;
+        $maxFret = $round !== null ? $round['maxFret'] : self::DEFAULT_MAX_FRET;
+        $questionCount = $round !== null ? $round['totalQuestions'] : self::DEFAULT_QUESTION_COUNT;
+
+        $this->beginRound($request, $shapes, $modes, $maxFret, $questionCount);
+
+        return $this->redirectToRoute('capo_trainer_practice');
     }
 
     private function assertValidCsrf(Request $request): void
@@ -115,101 +165,155 @@ final class CapoTrainerController extends AbstractController
         }
     }
 
-    /** @return array{0: string[], 1: int, 2: string} */
-    private function settingsFromSession(Request $request): array
+    /**
+     * @param array{mode: string, shapeId: string, fret: int, sounding: string} $current
+     */
+    private function isCorrectGuess(string $guess, array $current): bool
     {
-        $session = $request->getSession();
+        $shapeIds = array_keys(CapoShape::all());
 
-        $shapes = $session->get(self::SESSION_SHAPES);
-        if (!is_array($shapes) || $shapes === []) {
-            $shapes = array_keys(CapoShape::all());
-            $session->set(self::SESSION_SHAPES, $shapes);
-        }
-
-        $maxFret = $session->get(self::SESSION_MAX_FRET);
-        if (!is_int($maxFret)) {
-            $maxFret = self::DEFAULT_MAX_FRET;
-            $session->set(self::SESSION_MAX_FRET, $maxFret);
-        }
-
-        $mode = $session->get(self::SESSION_MODE);
-        if (!in_array($mode, self::MODES, true)) {
-            $mode = '1';
-            $session->set(self::SESSION_MODE, $mode);
-        }
-
-        return [$shapes, $maxFret, $mode];
+        return match ($current['mode']) {
+            '1' => $guess === $current['sounding'],
+            '2' => in_array($guess, $shapeIds, true)
+                && CapoTransposer::soundingChord(CapoShape::get($guess), $current['fret']) === $current['sounding'],
+            '3' => is_numeric($guess)
+                && CapoTransposer::soundingChord(CapoShape::get($current['shapeId']), (int) $guess) === $current['sounding'],
+            default => false,
+        };
     }
 
-    /** @param string[] $shapes */
-    private function ensureCurrentQuestion(Request $request, array $shapes, int $maxFret, string $mode): void
+    /**
+     * Reads the round from the session, discarding it if missing or from
+     * an incompatible older schema.
+     *
+     * @return array{shapes: string[], modes: string[], maxFret: int, totalQuestions: int, questionIndex: int, correctCount: int, finished: bool, current: array{mode: string, shapeId: string, fret: int, sounding: string}|null, startedAt: float}|null
+     */
+    private function currentRound(Request $request): ?array
     {
         $session = $request->getSession();
-        $current = $session->get(self::SESSION_CURRENT);
-        if (is_array($current) && ($current['mode'] ?? null) === $mode && in_array($current['shapeId'] ?? null, $shapes, true)) {
-            return;
+        $round = $session->get(self::SESSION_ROUND);
+
+        if (
+            !is_array($round)
+            || !isset($round['shapes'], $round['modes'], $round['maxFret'], $round['totalQuestions'], $round['questionIndex'], $round['correctCount'], $round['finished'])
+            || !array_key_exists('current', $round)
+        ) {
+            $session->remove(self::SESSION_ROUND);
+
+            return null;
         }
 
-        $allWrongCounts = $this->attempts->wrongCountsByQuestionKey(self::TOOL);
-        $wrongCountsForMode = [];
-        foreach ($allWrongCounts as $key => $count) {
-            if (str_starts_with($key, $mode . ':')) {
-                $wrongCountsForMode[substr($key, strlen($mode) + 1)] = $count;
-            }
-        }
-
-        $shapeId = WeightedQuestionPicker::pick($shapes, $wrongCountsForMode);
-        $shape = CapoShape::get($shapeId);
-        $fret = random_int(1, $maxFret);
-        $sounding = CapoTransposer::soundingChord($shape, $fret);
-
-        $expected = match ($mode) {
-            '1' => $sounding,
-            '2' => $shapeId,
-            '3' => (string) $fret,
-        };
-
-        $session->set(self::SESSION_CURRENT, [
-            'mode' => $mode,
-            'shapeId' => $shapeId,
-            'fret' => $fret,
-            'sounding' => $sounding,
-            'expected' => $expected,
-        ]);
+        return $round;
     }
 
     /**
      * @param string[] $shapes
-     * @param array{correct: bool, guess: string, expected: string, shapeId: string, fret: int, sounding: string}|null $toast result of the answer that led
-     *        to this render, shown as a transient toast - null on a plain page load
+     * @param string[] $modes
+     */
+    private function beginRound(Request $request, array $shapes, array $modes, int $maxFret, int $questionCount): void
+    {
+        $request->getSession()->set(self::SESSION_ROUND, [
+            'shapes' => $shapes,
+            'modes' => $modes,
+            'maxFret' => $maxFret,
+            'totalQuestions' => $questionCount,
+            'questionIndex' => 1,
+            'correctCount' => 0,
+            'finished' => false,
+            'current' => null,
+            'startedAt' => microtime(true),
+        ]);
+        $this->ensureCurrentQuestion($request);
+    }
+
+    private function ensureCurrentQuestion(Request $request): void
+    {
+        $session = $request->getSession();
+        $round = $this->currentRound($request);
+        if ($round === null || $round['current'] !== null) {
+            return;
+        }
+
+        // Pick the direction first (uniformly), then weight the
+        // shape/fret position within that direction's own history.
+        $mode = $round['modes'][array_rand($round['modes'])];
+
+        $candidates = [];
+        foreach ($round['shapes'] as $shapeId) {
+            for ($fret = 1; $fret <= $round['maxFret']; $fret++) {
+                $candidates[] = $shapeId . ':' . $fret;
+            }
+        }
+
+        $allWrongCounts = $this->attempts->wrongCountsByQuestionKey(self::TOOL);
+        $prefix = $mode . ':';
+        $wrongCounts = [];
+        foreach ($allWrongCounts as $key => $count) {
+            if (str_starts_with($key, $prefix)) {
+                $wrongCounts[substr($key, strlen($prefix))] = $count;
+            }
+        }
+
+        $picked = WeightedQuestionPicker::pick($candidates, $wrongCounts);
+        [$shapeId, $fretText] = explode(':', $picked, 2);
+        $fret = (int) $fretText;
+
+        $round['current'] = [
+            'mode' => $mode,
+            'shapeId' => $shapeId,
+            'fret' => $fret,
+            'sounding' => CapoTransposer::soundingChord(CapoShape::get($shapeId), $fret),
+        ];
+        $session->set(self::SESSION_ROUND, $round);
+    }
+
+    /**
+     * @param array{correct: bool, guess: string, shapeId: string, fret: int, sounding: string}|null $toast
      * @return array<string, mixed>
      */
-    private function viewData(Request $request, array $shapes, int $maxFret, string $mode, ?array $toast = null): array
+    private function viewData(Request $request, ?array $toast = null): array
     {
-        $current = $request->getSession()->get(self::SESSION_CURRENT);
-        $shape = CapoShape::get($current['shapeId']);
+        $round = $this->currentRound($request);
+        $startedAt = $round['startedAt'] ?? microtime(true);
+        $current = $round['current'];
+        $mode = $current['mode'] ?? $round['modes'][0];
+        $shape = $current !== null ? CapoShape::get($current['shapeId']) : null;
 
         $answerOptions = match ($mode) {
             '1' => array_map(
-                static fn (int $i) => Note::nameFromIndex($i) . ($shape->isMinor ? 'm' : ''),
+                static fn (int $i) => Note::nameFromIndex($i) . ($shape?->isMinor ? 'm' : ''),
                 range(0, 11),
             ),
-            '2' => $shapes,
-            '3' => range(1, $maxFret),
+            '2' => $round['shapes'],
+            '3' => range(1, $round['maxFret']),
+            default => [],
         };
 
         return [
             'allShapes' => CapoShape::all(),
-            'activeShapes' => $shapes,
-            'maxFret' => $maxFret,
+            'activeShapes' => $round['shapes'],
+            'activeModes' => $round['modes'],
             'mode' => $mode,
-            'shapeId' => $current['shapeId'],
-            'fret' => $current['fret'],
-            'sounding' => $current['sounding'],
+            'maxFret' => $round['maxFret'],
+            'questionIndex' => $round['questionIndex'],
+            'totalQuestions' => $round['totalQuestions'],
+            'correctCount' => $round['correctCount'],
+            'finished' => $round['finished'],
+            'shapeId' => $current['shapeId'] ?? null,
+            'fret' => $current['fret'] ?? null,
+            'sounding' => $current['sounding'] ?? null,
             'answerOptions' => $answerOptions,
             'toast' => $toast,
-            'summary' => $this->attempts->summary(self::TOOL),
+            'startedAtMs' => (int) round($startedAt * 1000),
+            'elapsedLabel' => $this->formatElapsed(microtime(true) - $startedAt),
             'csrfIntention' => self::CSRF_INTENTION,
         ];
+    }
+
+    private function formatElapsed(float $seconds): string
+    {
+        $whole = max(0, (int) round($seconds));
+
+        return sprintf('%d:%02d', intdiv($whole, 60), $whole % 60);
     }
 }
