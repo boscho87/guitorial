@@ -98,34 +98,34 @@
 
 @layer components {
   .chip-toggle {
-    @apply cursor-pointer select-none rounded-full border-2 border-base-300 bg-base-100 px-3.5 py-1.5 text-sm font-medium text-base-content/70 transition-colors;
+    @apply cursor-pointer select-none rounded-md px-3 py-1.5 font-mono text-sm text-base-content/45 transition-colors;
   }
 
   .chip-toggle:hover {
-    @apply border-base-content/30;
+    @apply text-base-content/80;
   }
 
   input:checked + .chip-toggle {
-    @apply border-primary bg-primary text-primary-content;
+    @apply bg-primary/10 text-primary;
   }
 
   input:checked + .chip-toggle.chip-toggle-minor {
-    @apply border-secondary bg-secondary text-secondary-content;
+    @apply bg-secondary/10 text-secondary;
   }
 
   .answer-btn {
-    @apply rounded-2xl border-2 border-base-300 bg-base-100 px-4 py-3 font-mono text-base font-semibold text-base-content shadow-sm transition-all;
+    @apply rounded-md px-4 py-3 font-mono text-base font-medium text-base-content/55 transition-colors;
   }
 
   .answer-btn:hover {
-    @apply -translate-y-0.5 border-primary shadow-md;
-  }
-
-  .answer-btn:active {
-    @apply translate-y-0;
+    @apply bg-base-content/5 text-base-content;
   }
 
   .answer-btn.quiz-answer-chosen {
-    @apply border-primary bg-primary text-primary-content;
+    @apply bg-primary/10 text-primary;
+  }
+
+  .keycap {
+    @apply mr-2 text-base-content/25;
   }
 }

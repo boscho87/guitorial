@@ -28,8 +28,6 @@ key_recognition:
     incorrect: "Leider falsch."
     your_guess: "Du hast %guess% gewählt."
     key_is: "Die Tonart ist"
-    next: "Nächste Frage"
-    show_result: Ergebnis
   summary:
     title: "Runde beendet"
     result: "%correct% von %total% richtig"
@@ -39,3 +37,22 @@ key_recognition:
 capo_trainer:
   title: Kapo-Trainer
   description: "Griffbild, Kapo-Bund und klingenden Akkord ineinander umrechnen."
+  settings:
+    shapes_label: "Shapes"
+    mode_label: "Frage-Richtung"
+    mode_1: "Griffbild + Kapo → klingender Akkord"
+    mode_2: "Zielakkord + Kapo → Griffbild"
+    mode_3: "Griffbild + Zielakkord → Kapo-Bund"
+    max_fret_label: "Kapo-Bereich bis Bund"
+    apply: Übernehmen
+  practice:
+    mode_1_hint: "Kapo im %fret%. Bund, gegriffen wird %shape%."
+    mode_1_prompt: "Welcher Akkord klingt wirklich?"
+    mode_2_hint: "Kapo im %fret%. Bund, du willst %sounding% hören."
+    mode_2_prompt: "Welches Griffbild spielst du?"
+    mode_3_hint: "Du greifst %shape%, willst aber %sounding% hören."
+    mode_3_prompt: "Auf welchen Bund kommt der Kapo?"
+    correct: "Richtig!"
+    incorrect: "Leider falsch."
+    would_have_been: "Richtig wäre %expected% gewesen (%shape% + Kapo %fret% = %sounding%)."
+    stats: "%correct% / %attempts% richtig · Serie: %streak%"

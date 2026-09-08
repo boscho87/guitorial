@@ -69,6 +69,11 @@ final class CapoTrainerController extends AbstractController
         return $this->render('capo_trainer/practice.html.twig', $this->viewData($request, $shapes, $maxFret, $mode));
     }
 
+    /**
+     * Grades the answer and immediately generates the next question in the
+     * same response - the result is shown as a toast alongside the new
+     * question rather than as a separate click-through step.
+     */
     #[Route('/antwort', name: 'capo_trainer_answer', methods: ['POST'])]
     public function answer(Request $request): Response
     {
@@ -82,29 +87,24 @@ final class CapoTrainerController extends AbstractController
         $expected = is_array($current) ? (string) ($current['expected'] ?? '') : '';
         $isCorrect = $expected !== '' && $guess === $expected;
 
-        if ($expected !== '' && !($current['answered'] ?? false)) {
+        $toast = null;
+        if ($expected !== '') {
             $questionKey = $mode . ':' . $current['shapeId'];
             $this->attempts->record(self::TOOL, $questionKey, $isCorrect);
+            $toast = [
+                'correct' => $isCorrect,
+                'guess' => $guess,
+                'expected' => $expected,
+                'shapeId' => $current['shapeId'],
+                'fret' => $current['fret'],
+                'sounding' => $current['sounding'],
+            ];
         }
 
-        $current['answered'] = true;
-        $current['guess'] = $guess;
-        $current['correct'] = $isCorrect;
-        $session->set(self::SESSION_CURRENT, $current);
-
-        return $this->render('capo_trainer/practice.html.twig', $this->viewData($request, $shapes, $maxFret, $mode));
-    }
-
-    #[Route('/naechste', name: 'capo_trainer_next', methods: ['POST'])]
-    public function next(Request $request): Response
-    {
-        $this->assertValidCsrf($request);
-
-        [$shapes, $maxFret, $mode] = $this->settingsFromSession($request);
-        $request->getSession()->remove(self::SESSION_CURRENT);
+        $session->remove(self::SESSION_CURRENT);
         $this->ensureCurrentQuestion($request, $shapes, $maxFret, $mode);
 
-        return $this->render('capo_trainer/practice.html.twig', $this->viewData($request, $shapes, $maxFret, $mode));
+        return $this->render('capo_trainer/practice.html.twig', $this->viewData($request, $shapes, $maxFret, $mode, $toast));
     }
 
     private function assertValidCsrf(Request $request): void
@@ -175,17 +175,16 @@ final class CapoTrainerController extends AbstractController
             'fret' => $fret,
             'sounding' => $sounding,
             'expected' => $expected,
-            'answered' => false,
-            'guess' => null,
-            'correct' => null,
         ]);
     }
 
     /**
      * @param string[] $shapes
+     * @param array{correct: bool, guess: string, expected: string, shapeId: string, fret: int, sounding: string}|null $toast result of the answer that led
+     *        to this render, shown as a transient toast - null on a plain page load
      * @return array<string, mixed>
      */
-    private function viewData(Request $request, array $shapes, int $maxFret, string $mode): array
+    private function viewData(Request $request, array $shapes, int $maxFret, string $mode, ?array $toast = null): array
     {
         $current = $request->getSession()->get(self::SESSION_CURRENT);
         $shape = CapoShape::get($current['shapeId']);
@@ -208,10 +207,7 @@ final class CapoTrainerController extends AbstractController
             'fret' => $current['fret'],
             'sounding' => $current['sounding'],
             'answerOptions' => $answerOptions,
-            'answered' => $current['answered'],
-            'guess' => $current['guess'],
-            'correct' => $current['correct'],
-            'expected' => $current['expected'],
+            'toast' => $toast,
             'summary' => $this->attempts->summary(self::TOOL),
             'csrfIntention' => self::CSRF_INTENTION,
         ];

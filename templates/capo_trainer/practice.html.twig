@@ -1,16 +1,21 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Kapo-Trainer – Guitorial{% endblock %}
+{% block title %}{{ 'capo_trainer.title'|trans }} – Guitorial{% endblock %}
 
 {% block body %}
-    <h1 class="font-display text-2xl font-semibold sm:text-3xl">Kapo-Trainer</h1>
+    <a href="{{ path('home_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/60 hover:text-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{ 'nav.back_home'|trans }}
+    </a>
+
+    <h1 class="font-display mt-3 text-2xl font-semibold sm:text-3xl">{{ 'capo_trainer.title'|trans }}</h1>
 
     <section class="mt-6">
         <form method="post" action="{{ path('capo_trainer_settings') }}" data-turbo-frame="capo-trainer-practice" class="space-y-5">
             <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
 
             <div>
-                <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Shapes</h2>
+                <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/40">{{ 'capo_trainer.settings.shapes_label'|trans }}</h2>
                 <div class="mt-3 flex flex-wrap gap-2">
                     {% for id, shape in allShapes %}
                         <input type="checkbox" class="sr-only" id="shape-toggle-{{ id }}" name="shapes[]" value="{{ id }}" {{ id in activeShapes ? 'checked' : '' }}>
@@ -20,74 +25,79 @@
             </div>
 
             <div>
-                <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Frage-Richtung</h2>
+                <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/40">{{ 'capo_trainer.settings.mode_label'|trans }}</h2>
                 <div class="mt-3 flex flex-wrap gap-2">
                     <input type="radio" class="sr-only" name="mode" id="mode-1" value="1" {{ mode == '1' ? 'checked' : '' }}>
-                    <label class="chip-toggle" for="mode-1">Griffbild + Kapo → klingender Akkord</label>
+                    <label class="chip-toggle" for="mode-1">{{ 'capo_trainer.settings.mode_1'|trans }}</label>
 
                     <input type="radio" class="sr-only" name="mode" id="mode-2" value="2" {{ mode == '2' ? 'checked' : '' }}>
-                    <label class="chip-toggle" for="mode-2">Zielakkord + Kapo → Griffbild</label>
+                    <label class="chip-toggle" for="mode-2">{{ 'capo_trainer.settings.mode_2'|trans }}</label>
 
                     <input type="radio" class="sr-only" name="mode" id="mode-3" value="3" {{ mode == '3' ? 'checked' : '' }}>
-                    <label class="chip-toggle" for="mode-3">Griffbild + Zielakkord → Kapo-Bund</label>
+                    <label class="chip-toggle" for="mode-3">{{ 'capo_trainer.settings.mode_3'|trans }}</label>
                 </div>
             </div>
 
             <div class="flex items-center gap-3">
-                <label for="max_fret" class="text-sm text-base-content/60">Kapo-Bereich bis Bund</label>
+                <label for="max_fret" class="text-sm text-base-content/60">{{ 'capo_trainer.settings.max_fret_label'|trans }}</label>
                 <input type="number" min="1" max="11" name="max_fret" id="max_fret" value="{{ maxFret }}" class="input input-sm input-bordered w-20 font-mono">
             </div>
 
-            <button type="submit" class="btn btn-sm btn-neutral">Übernehmen</button>
+            <button type="submit" class="btn btn-sm btn-neutral">{{ 'capo_trainer.settings.apply'|trans }}</button>
         </form>
     </section>
 
-    <turbo-frame id="capo-trainer-practice" class="mt-6 block">
-        <section class="rounded-box border border-base-300 bg-base-200/60 p-6 sm:p-8">
-            {% if mode == '1' %}
-                <p class="text-sm text-base-content/60">Kapo im {{ fret }}. Bund, gegriffen wird {{ shapeId }}.</p>
-                <p class="mt-2 font-display text-xl font-semibold sm:text-2xl">Welcher Akkord klingt wirklich?</p>
-            {% elseif mode == '2' %}
-                <p class="text-sm text-base-content/60">Kapo im {{ fret }}. Bund, du willst {{ sounding }} hören.</p>
-                <p class="mt-2 font-display text-xl font-semibold sm:text-2xl">Welches Griffbild spielst du?</p>
-            {% else %}
-                <p class="text-sm text-base-content/60">Du greifst {{ shapeId }}, willst aber {{ sounding }} hören.</p>
-                <p class="mt-2 font-display text-xl font-semibold sm:text-2xl">Auf welchen Bund kommt der Kapo?</p>
-            {% endif %}
-
-            {% if not answered %}
-                <form method="post" action="{{ path('capo_trainer_answer') }}" class="mt-6">
-                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                    <div class="grid grid-cols-3 gap-2 sm:grid-cols-4" data-controller="quiz">
-                        {% for option in answerOptions %}
-                            <button
-                                    type="submit" name="guess" value="{{ option }}"
-                                    class="answer-btn" data-quiz-target="answer" data-action="quiz#choose"
-                            >{{ option }}</button>
-                        {% endfor %}
-                    </div>
-                </form>
-            {% else %}
-                <div class="alert {{ correct ? 'alert-success' : 'alert-error' }} mt-6">
+    <turbo-frame id="capo-trainer-practice" class="mt-4 block">
+        {% if toast %}
+            <div
+                    class="toast toast-top toast-center z-50 pointer-events-none transition-opacity duration-300"
+                    data-controller="toast"
+            >
+                <div class="alert {{ toast.correct ? 'alert-success' : 'alert-error' }} shadow-lg">
                     <span>
-                        {% if correct %}
-                            <strong>Richtig!</strong>
+                        {% if toast.correct %}
+                            {{ 'capo_trainer.practice.correct'|trans }}
                         {% else %}
-                            <strong>Leider falsch.</strong> Du hast <em>{{ guess }}</em> gewählt.
+                            {{ 'capo_trainer.practice.incorrect'|trans }}
+                            {{ 'capo_trainer.practice.would_have_been'|trans({
+                                '%expected%': toast.expected,
+                                '%shape%': toast.shapeId,
+                                '%fret%': toast.fret,
+                                '%sounding%': toast.sounding,
+                            }) }}
                         {% endif %}
-                        Richtig wäre <strong>{{ expected }}</strong> gewesen
-                        ({{ shapeId }} + Kapo {{ fret }} = {{ sounding }}).
                     </span>
                 </div>
-                <form method="post" action="{{ path('capo_trainer_next') }}" class="mt-4">
-                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                    <button type="submit" class="btn btn-primary">Nächste Frage</button>
-                </form>
+            </div>
+        {% endif %}
+
+        <section class="mt-12 text-center sm:mt-16">
+            {% if mode == '1' %}
+                <p class="text-xs uppercase tracking-widest text-base-content/40">{{ 'capo_trainer.practice.mode_1_hint'|trans({'%fret%': fret, '%shape%': shapeId}) }}</p>
+                <p class="mt-3 font-display text-xl font-semibold sm:text-2xl">{{ 'capo_trainer.practice.mode_1_prompt'|trans }}</p>
+            {% elseif mode == '2' %}
+                <p class="text-xs uppercase tracking-widest text-base-content/40">{{ 'capo_trainer.practice.mode_2_hint'|trans({'%fret%': fret, '%sounding%': sounding}) }}</p>
+                <p class="mt-3 font-display text-xl font-semibold sm:text-2xl">{{ 'capo_trainer.practice.mode_2_prompt'|trans }}</p>
+            {% else %}
+                <p class="text-xs uppercase tracking-widest text-base-content/40">{{ 'capo_trainer.practice.mode_3_hint'|trans({'%shape%': shapeId, '%sounding%': sounding}) }}</p>
+                <p class="mt-3 font-display text-xl font-semibold sm:text-2xl">{{ 'capo_trainer.practice.mode_3_prompt'|trans }}</p>
             {% endif %}
+
+            <form method="post" action="{{ path('capo_trainer_answer') }}" class="mt-10">
+                <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                <div class="flex flex-wrap justify-center gap-1 sm:gap-2" data-controller="quiz">
+                    {% for option in answerOptions %}
+                        <button
+                                type="submit" name="guess" value="{{ option }}"
+                                class="answer-btn" data-quiz-target="answer" data-action="quiz#choose"
+                        >{% if loop.index <= 10 %}<span class="keycap">{{ loop.index == 10 ? 0 : loop.index }}</span>{% endif %}{{ option }}</button>
+                    {% endfor %}
+                </div>
+            </form>
         </section>
 
-        <p class="mt-3 text-center font-mono text-sm text-base-content/50">
-            {{ summary.correct }} / {{ summary.attempts }} richtig &middot; Serie: {{ summary.streak }}
+        <p class="mt-10 text-center font-mono text-sm text-base-content/40">
+            {{ 'capo_trainer.practice.stats'|trans({'%correct%': summary.correct, '%attempts%': summary.attempts, '%streak%': summary.streak}) }}
         </p>
     </turbo-frame>
 {% endblock %}

@@ -20,13 +20,13 @@
         <div>
             <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ 'key_recognition.settings.presets_label'|trans }}</h2>
             <div class="mt-3 flex flex-wrap gap-2">
-                <button type="button" class="btn btn-sm btn-outline" data-action="key-settings#applyPreset" data-pairs="C-Dur,G-Dur,D-Dur,F-Dur,Bb-Dur">
+                <button type="button" class="btn btn-sm btn-ghost font-mono" data-action="key-settings#applyPreset" data-pairs="C-Dur,G-Dur,D-Dur,F-Dur,Bb-Dur">
                     {{ 'key_recognition.settings.preset_easy'|trans }}
                 </button>
-                <button type="button" class="btn btn-sm btn-outline" data-action="key-settings#applyPreset" data-pairs="C-Dur,G-Dur,D-Dur,A-Dur,E-Dur,F-Dur,Bb-Dur,Eb-Dur,Ab-Dur">
+                <button type="button" class="btn btn-sm btn-ghost font-mono" data-action="key-settings#applyPreset" data-pairs="C-Dur,G-Dur,D-Dur,A-Dur,E-Dur,F-Dur,Bb-Dur,Eb-Dur,Ab-Dur">
                     {{ 'key_recognition.settings.preset_medium'|trans }}
                 </button>
-                <button type="button" class="btn btn-sm btn-outline" data-action="key-settings#applyPreset" data-pairs="{{ pairs|map(p => p.majorId)|join(',') }}">
+                <button type="button" class="btn btn-sm btn-ghost font-mono" data-action="key-settings#applyPreset" data-pairs="{{ pairs|map(p => p.majorId)|join(',') }}">
                     {{ 'key_recognition.settings.preset_hard'|trans }}
                 </button>
             </div>
