@@ -188,6 +188,7 @@ final class KeyRecognitionController extends AbstractController
             'correctCount' => 0,
             'finished' => false,
             'current' => null,
+            'startedAt' => microtime(true),
         ]);
         $this->ensureCurrentQuestion($request);
     }
@@ -231,6 +232,7 @@ final class KeyRecognitionController extends AbstractController
     private function viewData(Request $request, ?array $toast = null): array
     {
         $round = $this->currentRound($request);
+        $startedAt = $round['startedAt'] ?? microtime(true);
 
         return [
             'pairs' => MusicKey::signaturePairs(),
@@ -241,8 +243,17 @@ final class KeyRecognitionController extends AbstractController
             'finished' => $round['finished'],
             'progression' => $round['current']['progression'] ?? null,
             'toast' => $toast,
+            'startedAtMs' => (int) round($startedAt * 1000),
+            'elapsedLabel' => $this->formatElapsed(microtime(true) - $startedAt),
             'csrfIntention' => self::CSRF_INTENTION,
         ];
+    }
+
+    private function formatElapsed(float $seconds): string
+    {
+        $whole = max(0, (int) round($seconds));
+
+        return sprintf('%d:%02d', intdiv($whole, 60), $whole % 60);
     }
 
     private function pairLabel(string $majorId): string

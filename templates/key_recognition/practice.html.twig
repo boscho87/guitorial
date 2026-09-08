@@ -10,10 +10,9 @@
 
     <turbo-frame id="key-recognition-practice" class="mt-4 block">
         {% if not finished %}
-            <div class="text-right">
-                <span class="font-mono text-sm text-base-content/40">
-                    {{ 'key_recognition.practice.question_progress'|trans({'%current%': questionIndex, '%total%': totalQuestions}) }}
-                </span>
+            <div class="flex items-center justify-end gap-3 font-mono text-sm text-base-content/40">
+                <span data-controller="timer" data-timer-start-value="{{ startedAtMs }}">0:00</span>
+                <span>{{ 'key_recognition.practice.question_progress'|trans({'%current%': questionIndex, '%total%': totalQuestions}) }}</span>
             </div>
         {% endif %}
 
@@ -41,6 +40,9 @@
                 <h2 class="text-xs uppercase tracking-widest text-base-content/40">{{ 'key_recognition.summary.title'|trans }}</h2>
                 <p class="mt-4 font-mono text-5xl font-semibold text-primary sm:text-6xl">
                     {{ 'key_recognition.summary.result'|trans({'%correct%': correctCount, '%total%': totalQuestions}) }}
+                </p>
+                <p class="mt-2 font-mono text-sm text-base-content/40">
+                    {{ 'key_recognition.summary.time'|trans({'%time%': elapsedLabel}) }}
                 </p>
                 <div class="mt-10 flex flex-wrap justify-center gap-3">
                     <form method="post" action="{{ path('key_recognition_restart') }}">
