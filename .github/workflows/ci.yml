@@ -16,6 +16,10 @@ jobs:
           php-version: '8.3'
           coverage: none
 
-      - run: composer install --no-interaction --no-progress --prefer-dist
+      # --no-scripts: the tests are pure PHP domain logic and never touch the
+      # database, so skip Symfony's post-install hooks (cache:clear etc.) -
+      # they'd otherwise try to reach a DATABASE_URL host that doesn't
+      # exist in CI.
+      - run: composer install --no-interaction --no-progress --prefer-dist --no-scripts
 
       - run: vendor/bin/phpunit

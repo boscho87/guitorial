@@ -5,7 +5,8 @@ const STORAGE_KEY = 'guitorial:key-recognition:settings';
 /**
  * Lets the "Tonart erkennen" settings screen remember the last-used
  * selection in the browser (so returning users don't have to reconfigure)
- * and offers one-click difficulty presets to lower the barrier to start.
+ * and offers one-click presets (grouped by how often each key actually
+ * comes up on guitar) to lower the barrier to start.
  */
 export default class extends Controller {
     static targets = ['checkbox', 'questionCount'];
