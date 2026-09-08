@@ -2,6 +2,7 @@ services:
   guitorial-webserver:
     container_name: guitorial-webserver
     image: 'nginx:alpine'
+    restart: unless-stopped
     working_dir: /application
     volumes:
       - '.:/application'
@@ -10,6 +11,7 @@ services:
       - '8080:80'
 
   guitorial-php-fpm:
+    restart: unless-stopped
     environment:
       PHP_CS_FIXER_IGNORE_ENV: true
       DATABASE_URL: 'mysql://guitorial:guitorial@guitorial-db:3306/guitorial?serverVersion=8.0&charset=utf8mb4'
@@ -29,6 +31,7 @@ services:
 
   guitorial-db:
     container_name: guitorial-db
+    restart: unless-stopped
     ports:
       - 9080:3306
     image: 'mysql:8.0'

@@ -1,0 +1,125 @@
+@import "tailwindcss";
+@source "../../templates/**/*.twig";
+@source "../../assets/**/*.js";
+
+@plugin "daisyui" {
+  themes: guitorial-light --default, guitorial-dark --prefersdark;
+}
+
+@plugin "daisyui/theme" {
+  name: "guitorial-light";
+  default: true;
+  color-scheme: light;
+
+  --color-base-100: #f5f3ed;
+  --color-base-200: #ede9df;
+  --color-base-300: #ddd7c8;
+  --color-base-content: #2b2a26;
+
+  --color-primary: #a8752e;
+  --color-primary-content: #fdf6ea;
+  --color-secondary: #3e6a82;
+  --color-secondary-content: #eaf3f7;
+  --color-accent: #5c7a52;
+  --color-accent-content: #eff4ec;
+  --color-neutral: #2b2a26;
+  --color-neutral-content: #f5f3ed;
+
+  --color-info: #3e6a82;
+  --color-info-content: #eaf3f7;
+  --color-success: #3f7d4f;
+  --color-success-content: #eef6ef;
+  --color-warning: #a8752e;
+  --color-warning-content: #fdf6ea;
+  --color-error: #b5533d;
+  --color-error-content: #fbeae6;
+
+  --radius-selector: 0.65rem;
+  --radius-field: 0.65rem;
+  --radius-box: 1rem;
+  --border: 1.5px;
+}
+
+@plugin "daisyui/theme" {
+  name: "guitorial-dark";
+  prefersdark: true;
+  color-scheme: dark;
+
+  --color-base-100: #1c211e;
+  --color-base-200: #242b26;
+  --color-base-300: #333c35;
+  --color-base-content: #e9e6dc;
+
+  --color-primary: #d9a555;
+  --color-primary-content: #241a0a;
+  --color-secondary: #7fa8c9;
+  --color-secondary-content: #0f1f28;
+  --color-accent: #8fb37e;
+  --color-accent-content: #14200f;
+  --color-neutral: #e9e6dc;
+  --color-neutral-content: #1c211e;
+
+  --color-info: #7fa8c9;
+  --color-info-content: #0f1f28;
+  --color-success: #6fbe7f;
+  --color-success-content: #16211a;
+  --color-warning: #d9a555;
+  --color-warning-content: #241a0a;
+  --color-error: #e08469;
+  --color-error-content: #2a1712;
+
+  --radius-selector: 0.65rem;
+  --radius-field: 0.65rem;
+  --radius-box: 1rem;
+  --border: 1.5px;
+}
+
+@theme {
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-display);
+  }
+}
+
+@layer components {
+  .chip-toggle {
+    @apply cursor-pointer select-none rounded-full border-2 border-base-300 bg-base-100 px-3.5 py-1.5 text-sm font-medium text-base-content/70 transition-colors;
+  }
+
+  .chip-toggle:hover {
+    @apply border-base-content/30;
+  }
+
+  input:checked + .chip-toggle {
+    @apply border-primary bg-primary text-primary-content;
+  }
+
+  input:checked + .chip-toggle.chip-toggle-minor {
+    @apply border-secondary bg-secondary text-secondary-content;
+  }
+
+  .answer-btn {
+    @apply rounded-2xl border-2 border-base-300 bg-base-100 px-4 py-3 font-mono text-base font-semibold text-base-content shadow-sm transition-all;
+  }
+
+  .answer-btn:hover {
+    @apply -translate-y-0.5 border-primary shadow-md;
+  }
+
+  .answer-btn:active {
+    @apply translate-y-0;
+  }
+
+  .answer-btn.quiz-answer-chosen {
+    @apply border-primary bg-primary text-primary-content;
+  }
+}

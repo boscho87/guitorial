@@ -3,22 +3,26 @@
 {% block title %}Guitorial – Übungstools{% endblock %}
 
 {% block body %}
-    <h1 class="h3 mb-1">Übungstools</h1>
-    <p class="text-body-secondary mb-4">Tonarten und Akkorde auswendig lernen – ein Tool pro Fertigkeit.</p>
+    <h1 class="font-display text-3xl font-semibold sm:text-4xl">Übungstools</h1>
+    <p class="mt-2 text-base-content/70">Tonarten und Akkorde auswendig lernen – ein Tool pro Fertigkeit.</p>
 
-    <div class="row row-cols-1 row-cols-md-2 g-3">
+    <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {% for tool in tools %}
-            <div class="col">
-                <a href="{{ path(tool.route) }}" class="card h-100 text-decoration-none text-body shadow-sm">
-                    <div class="card-body">
-                        <h2 class="h5 card-title">{{ tool.title }}</h2>
-                        <p class="card-text text-body-secondary">{{ tool.description }}</p>
-                    </div>
-                    <div class="card-footer bg-transparent border-0 pb-3">
-                        <span class="text-primary">Üben <i class="bi bi-arrow-right"></i></span>
-                    </div>
-                </a>
-            </div>
+            <a
+                    href="{{ path(tool.route) }}"
+                    class="group flex flex-col justify-between rounded-box border border-base-300 bg-base-200/60 p-5 transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-lg sm:p-6"
+            >
+                <div>
+                    <h2 class="font-display text-xl font-semibold">{{ tool.title }}</h2>
+                    <p class="mt-2 text-sm text-base-content/70">{{ tool.description }}</p>
+                </div>
+                <span class="mt-5 inline-flex items-center gap-1 text-sm font-medium text-primary">
+                    Üben
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="transition-transform group-hover:translate-x-1">
+                        <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            </a>
         {% endfor %}
     </div>
 {% endblock %}

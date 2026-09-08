@@ -3,51 +3,42 @@
 {% block title %}Tonart aus Akkorden erkennen – Guitorial{% endblock %}
 
 {% block body %}
-    <h1 class="h3 mb-3">Tonart aus Akkorden erkennen</h1>
+    <h1 class="font-display text-2xl font-semibold sm:text-3xl">Tonart aus Akkorden erkennen</h1>
 
-    <section class="mb-4">
-        <h2 class="h6 text-uppercase text-body-secondary">Tonarten auswählen</h2>
-        <form method="post" action="{{ path('key_recognition_settings') }}" data-turbo-frame="key-recognition-practice">
+    <section class="mt-6">
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/50">Tonarten auswählen</h2>
+        <form method="post" action="{{ path('key_recognition_settings') }}" data-turbo-frame="key-recognition-practice" class="mt-3">
             <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-            <div class="d-flex flex-wrap gap-2 mb-2">
+            <div class="flex flex-wrap gap-2">
                 {% for id, key in allKeys %}
-                    <input
-                            type="checkbox" class="btn-check" autocomplete="off"
-                            id="key-toggle-{{ id }}" name="keys[]" value="{{ id }}"
-                            {{ id in activeKeys ? 'checked' : '' }}
-                    >
-                    <label class="btn btn-sm {{ key.isMajor ? 'btn-outline-primary' : 'btn-outline-info' }}" for="key-toggle-{{ id }}">
-                        {{ id }}
-                    </label>
+                    <input type="checkbox" class="sr-only" id="key-toggle-{{ id }}" name="keys[]" value="{{ id }}" {{ id in activeKeys ? 'checked' : '' }}>
+                    <label class="chip-toggle {{ not key.isMajor ? 'chip-toggle-minor' : '' }}" for="key-toggle-{{ id }}">{{ id }}</label>
                 {% endfor %}
             </div>
-            <button type="submit" class="btn btn-sm btn-secondary">Übernehmen</button>
+            <button type="submit" class="btn btn-sm btn-neutral mt-4">Übernehmen</button>
         </form>
     </section>
 
-    <turbo-frame id="key-recognition-practice">
-        <section class="card">
-            <div class="card-body">
-                <p class="text-body-secondary mb-1">Welche Tonart passt zu dieser Akkordfolge?</p>
-                <p class="fs-2 fw-semibold mb-4">
-                    {{ progression|join(' – ') }}
-                </p>
+    <turbo-frame id="key-recognition-practice" class="mt-6 block">
+        <section class="rounded-box border border-base-300 bg-base-200/60 p-6 sm:p-8">
+            <p class="text-sm text-base-content/60">Welche Tonart passt zu dieser Akkordfolge?</p>
+            <p class="mt-2 font-mono text-2xl font-semibold sm:text-3xl">{{ progression|join(' – ') }}</p>
 
-                {% if not answered %}
-                    <form method="post" action="{{ path('key_recognition_answer') }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                        <div class="d-flex flex-wrap gap-2" data-controller="quiz">
-                            {% for id in activeKeys %}
-                                <button
-                                        type="submit" name="guess" value="{{ id }}"
-                                        class="btn btn-outline-light quiz-answer"
-                                        data-quiz-target="answer" data-action="quiz#choose"
-                                >{{ id }}</button>
-                            {% endfor %}
-                        </div>
-                    </form>
-                {% else %}
-                    <div class="alert {{ correct ? 'alert-success' : 'alert-danger' }}">
+            {% if not answered %}
+                <form method="post" action="{{ path('key_recognition_answer') }}" class="mt-6">
+                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                    <div class="grid grid-cols-2 gap-2 sm:grid-cols-3" data-controller="quiz">
+                        {% for id in activeKeys %}
+                            <button
+                                    type="submit" name="guess" value="{{ id }}"
+                                    class="answer-btn" data-quiz-target="answer" data-action="quiz#choose"
+                            >{{ id }}</button>
+                        {% endfor %}
+                    </div>
+                </form>
+            {% else %}
+                <div class="alert {{ correct ? 'alert-success' : 'alert-error' }} mt-6">
+                    <span>
                         {% if correct %}
                             <strong>Richtig!</strong>
                         {% else %}
@@ -55,17 +46,17 @@
                         {% endif %}
                         Die Tonart ist <strong>{{ correctKey.id }}</strong>
                         ({{ correctKey.signatureLabel }}): {{ correctKey.chordSummary }}.
-                    </div>
-                    <form method="post" action="{{ path('key_recognition_next') }}">
-                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                        <button type="submit" class="btn btn-primary">Nächste Frage</button>
-                    </form>
-                {% endif %}
-            </div>
+                    </span>
+                </div>
+                <form method="post" action="{{ path('key_recognition_next') }}" class="mt-4">
+                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                    <button type="submit" class="btn btn-primary">Nächste Frage</button>
+                </form>
+            {% endif %}
         </section>
 
-        <p class="text-body-secondary small mt-2">
-            {{ summary.correct }} / {{ summary.attempts }} richtig &middot; aktuelle Serie: {{ summary.streak }}
+        <p class="mt-3 text-center font-mono text-sm text-base-content/50">
+            {{ summary.correct }} / {{ summary.attempts }} richtig &middot; Serie: {{ summary.streak }}
         </p>
     </turbo-frame>
 {% endblock %}
