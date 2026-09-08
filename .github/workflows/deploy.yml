@@ -1,0 +1,35 @@
+name: Deploy
+
+# Fires once semantic-release (see release.yml) has actually published a
+# new GitHub release - not on every push, only on real version bumps.
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # No deployment target is configured yet - this is a placeholder so
+      # the release -> deploy chain is wired up and ready to fill in once
+      # there's a real server to push to. A typical SSH-based deploy for
+      # this Docker Compose setup would look like the commented-out step
+      # below (needs DEPLOY_HOST/DEPLOY_USER/DEPLOY_SSH_KEY repo secrets).
+      - name: Deploy (placeholder - no target configured)
+        run: |
+          echo "Release ${{ github.event.release.tag_name }} published."
+          echo "No deployment target is configured yet - add one below."
+
+      # - name: Deploy over SSH
+      #   uses: appleboy/ssh-action@v1
+      #   with:
+      #     host: ${{ secrets.DEPLOY_HOST }}
+      #     username: ${{ secrets.DEPLOY_USER }}
+      #     key: ${{ secrets.DEPLOY_SSH_KEY }}
+      #     script: |
+      #       cd /path/to/guitorial
+      #       git pull
+      #       docker compose up -d --build
+      #       docker compose exec -T guitorial-php-fpm bin/console doctrine:migrations:migrate --no-interaction

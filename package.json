@@ -7,6 +7,10 @@
   "devDependencies": {
     "@tailwindcss/cli": "latest",
     "tailwindcss": "latest",
-    "daisyui": "latest"
+    "daisyui": "latest",
+    "semantic-release": "latest",
+    "@semantic-release/changelog": "latest",
+    "@semantic-release/git": "latest",
+    "@semantic-release/github": "latest"
   }
 }
