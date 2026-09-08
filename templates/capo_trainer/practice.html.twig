@@ -3,7 +3,7 @@
 {% block title %}{{ 'capo_trainer.title'|trans }} – Guitorial{% endblock %}
 
 {% block body %}
-    <a href="{{ path('home_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/60 hover:text-primary">
+    <a href="{{ path('home_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         {{ 'nav.back_home'|trans }}
     </a>
@@ -15,7 +15,7 @@
             <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
 
             <div>
-                <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/40">{{ 'capo_trainer.settings.shapes_label'|trans }}</h2>
+                <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'capo_trainer.settings.shapes_label'|trans }}</h2>
                 <div class="mt-3 flex flex-wrap gap-2">
                     {% for id, shape in allShapes %}
                         <input type="checkbox" class="sr-only" id="shape-toggle-{{ id }}" name="shapes[]" value="{{ id }}" {{ id in activeShapes ? 'checked' : '' }}>
@@ -25,7 +25,7 @@
             </div>
 
             <div>
-                <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/40">{{ 'capo_trainer.settings.mode_label'|trans }}</h2>
+                <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'capo_trainer.settings.mode_label'|trans }}</h2>
                 <div class="mt-3 flex flex-wrap gap-2">
                     <input type="radio" class="sr-only" name="mode" id="mode-1" value="1" {{ mode == '1' ? 'checked' : '' }}>
                     <label class="chip-toggle" for="mode-1">{{ 'capo_trainer.settings.mode_1'|trans }}</label>
@@ -39,7 +39,7 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <label for="max_fret" class="text-sm text-base-content/60">{{ 'capo_trainer.settings.max_fret_label'|trans }}</label>
+                <label for="max_fret" class="text-sm text-base-content/70">{{ 'capo_trainer.settings.max_fret_label'|trans }}</label>
                 <input type="number" min="1" max="11" name="max_fret" id="max_fret" value="{{ maxFret }}" class="input input-sm input-bordered w-20 font-mono">
             </div>
 
@@ -73,13 +73,13 @@
 
         <section class="mt-12 text-center sm:mt-16">
             {% if mode == '1' %}
-                <p class="text-xs uppercase tracking-widest text-base-content/40">{{ 'capo_trainer.practice.mode_1_hint'|trans({'%fret%': fret, '%shape%': shapeId}) }}</p>
+                <p class="text-xs uppercase tracking-widest text-base-content/70">{{ 'capo_trainer.practice.mode_1_hint'|trans({'%fret%': fret, '%shape%': shapeId}) }}</p>
                 <p class="mt-3 font-display text-xl font-semibold sm:text-2xl">{{ 'capo_trainer.practice.mode_1_prompt'|trans }}</p>
             {% elseif mode == '2' %}
-                <p class="text-xs uppercase tracking-widest text-base-content/40">{{ 'capo_trainer.practice.mode_2_hint'|trans({'%fret%': fret, '%sounding%': sounding}) }}</p>
+                <p class="text-xs uppercase tracking-widest text-base-content/70">{{ 'capo_trainer.practice.mode_2_hint'|trans({'%fret%': fret, '%sounding%': sounding}) }}</p>
                 <p class="mt-3 font-display text-xl font-semibold sm:text-2xl">{{ 'capo_trainer.practice.mode_2_prompt'|trans }}</p>
             {% else %}
-                <p class="text-xs uppercase tracking-widest text-base-content/40">{{ 'capo_trainer.practice.mode_3_hint'|trans({'%shape%': shapeId, '%sounding%': sounding}) }}</p>
+                <p class="text-xs uppercase tracking-widest text-base-content/70">{{ 'capo_trainer.practice.mode_3_hint'|trans({'%shape%': shapeId, '%sounding%': sounding}) }}</p>
                 <p class="mt-3 font-display text-xl font-semibold sm:text-2xl">{{ 'capo_trainer.practice.mode_3_prompt'|trans }}</p>
             {% endif %}
 
@@ -96,7 +96,7 @@
             </form>
         </section>
 
-        <p class="mt-10 text-center font-mono text-sm text-base-content/40">
+        <p class="mt-10 text-center font-mono text-sm text-base-content/70">
             {{ 'capo_trainer.practice.stats'|trans({'%correct%': summary.correct, '%attempts%': summary.attempts, '%streak%': summary.streak}) }}
         </p>
     </turbo-frame>

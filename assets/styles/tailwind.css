@@ -97,12 +97,19 @@
 }
 
 @layer components {
+  /*
+   * Text opacities below are picked to clear WCAG AA contrast (4.5:1) in
+   * the light theme, the tighter of the two - dark has more headroom at
+   * the same alpha. Keep at or above /70 for anything that must be read
+   * (labels, answers); lower alpha is reserved for genuinely decorative
+   * hints (keycaps) where illegibility just means "no shortcut shown".
+   */
   .chip-toggle {
-    @apply cursor-pointer select-none rounded-md px-3 py-1.5 font-mono text-sm text-base-content/45 transition-colors;
+    @apply cursor-pointer select-none rounded-md px-3 py-1.5 font-mono text-sm text-base-content/70 transition-colors;
   }
 
   .chip-toggle:hover {
-    @apply text-base-content/80;
+    @apply text-base-content;
   }
 
   input:checked + .chip-toggle {
@@ -114,7 +121,7 @@
   }
 
   .answer-btn {
-    @apply rounded-md px-4 py-3 font-mono text-base font-medium text-base-content/55 transition-colors;
+    @apply rounded-md px-4 py-3 font-mono text-base font-medium text-base-content/80 transition-colors;
   }
 
   .answer-btn:hover {
@@ -126,6 +133,6 @@
   }
 
   .keycap {
-    @apply mr-2 text-base-content/25;
+    @apply mr-2 text-base-content/35;
   }
 }
