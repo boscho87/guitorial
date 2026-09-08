@@ -38,13 +38,13 @@ final class KeyRecognitionController extends AbstractController
     public function settings(Request $request): Response
     {
         $pairs = MusicKey::signaturePairs();
-        $round = $request->getSession()->get(self::SESSION_ROUND);
-        $activePairs = is_array($round) ? $round['pairs'] : array_column($pairs, 'majorId');
+        $round = $this->currentRound($request);
+        $activePairs = $round !== null ? $round['pairs'] : array_column($pairs, 'majorId');
 
         return $this->render('key_recognition/settings.html.twig', [
             'pairs' => $pairs,
             'activePairs' => $activePairs,
-            'questionCount' => is_array($round) ? $round['totalQuestions'] : self::DEFAULT_QUESTION_COUNT,
+            'questionCount' => $round !== null ? $round['totalQuestions'] : self::DEFAULT_QUESTION_COUNT,
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
     }
@@ -75,8 +75,7 @@ final class KeyRecognitionController extends AbstractController
     #[Route('/uebung', name: 'key_recognition_practice', methods: ['GET'])]
     public function practice(Request $request): Response
     {
-        $round = $request->getSession()->get(self::SESSION_ROUND);
-        if (!is_array($round)) {
+        if ($this->currentRound($request) === null) {
             return $this->redirectToRoute('key_recognition_settings');
         }
 
@@ -91,8 +90,8 @@ final class KeyRecognitionController extends AbstractController
         $this->assertValidCsrf($request);
 
         $session = $request->getSession();
-        $round = $session->get(self::SESSION_ROUND);
-        if (!is_array($round)) {
+        $round = $this->currentRound($request);
+        if ($round === null) {
             return $this->redirectToRoute('key_recognition_settings');
         }
 
@@ -123,8 +122,8 @@ final class KeyRecognitionController extends AbstractController
         $this->assertValidCsrf($request);
 
         $session = $request->getSession();
-        $round = $session->get(self::SESSION_ROUND);
-        if (!is_array($round)) {
+        $round = $this->currentRound($request);
+        if ($round === null) {
             return $this->redirectToRoute('key_recognition_settings');
         }
 
@@ -148,13 +147,37 @@ final class KeyRecognitionController extends AbstractController
     {
         $this->assertValidCsrf($request);
 
-        $round = $request->getSession()->get(self::SESSION_ROUND);
-        $pairs = is_array($round) ? $round['pairs'] : array_column(MusicKey::signaturePairs(), 'majorId');
-        $questionCount = is_array($round) ? $round['totalQuestions'] : self::DEFAULT_QUESTION_COUNT;
+        $round = $this->currentRound($request);
+        $pairs = $round !== null ? $round['pairs'] : array_column(MusicKey::signaturePairs(), 'majorId');
+        $questionCount = $round !== null ? $round['totalQuestions'] : self::DEFAULT_QUESTION_COUNT;
 
         $this->beginRound($request, $pairs, $questionCount);
 
         return $this->redirectToRoute('key_recognition_practice');
+    }
+
+    /**
+     * Reads the round from the session, discarding it if it's missing or
+     * from an older, incompatible session schema (e.g. after a deploy).
+     *
+     * @return array{pairs: string[], totalQuestions: int, questionIndex: int, correctCount: int, finished: bool, current: array{pairId: string, progression: string[], answered: bool, guess: ?string, correct: ?bool}|null}|null
+     */
+    private function currentRound(Request $request): ?array
+    {
+        $session = $request->getSession();
+        $round = $session->get(self::SESSION_ROUND);
+
+        if (
+            !is_array($round)
+            || !isset($round['pairs'], $round['totalQuestions'], $round['questionIndex'], $round['correctCount'], $round['finished'])
+            || !array_key_exists('current', $round)
+        ) {
+            $session->remove(self::SESSION_ROUND);
+
+            return null;
+        }
+
+        return $round;
     }
 
     private function assertValidCsrf(Request $request): void
@@ -182,8 +205,8 @@ final class KeyRecognitionController extends AbstractController
     private function ensureCurrentQuestion(Request $request): void
     {
         $session = $request->getSession();
-        $round = $session->get(self::SESSION_ROUND);
-        if (!is_array($round) || $round['current'] !== null) {
+        $round = $this->currentRound($request);
+        if ($round === null || $round['current'] !== null) {
             return;
         }
 
@@ -218,7 +241,7 @@ final class KeyRecognitionController extends AbstractController
      */
     private function viewData(Request $request): array
     {
-        $round = $request->getSession()->get(self::SESSION_ROUND);
+        $round = $this->currentRound($request);
         $current = $round['current'];
         $correctPair = null;
         $correctKey = null;
