@@ -1,35 +1,48 @@
 name: Deploy
 
-# Fires once semantic-release (see release.yml) has actually published a
-# new GitHub release - not on every push, only on real version bumps.
+# Push-to-deploy against the bare repo `guitorial.git` on the LAMP server.
+# The server's post-receive hook decides what happens per ref:
+#   refs/heads/main -> staging checkout + composer/migrate/cache
+#   refs/tags/*     -> production release (tags only, never plain commits)
 on:
-  release:
-    types: [published]
+  push:
+    branches: [main]
+    tags: ['v*']
+
+env:
+  DEPLOY_REMOTE: ssh://xlifep@www516.your-server.de:222/~/guitorial.git
 
 jobs:
-  deploy:
+  deploy-staging:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # No deployment target is configured yet - this is a placeholder so
-      # the release -> deploy chain is wired up and ready to fill in once
-      # there's a real server to push to. A typical SSH-based deploy for
-      # this Docker Compose setup would look like the commented-out step
-      # below (needs DEPLOY_HOST/DEPLOY_USER/DEPLOY_SSH_KEY repo secrets).
-      - name: Deploy (placeholder - no target configured)
-        run: |
-          echo "Release ${{ github.event.release.tag_name }} published."
-          echo "No deployment target is configured yet - add one below."
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      # - name: Deploy over SSH
-      #   uses: appleboy/ssh-action@v1
-      #   with:
-      #     host: ${{ secrets.DEPLOY_HOST }}
-      #     username: ${{ secrets.DEPLOY_USER }}
-      #     key: ${{ secrets.DEPLOY_SSH_KEY }}
-      #     script: |
-      #       cd /path/to/guitorial
-      #       git pull
-      #       docker compose up -d --build
-      #       docker compose exec -T guitorial-php-fpm bin/console doctrine:migrations:migrate --no-interaction
+      - name: Trust server host key
+        run: ssh-keyscan -p 222 www516.your-server.de >> ~/.ssh/known_hosts
+
+      - name: Push main to server (triggers staging deploy)
+        run: git push "$DEPLOY_REMOTE" HEAD:refs/heads/main
+
+  deploy-production:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Trust server host key
+        run: ssh-keyscan -p 222 www516.your-server.de >> ~/.ssh/known_hosts
+
+      - name: Push tag to server (triggers production release)
+        run: git push "$DEPLOY_REMOTE" "refs/tags/${{ github.ref_name }}"
