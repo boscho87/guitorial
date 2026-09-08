@@ -14,10 +14,10 @@ key_recognition:
   description: "Eine Akkordfolge lesen und die passende Tonart bestimmen."
   settings:
     intro: "Du liest eine kurze Akkordfolge und bestimmst die passende Tonart. Dur und die parallele Moll-Tonart klingen in den Akkorden gleich (z.B. C-Dur/A-Moll) und zählen daher als eine Antwort. Wähle unten aus, welche Tonarten in dieser Runde vorkommen sollen."
-    presets_label: "Schnellauswahl"
-    preset_easy: Einfach
-    preset_medium: Mittel
-    preset_hard: Schwer
+    presets_label: "Schnellauswahl nach Wichtigkeit"
+    preset_common: "Häufig (C, G, D, A, E)"
+    preset_extended: "Erweitert (+ F, Bb, Eb)"
+    preset_all: Alle
     keys_label: "Tonarten"
     question_count_label: "Anzahl Fragen"
     continue: Weiter

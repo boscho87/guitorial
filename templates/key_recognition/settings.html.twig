@@ -17,17 +17,20 @@
     >
         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
 
+        {# C/G/D/A/E cover ~80% of guitar songs (open-chord keys); F/Bb/Eb are
+           the next tier via barre chords; the rest (B/F#/Db/Ab) are rare
+           without a capo. #}
         <div>
             <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ 'key_recognition.settings.presets_label'|trans }}</h2>
             <div class="mt-3 flex flex-wrap gap-2">
-                <button type="button" class="btn btn-sm btn-ghost font-mono" data-action="key-settings#applyPreset" data-pairs="C-Dur,G-Dur,D-Dur,F-Dur,Bb-Dur">
-                    {{ 'key_recognition.settings.preset_easy'|trans }}
+                <button type="button" class="btn btn-sm btn-ghost font-mono" data-action="key-settings#applyPreset" data-pairs="C-Dur,G-Dur,D-Dur,A-Dur,E-Dur">
+                    {{ 'key_recognition.settings.preset_common'|trans }}
                 </button>
-                <button type="button" class="btn btn-sm btn-ghost font-mono" data-action="key-settings#applyPreset" data-pairs="C-Dur,G-Dur,D-Dur,A-Dur,E-Dur,F-Dur,Bb-Dur,Eb-Dur,Ab-Dur">
-                    {{ 'key_recognition.settings.preset_medium'|trans }}
+                <button type="button" class="btn btn-sm btn-ghost font-mono" data-action="key-settings#applyPreset" data-pairs="C-Dur,G-Dur,D-Dur,A-Dur,E-Dur,F-Dur,Bb-Dur,Eb-Dur">
+                    {{ 'key_recognition.settings.preset_extended'|trans }}
                 </button>
                 <button type="button" class="btn btn-sm btn-ghost font-mono" data-action="key-settings#applyPreset" data-pairs="{{ pairs|map(p => p.majorId)|join(',') }}">
-                    {{ 'key_recognition.settings.preset_hard'|trans }}
+                    {{ 'key_recognition.settings.preset_all'|trans }}
                 </button>
             </div>
         </div>

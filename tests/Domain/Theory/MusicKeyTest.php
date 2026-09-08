@@ -62,4 +62,47 @@ final class MusicKeyTest extends TestCase
         $fSharpPair = array_values(array_filter($pairs, static fn (array $p) => $p['majorId'] === 'F#-Dur'))[0];
         self::assertSame('D#m', $fSharpPair['minorId']);
     }
+
+    /**
+     * F#-Dur is the trickiest of the 12 majors to spell correctly: its
+     * 7th degree must be E# (not F), or the vii° chord and the relative
+     * minor (D#m, not Ebm) would come out wrong.
+     */
+    public function testFSharpMajorUsesEDoubleSharpSpellingNotF(): void
+    {
+        $key = MusicKey::get('F#-Dur');
+
+        self::assertSame(['F#', 'G#', 'A#', 'B', 'C#', 'D#', 'E#'], $key->scale);
+        self::assertSame('F#, G#m, A#m, B, C#, D#m, E#°', $key->chordSummary());
+    }
+
+    public function testDSharpMinorSharesFSharpMajorsChordsAndSignature(): void
+    {
+        $key = MusicKey::get('D#m');
+
+        self::assertSame('6 Kreuze (F#, C#, G#, D#, A#, E#)', $key->signatureLabel);
+        self::assertSame('D#m, E#°, F#, G#m, A#m, B, C#', $key->chordSummary());
+    }
+
+    public function testDbMajorRelativeMinorIsBbMinor(): void
+    {
+        $key = MusicKey::get('Db-Dur');
+
+        self::assertSame(['Db', 'Eb', 'F', 'Gb', 'Ab', 'Bb', 'C'], $key->scale);
+        self::assertSame('Bbm', array_values(array_filter(
+            MusicKey::signaturePairs(),
+            static fn (array $p) => $p['majorId'] === 'Db-Dur',
+        ))[0]['minorId']);
+    }
+
+    public function testEveryMajorKeyHasSevenUniqueLetterNames(): void
+    {
+        foreach (MusicKey::guitarPool() as $key) {
+            if (!$key->isMajor) {
+                continue;
+            }
+            $letters = array_map(static fn (string $note) => $note[0], $key->scale);
+            self::assertCount(7, array_unique($letters), "Key {$key->id} repeats a letter name: " . implode(' ', $key->scale));
+        }
+    }
 }
