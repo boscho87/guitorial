@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Guitorial – Übungstools{% endblock %}
+
+{% block body %}
+    <h1 class="h3 mb-1">Übungstools</h1>
+    <p class="text-body-secondary mb-4">Tonarten und Akkorde auswendig lernen – ein Tool pro Fertigkeit.</p>
+
+    <div class="row row-cols-1 row-cols-md-2 g-3">
+        {% for tool in tools %}
+            <div class="col">
+                <a href="{{ path(tool.route) }}" class="card h-100 text-decoration-none text-body shadow-sm">
+                    <div class="card-body">
+                        <h2 class="h5 card-title">{{ tool.title }}</h2>
+                        <p class="card-text text-body-secondary">{{ tool.description }}</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pb-3">
+                        <span class="text-primary">Üben <i class="bi bi-arrow-right"></i></span>
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

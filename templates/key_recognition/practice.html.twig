@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tonart aus Akkorden erkennen – Guitorial{% endblock %}
+
+{% block body %}
+    <h1 class="h3 mb-3">Tonart aus Akkorden erkennen</h1>
+
+    <section class="mb-4">
+        <h2 class="h6 text-uppercase text-body-secondary">Tonarten auswählen</h2>
+        <form method="post" action="{{ path('key_recognition_settings') }}" data-turbo-frame="key-recognition-practice">
+            <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+            <div class="d-flex flex-wrap gap-2 mb-2">
+                {% for id, key in allKeys %}
+                    <input
+                            type="checkbox" class="btn-check" autocomplete="off"
+                            id="key-toggle-{{ id }}" name="keys[]" value="{{ id }}"
+                            {{ id in activeKeys ? 'checked' : '' }}
+                    >
+                    <label class="btn btn-sm {{ key.isMajor ? 'btn-outline-primary' : 'btn-outline-info' }}" for="key-toggle-{{ id }}">
+                        {{ id }}
+                    </label>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-sm btn-secondary">Übernehmen</button>
+        </form>
+    </section>
+
+    <turbo-frame id="key-recognition-practice">
+        <section class="card">
+            <div class="card-body">
+                <p class="text-body-secondary mb-1">Welche Tonart passt zu dieser Akkordfolge?</p>
+                <p class="fs-2 fw-semibold mb-4">
+                    {{ progression|join(' – ') }}
+                </p>
+
+                {% if not answered %}
+                    <form method="post" action="{{ path('key_recognition_answer') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                        <div class="d-flex flex-wrap gap-2" data-controller="quiz">
+                            {% for id in activeKeys %}
+                                <button
+                                        type="submit" name="guess" value="{{ id }}"
+                                        class="btn btn-outline-light quiz-answer"
+                                        data-quiz-target="answer" data-action="quiz#choose"
+                                >{{ id }}</button>
+                            {% endfor %}
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="alert {{ correct ? 'alert-success' : 'alert-danger' }}">
+                        {% if correct %}
+                            <strong>Richtig!</strong>
+                        {% else %}
+                            <strong>Leider falsch.</strong> Du hast <em>{{ guess }}</em> gewählt.
+                        {% endif %}
+                        Die Tonart ist <strong>{{ correctKey.id }}</strong>
+                        ({{ correctKey.signatureLabel }}): {{ correctKey.chordSummary }}.
+                    </div>
+                    <form method="post" action="{{ path('key_recognition_next') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                        <button type="submit" class="btn btn-primary">Nächste Frage</button>
+                    </form>
+                {% endif %}
+            </div>
+        </section>
+
+        <p class="text-body-secondary small mt-2">
+            {{ summary.correct }} / {{ summary.attempts }} richtig &middot; aktuelle Serie: {{ summary.streak }}
+        </p>
+    </turbo-frame>
+{% endblock %}

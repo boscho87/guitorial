@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Kapo-Trainer – Guitorial{% endblock %}
+
+{% block body %}
+    <h1 class="h3 mb-3">Kapo-Trainer</h1>
+
+    <section class="mb-4">
+        <form method="post" action="{{ path('capo_trainer_settings') }}" data-turbo-frame="capo-trainer-practice">
+            <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+
+            <h2 class="h6 text-uppercase text-body-secondary">Shapes</h2>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                {% for id, shape in allShapes %}
+                    <input
+                            type="checkbox" class="btn-check" autocomplete="off"
+                            id="shape-toggle-{{ id }}" name="shapes[]" value="{{ id }}"
+                            {{ id in activeShapes ? 'checked' : '' }}
+                    >
+                    <label class="btn btn-sm {{ shape.isMinor ? 'btn-outline-info' : 'btn-outline-primary' }}" for="shape-toggle-{{ id }}">
+                        {{ id }}
+                    </label>
+                {% endfor %}
+            </div>
+
+            <h2 class="h6 text-uppercase text-body-secondary">Frage-Richtung</h2>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <input type="radio" class="btn-check" name="mode" id="mode-1" value="1" autocomplete="off" {{ mode == '1' ? 'checked' : '' }}>
+                <label class="btn btn-sm btn-outline-secondary" for="mode-1">Griffbild + Kapo → klingender Akkord</label>
+
+                <input type="radio" class="btn-check" name="mode" id="mode-2" value="2" autocomplete="off" {{ mode == '2' ? 'checked' : '' }}>
+                <label class="btn btn-sm btn-outline-secondary" for="mode-2">Zielakkord + Kapo → Griffbild</label>
+
+                <input type="radio" class="btn-check" name="mode" id="mode-3" value="3" autocomplete="off" {{ mode == '3' ? 'checked' : '' }}>
+                <label class="btn btn-sm btn-outline-secondary" for="mode-3">Griffbild + Zielakkord → Kapo-Bund</label>
+            </div>
+
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <label for="max_fret" class="text-body-secondary small">Kapo-Bereich bis Bund</label>
+                <input type="number" min="1" max="11" name="max_fret" id="max_fret" value="{{ maxFret }}" class="form-control form-control-sm" style="width: 5rem;">
+            </div>
+
+            <button type="submit" class="btn btn-sm btn-secondary">Übernehmen</button>
+        </form>
+    </section>
+
+    <turbo-frame id="capo-trainer-practice">
+        <section class="card">
+            <div class="card-body">
+                {% if mode == '1' %}
+                    <p class="text-body-secondary mb-1">Kapo im {{ fret }}. Bund, gegriffen wird {{ shapeId }}.</p>
+                    <p class="fs-2 fw-semibold mb-4">Welcher Akkord klingt wirklich?</p>
+                {% elseif mode == '2' %}
+                    <p class="text-body-secondary mb-1">Kapo im {{ fret }}. Bund, du willst {{ sounding }} hören.</p>
+                    <p class="fs-2 fw-semibold mb-4">Welches Griffbild spielst du?</p>
+                {% else %}
+                    <p class="text-body-secondary mb-1">Du greifst {{ shapeId }}, willst aber {{ sounding }} hören.</p>
+                    <p class="fs-2 fw-semibold mb-4">Auf welchen Bund kommt der Kapo?</p>
+                {% endif %}
+
+                {% if not answered %}
+                    <form method="post" action="{{ path('capo_trainer_answer') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                        <div class="d-flex flex-wrap gap-2" data-controller="quiz">
+                            {% for option in answerOptions %}
+                                <button
+                                        type="submit" name="guess" value="{{ option }}"
+                                        class="btn btn-outline-light quiz-answer"
+                                        data-quiz-target="answer" data-action="quiz#choose"
+                                >{{ option }}</button>
+                            {% endfor %}
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="alert {{ correct ? 'alert-success' : 'alert-danger' }}">
+                        {% if correct %}
+                            <strong>Richtig!</strong>
+                        {% else %}
+                            <strong>Leider falsch.</strong> Du hast <em>{{ guess }}</em> gewählt.
+                        {% endif %}
+                        Richtig wäre <strong>{{ expected }}</strong> gewesen
+                        ({{ shapeId }} + Kapo {{ fret }} = {{ sounding }}).
+                    </div>
+                    <form method="post" action="{{ path('capo_trainer_next') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                        <button type="submit" class="btn btn-primary">Nächste Frage</button>
+                    </form>
+                {% endif %}
+            </div>
+        </section>
+
+        <p class="text-body-secondary small mt-2">
+            {{ summary.correct }} / {{ summary.attempts }} richtig &middot; aktuelle Serie: {{ summary.streak }}
+        </p>
+    </turbo-frame>
+{% endblock %}
