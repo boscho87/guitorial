@@ -2,8 +2,8 @@ app:
   tagline: "Tonarten und Akkorde üben"
 
 home:
-  title: Übungstools
-  subtitle: "Tonarten und Akkorde auswendig lernen – ein Tool pro Fertigkeit."
+  title: Training
+  subtitle: "Musiktheorie und Gitarrenspiel gezielt üben – ein Tool pro Fertigkeit."
   cta: Üben
 
 nav:
@@ -47,9 +47,9 @@ harmonic_function:
     major_group: "Dur-Tonarten"
     minor_group: "Moll-Tonarten"
     mode_label: "Was wird abgefragt?"
+    mode_hint: "Mehrfachauswahl möglich – bei beiden wechselt es zufällig pro Frage."
     mode_chord: Akkorde
     mode_note: "Tonleiter-Töne"
-    mode_mixed: Gemischt
     question_count_label: "Anzahl Fragen"
     continue: Weiter
   practice:
@@ -89,3 +89,36 @@ capo_trainer:
     incorrect: "Leider falsch."
     would_have_been: "Richtig wäre %expected% gewesen (%shape% + Kapo %fret% = %sounding%)."
     stats: "%correct% / %attempts% richtig · Serie: %streak%"
+
+fretboard:
+  title: Griffbrett
+  description: "Töne, Saiten und Bünde auf dem Griffbrett auswendig lernen."
+  settings:
+    intro: "Du bestimmst, wie ein Ton, eine Saite und ein Bund zusammenhängen – z.B. \"Welcher Ton ist auf der A-Saite im 5. Bund?\". Saite 1 (e) und Saite 6 (E) klingen bei gleichem Bund identisch und zählen bei \"Welche Saite?\" beide als richtig."
+    strings_label: "Saiten"
+    mode_label: "Was wird abgefragt?"
+    mode_hint: "Mehrfachauswahl möglich – bei mehreren wechselt die Richtung zufällig pro Frage."
+    mode_note: "Saite + Bund → Ton"
+    mode_string: "Ton + Bund → Saite"
+    mode_fret: "Saite + Ton → Bund"
+    max_fret_label: "Bis Bund"
+    question_count_label: "Anzahl Fragen"
+    continue: Weiter
+  practice:
+    question_progress: "Frage %current% von %total%"
+    mode_note_hint: "Saite %string%, Bund %fret%."
+    mode_note_prompt: "Welcher Ton ist das?"
+    mode_string_hint: "Bund %fret%, Ton %note%."
+    mode_string_prompt: "Welche Saite ist das?"
+    mode_fret_hint: "Saite %string%, Ton %note%."
+    mode_fret_prompt: "Welcher Bund ist das?"
+    correct: "Richtig!"
+    incorrect: "Leider falsch."
+    your_guess: "Du hast %guess% gewählt."
+    correct_is: "Saite %string%, Bund %fret% = %note%."
+  summary:
+    title: "Runde beendet"
+    result: "%correct% von %total% richtig"
+    time: "in %time% Min."
+    restart: "Neue Runde"
+    change_settings: "Einstellungen ändern"

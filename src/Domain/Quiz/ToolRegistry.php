@@ -34,6 +34,12 @@ final class ToolRegistry
                 'description' => 'harmonic_function.description',
                 'route' => 'harmonic_function_settings',
             ],
+            [
+                'id' => 'griffbrett',
+                'title' => 'fretboard.title',
+                'description' => 'fretboard.description',
+                'route' => 'fretboard_settings',
+            ],
         ];
     }
 

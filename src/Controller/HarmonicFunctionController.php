@@ -27,7 +27,7 @@ final class HarmonicFunctionController extends AbstractController
     private const DEFAULT_QUESTION_COUNT = 10;
     private const MIN_QUESTION_COUNT = 3;
     private const MAX_QUESTION_COUNT = 30;
-    private const MODES = ['chord', 'note', 'mixed'];
+    private const ITEM_TYPES = ['chord', 'note'];
 
     public function __construct(private readonly QuizAttemptRepository $attempts)
     {
@@ -41,7 +41,7 @@ final class HarmonicFunctionController extends AbstractController
         return $this->render('harmonic_function/settings.html.twig', [
             'allKeys' => MusicKey::guitarPool(),
             'activeKeys' => $round !== null ? $round['keys'] : array_keys(MusicKey::guitarPool()),
-            'mode' => $round !== null ? $round['mode'] : 'chord',
+            'activeItemTypes' => $round !== null ? $round['itemTypes'] : self::ITEM_TYPES,
             'questionCount' => $round !== null ? $round['totalQuestions'] : self::DEFAULT_QUESTION_COUNT,
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
@@ -60,9 +60,9 @@ final class HarmonicFunctionController extends AbstractController
             $selected = array_keys(MusicKey::guitarPool());
         }
 
-        $mode = $request->request->get('mode', 'chord');
-        if (!in_array($mode, self::MODES, true)) {
-            $mode = 'chord';
+        $itemTypes = array_values(array_intersect($request->request->all('item_types'), self::ITEM_TYPES));
+        if ($itemTypes === []) {
+            $itemTypes = self::ITEM_TYPES;
         }
 
         $questionCount = max(
@@ -70,7 +70,7 @@ final class HarmonicFunctionController extends AbstractController
             min(self::MAX_QUESTION_COUNT, (int) $request->request->get('question_count', self::DEFAULT_QUESTION_COUNT)),
         );
 
-        $this->beginRound($request, $selected, $mode, $questionCount);
+        $this->beginRound($request, $selected, $itemTypes, $questionCount);
 
         return $this->redirectToRoute('harmonic_function_practice');
     }
@@ -142,10 +142,10 @@ final class HarmonicFunctionController extends AbstractController
 
         $round = $this->currentRound($request);
         $keys = $round !== null ? $round['keys'] : array_keys(MusicKey::guitarPool());
-        $mode = $round !== null ? $round['mode'] : 'chord';
+        $itemTypes = $round !== null ? $round['itemTypes'] : self::ITEM_TYPES;
         $questionCount = $round !== null ? $round['totalQuestions'] : self::DEFAULT_QUESTION_COUNT;
 
-        $this->beginRound($request, $keys, $mode, $questionCount);
+        $this->beginRound($request, $keys, $itemTypes, $questionCount);
 
         return $this->redirectToRoute('harmonic_function_practice');
     }
@@ -162,7 +162,7 @@ final class HarmonicFunctionController extends AbstractController
      * Reads the round from the session, discarding it if missing or from
      * an incompatible older schema.
      *
-     * @return array{keys: string[], mode: string, totalQuestions: int, questionIndex: int, correctCount: int, finished: bool, current: array{questionKey: string, keyId: string, degree: int, itemType: string, itemLabel: string, roman: string}|null, startedAt: float}|null
+     * @return array{keys: string[], itemTypes: string[], totalQuestions: int, questionIndex: int, correctCount: int, finished: bool, current: array{questionKey: string, keyId: string, degree: int, itemType: string, itemLabel: string, roman: string}|null, startedAt: float}|null
      */
     private function currentRound(Request $request): ?array
     {
@@ -171,7 +171,7 @@ final class HarmonicFunctionController extends AbstractController
 
         if (
             !is_array($round)
-            || !isset($round['keys'], $round['mode'], $round['totalQuestions'], $round['questionIndex'], $round['correctCount'], $round['finished'])
+            || !isset($round['keys'], $round['itemTypes'], $round['totalQuestions'], $round['questionIndex'], $round['correctCount'], $round['finished'])
             || !array_key_exists('current', $round)
         ) {
             $session->remove(self::SESSION_ROUND);
@@ -182,12 +182,15 @@ final class HarmonicFunctionController extends AbstractController
         return $round;
     }
 
-    /** @param string[] $keys */
-    private function beginRound(Request $request, array $keys, string $mode, int $questionCount): void
+    /**
+     * @param string[] $keys
+     * @param string[] $itemTypes
+     */
+    private function beginRound(Request $request, array $keys, array $itemTypes, int $questionCount): void
     {
         $request->getSession()->set(self::SESSION_ROUND, [
             'keys' => $keys,
-            'mode' => $mode,
+            'itemTypes' => $itemTypes,
             'totalQuestions' => $questionCount,
             'questionIndex' => 1,
             'correctCount' => 0,
@@ -220,9 +223,7 @@ final class HarmonicFunctionController extends AbstractController
 
         $chord = MusicKey::get($keyId)->diatonicChords()[$degree - 1];
 
-        $itemType = $round['mode'] === 'mixed'
-            ? (random_int(0, 1) === 0 ? 'chord' : 'note')
-            : $round['mode'];
+        $itemType = $round['itemTypes'][array_rand($round['itemTypes'])];
         $itemLabel = $itemType === 'chord' ? $chord['name'] : $chord['note'];
 
         $round['current'] = [
@@ -254,7 +255,7 @@ final class HarmonicFunctionController extends AbstractController
         return [
             'allKeys' => MusicKey::guitarPool(),
             'activeKeys' => $round['keys'],
-            'mode' => $round['mode'],
+            'activeItemTypes' => $round['itemTypes'],
             'questionIndex' => $round['questionIndex'],
             'totalQuestions' => $round['totalQuestions'],
             'correctCount' => $round['correctCount'],

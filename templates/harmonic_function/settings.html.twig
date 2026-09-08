@@ -66,24 +66,19 @@
 
         <div>
             <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'harmonic_function.settings.mode_label'|trans }}</h2>
+            <p class="mt-1 text-xs text-base-content/70">{{ 'harmonic_function.settings.mode_hint'|trans }}</p>
             <div class="mt-3 flex flex-wrap gap-2">
                 <input
-                        type="radio" class="sr-only" name="mode" id="hf-mode-chord" value="chord" {{ mode == 'chord' ? 'checked' : '' }}
-                        data-key-settings-target="modeRadio" data-action="change->key-settings#persist"
+                        type="checkbox" class="sr-only" name="item_types[]" id="hf-type-chord" value="chord" {{ 'chord' in activeItemTypes ? 'checked' : '' }}
+                        data-key-settings-target="checkbox" data-action="change->key-settings#persist"
                 >
-                <label class="chip-toggle" for="hf-mode-chord">{{ 'harmonic_function.settings.mode_chord'|trans }}</label>
+                <label class="chip-toggle" for="hf-type-chord">{{ 'harmonic_function.settings.mode_chord'|trans }}</label>
 
                 <input
-                        type="radio" class="sr-only" name="mode" id="hf-mode-note" value="note" {{ mode == 'note' ? 'checked' : '' }}
-                        data-key-settings-target="modeRadio" data-action="change->key-settings#persist"
+                        type="checkbox" class="sr-only" name="item_types[]" id="hf-type-note" value="note" {{ 'note' in activeItemTypes ? 'checked' : '' }}
+                        data-key-settings-target="checkbox" data-action="change->key-settings#persist"
                 >
-                <label class="chip-toggle" for="hf-mode-note">{{ 'harmonic_function.settings.mode_note'|trans }}</label>
-
-                <input
-                        type="radio" class="sr-only" name="mode" id="hf-mode-mixed" value="mixed" {{ mode == 'mixed' ? 'checked' : '' }}
-                        data-key-settings-target="modeRadio" data-action="change->key-settings#persist"
-                >
-                <label class="chip-toggle" for="hf-mode-mixed">{{ 'harmonic_function.settings.mode_mixed'|trans }}</label>
+                <label class="chip-toggle" for="hf-type-note">{{ 'harmonic_function.settings.mode_note'|trans }}</label>
             </div>
         </div>
 
