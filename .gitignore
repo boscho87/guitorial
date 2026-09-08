@@ -21,4 +21,5 @@
 
 ###> tailwind ###
 /node_modules/
+/.npm-cache/
 ###< tailwind ###

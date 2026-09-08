@@ -18,16 +18,30 @@ final class ToolRegistry
         return [
             [
                 'id' => 'tonart-erkennen',
-                'title' => 'Tonart aus Akkorden erkennen',
-                'description' => 'Eine Akkordfolge lesen und die passende Tonart bestimmen.',
-                'route' => 'key_recognition_practice',
+                'title' => 'key_recognition.title',
+                'description' => 'key_recognition.description',
+                'route' => 'key_recognition_settings',
             ],
             [
                 'id' => 'kapo-trainer',
-                'title' => 'Kapo-Trainer',
-                'description' => 'Griffbild, Kapo-Bund und klingenden Akkord ineinander umrechnen.',
+                'title' => 'capo_trainer.title',
+                'description' => 'capo_trainer.description',
                 'route' => 'capo_trainer_practice',
             ],
         ];
+    }
+
+    /**
+     * @return array{id: string, title: string, description: string, route: string}
+     */
+    public function get(string $id): array
+    {
+        foreach ($this->all() as $tool) {
+            if ($tool['id'] === $id) {
+                return $tool;
+            }
+        }
+
+        throw new \InvalidArgumentException(sprintf('Unknown tool "%s".', $id));
     }
 }

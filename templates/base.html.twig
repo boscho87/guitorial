@@ -15,7 +15,7 @@
         {% block importmap %}{{ importmap('app') }}{% endblock %}
     {% endblock %}
 </head>
-<body class="flex min-h-screen flex-col bg-base-100 text-base-content">
+<body class="flex min-h-screen flex-col text-base-content">
 <header class="border-b border-base-300">
     <nav class="mx-auto flex max-w-3xl items-center px-4 py-4 sm:px-6">
         <a class="font-display flex items-center gap-2 text-lg font-semibold" href="{{ path('home_index') }}">
@@ -36,7 +36,7 @@
     {% block body %}{% endblock %}
 </main>
 <footer class="border-t border-base-300 py-5 text-center text-sm text-base-content/60">
-    Guitorial &ndash; Tonarten &amp; Akkorde üben
+    Guitorial &ndash; {{ 'app.tagline'|trans }}
 </footer>
 </body>
 </html>

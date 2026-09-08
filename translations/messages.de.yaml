@@ -1,0 +1,41 @@
+app:
+  tagline: "Tonarten und Akkorde üben"
+
+home:
+  title: Übungstools
+  subtitle: "Tonarten und Akkorde auswendig lernen – ein Tool pro Fertigkeit."
+  cta: Üben
+
+nav:
+  back_home: Zurück
+
+key_recognition:
+  title: Tonart erkennen
+  description: "Eine Akkordfolge lesen und die passende Tonart bestimmen."
+  settings:
+    intro: "Du liest eine kurze Akkordfolge und bestimmst die passende Tonart. Dur und die parallele Moll-Tonart klingen in den Akkorden gleich (z.B. C-Dur/A-Moll) und zählen daher als eine Antwort. Wähle unten aus, welche Tonarten in dieser Runde vorkommen sollen."
+    presets_label: "Schnellauswahl"
+    preset_easy: Einfach
+    preset_medium: Mittel
+    preset_hard: Schwer
+    keys_label: "Tonarten"
+    question_count_label: "Anzahl Fragen"
+    continue: Weiter
+  practice:
+    question_progress: "Frage %current% von %total%"
+    prompt: "Welche Tonart passt zu dieser Akkordfolge?"
+    correct: "Richtig!"
+    incorrect: "Leider falsch."
+    your_guess: "Du hast %guess% gewählt."
+    key_is: "Die Tonart ist"
+    next: "Nächste Frage"
+    show_result: Ergebnis
+  summary:
+    title: "Runde beendet"
+    result: "%correct% von %total% richtig"
+    restart: "Neue Runde"
+    change_settings: "Einstellungen ändern"
+
+capo_trainer:
+  title: Kapo-Trainer
+  description: "Griffbild, Kapo-Bund und klingenden Akkord ineinander umrechnen."

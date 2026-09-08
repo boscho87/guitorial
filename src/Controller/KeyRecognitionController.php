@@ -12,47 +12,77 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * A "pair" here is a relative major/minor signature group (e.g. C-Dur/Am -
+ * same notes, same key signature). Since a chord progression alone can't
+ * reliably tell you which of the two you're "in", the exercise asks for
+ * the pair (labelled by its major name), not a specific major-or-minor
+ * tonic - but still generates the progression from either variant for
+ * variety, and shows the shared chords/signature in the feedback.
+ */
 #[Route('/tonart-erkennen')]
 final class KeyRecognitionController extends AbstractController
 {
     private const TOOL = 'tonart-erkennen';
-    private const SESSION_KEYS = 'key_recognition.active_keys';
-    private const SESSION_CURRENT = 'key_recognition.current';
+    private const SESSION_ROUND = 'key_recognition.round';
     private const CSRF_INTENTION = 'key_recognition';
+    private const DEFAULT_QUESTION_COUNT = 10;
+    private const MIN_QUESTION_COUNT = 3;
+    private const MAX_QUESTION_COUNT = 30;
 
     public function __construct(private readonly QuizAttemptRepository $attempts)
     {
     }
 
-    #[Route('', name: 'key_recognition_practice', methods: ['GET'])]
-    public function practice(Request $request): Response
+    #[Route('', name: 'key_recognition_settings', methods: ['GET'])]
+    public function settings(Request $request): Response
     {
-        $activeKeys = $this->activeKeys($request);
-        $this->ensureCurrentQuestion($request, $activeKeys);
+        $pairs = MusicKey::signaturePairs();
+        $round = $request->getSession()->get(self::SESSION_ROUND);
+        $activePairs = is_array($round) ? $round['pairs'] : array_column($pairs, 'majorId');
 
-        return $this->render('key_recognition/practice.html.twig', $this->viewData($request, $activeKeys));
+        return $this->render('key_recognition/settings.html.twig', [
+            'pairs' => $pairs,
+            'activePairs' => $activePairs,
+            'questionCount' => is_array($round) ? $round['totalQuestions'] : self::DEFAULT_QUESTION_COUNT,
+            'csrfIntention' => self::CSRF_INTENTION,
+        ]);
     }
 
-    #[Route('/einstellungen', name: 'key_recognition_settings', methods: ['POST'])]
-    public function settings(Request $request): Response
+    #[Route('/start', name: 'key_recognition_start', methods: ['POST'])]
+    public function start(Request $request): Response
     {
         $this->assertValidCsrf($request);
 
         $selected = array_values(array_intersect(
-            $request->request->all('keys'),
-            array_keys(MusicKey::guitarPool()),
+            $request->request->all('pairs'),
+            array_column(MusicKey::signaturePairs(), 'majorId'),
         ));
         if ($selected === []) {
-            $selected = array_keys(MusicKey::guitarPool());
+            $selected = array_column(MusicKey::signaturePairs(), 'majorId');
         }
 
-        $session = $request->getSession();
-        $session->set(self::SESSION_KEYS, $selected);
-        $session->remove(self::SESSION_CURRENT);
+        $questionCount = max(
+            self::MIN_QUESTION_COUNT,
+            min(self::MAX_QUESTION_COUNT, (int) $request->request->get('question_count', self::DEFAULT_QUESTION_COUNT)),
+        );
 
-        $this->ensureCurrentQuestion($request, $selected);
+        $this->beginRound($request, $selected, $questionCount);
 
-        return $this->render('key_recognition/practice.html.twig', $this->viewData($request, $selected));
+        return $this->redirectToRoute('key_recognition_practice');
+    }
+
+    #[Route('/uebung', name: 'key_recognition_practice', methods: ['GET'])]
+    public function practice(Request $request): Response
+    {
+        $round = $request->getSession()->get(self::SESSION_ROUND);
+        if (!is_array($round)) {
+            return $this->redirectToRoute('key_recognition_settings');
+        }
+
+        $this->ensureCurrentQuestion($request);
+
+        return $this->render('key_recognition/practice.html.twig', $this->viewData($request));
     }
 
     #[Route('/antwort', name: 'key_recognition_answer', methods: ['POST'])]
@@ -60,24 +90,31 @@ final class KeyRecognitionController extends AbstractController
     {
         $this->assertValidCsrf($request);
 
-        $activeKeys = $this->activeKeys($request);
         $session = $request->getSession();
-        $current = $session->get(self::SESSION_CURRENT);
+        $round = $session->get(self::SESSION_ROUND);
+        if (!is_array($round)) {
+            return $this->redirectToRoute('key_recognition_settings');
+        }
 
+        $current = $round['current'];
         $guess = (string) $request->request->get('guess');
-        $correctId = is_array($current) ? ($current['keyId'] ?? null) : null;
-        $isCorrect = $correctId !== null && $guess === $correctId;
+        $correctPairId = $current['pairId'] ?? null;
+        $isCorrect = $correctPairId !== null && $guess === $correctPairId;
 
-        if ($correctId !== null && !($current['answered'] ?? false)) {
-            $this->attempts->record(self::TOOL, $correctId, $isCorrect);
+        if ($correctPairId !== null && !($current['answered'] ?? false)) {
+            $this->attempts->record(self::TOOL, $correctPairId, $isCorrect);
+            if ($isCorrect) {
+                $round['correctCount']++;
+            }
         }
 
         $current['answered'] = true;
         $current['guess'] = $guess;
         $current['correct'] = $isCorrect;
-        $session->set(self::SESSION_CURRENT, $current);
+        $round['current'] = $current;
+        $session->set(self::SESSION_ROUND, $round);
 
-        return $this->render('key_recognition/practice.html.twig', $this->viewData($request, $activeKeys));
+        return $this->render('key_recognition/practice.html.twig', $this->viewData($request));
     }
 
     #[Route('/naechste', name: 'key_recognition_next', methods: ['POST'])]
@@ -85,11 +122,39 @@ final class KeyRecognitionController extends AbstractController
     {
         $this->assertValidCsrf($request);
 
-        $activeKeys = $this->activeKeys($request);
-        $request->getSession()->remove(self::SESSION_CURRENT);
-        $this->ensureCurrentQuestion($request, $activeKeys);
+        $session = $request->getSession();
+        $round = $session->get(self::SESSION_ROUND);
+        if (!is_array($round)) {
+            return $this->redirectToRoute('key_recognition_settings');
+        }
 
-        return $this->render('key_recognition/practice.html.twig', $this->viewData($request, $activeKeys));
+        if ($round['questionIndex'] >= $round['totalQuestions']) {
+            $round['finished'] = true;
+            $session->set(self::SESSION_ROUND, $round);
+
+            return $this->render('key_recognition/practice.html.twig', $this->viewData($request));
+        }
+
+        $round['questionIndex']++;
+        $round['current'] = null;
+        $session->set(self::SESSION_ROUND, $round);
+        $this->ensureCurrentQuestion($request);
+
+        return $this->render('key_recognition/practice.html.twig', $this->viewData($request));
+    }
+
+    #[Route('/neue-runde', name: 'key_recognition_restart', methods: ['POST'])]
+    public function restart(Request $request): Response
+    {
+        $this->assertValidCsrf($request);
+
+        $round = $request->getSession()->get(self::SESSION_ROUND);
+        $pairs = is_array($round) ? $round['pairs'] : array_column(MusicKey::signaturePairs(), 'majorId');
+        $questionCount = is_array($round) ? $round['totalQuestions'] : self::DEFAULT_QUESTION_COUNT;
+
+        $this->beginRound($request, $pairs, $questionCount);
+
+        return $this->redirectToRoute('key_recognition_practice');
     }
 
     private function assertValidCsrf(Request $request): void
@@ -100,63 +165,99 @@ final class KeyRecognitionController extends AbstractController
         }
     }
 
-    /** @return string[] */
-    private function activeKeys(Request $request): array
+    /** @param string[] $pairs */
+    private function beginRound(Request $request, array $pairs, int $questionCount): void
     {
-        $session = $request->getSession();
-        $stored = $session->get(self::SESSION_KEYS);
-        if (is_array($stored) && $stored !== []) {
-            return $stored;
-        }
-
-        $all = array_keys(MusicKey::guitarPool());
-        $session->set(self::SESSION_KEYS, $all);
-
-        return $all;
+        $request->getSession()->set(self::SESSION_ROUND, [
+            'pairs' => $pairs,
+            'totalQuestions' => $questionCount,
+            'questionIndex' => 1,
+            'correctCount' => 0,
+            'finished' => false,
+            'current' => null,
+        ]);
+        $this->ensureCurrentQuestion($request);
     }
 
-    /** @param string[] $activeKeys */
-    private function ensureCurrentQuestion(Request $request, array $activeKeys): void
+    private function ensureCurrentQuestion(Request $request): void
     {
         $session = $request->getSession();
-        $current = $session->get(self::SESSION_CURRENT);
-        if (is_array($current) && in_array($current['keyId'] ?? null, $activeKeys, true)) {
+        $round = $session->get(self::SESSION_ROUND);
+        if (!is_array($round) || $round['current'] !== null) {
             return;
         }
 
         $wrongCounts = $this->attempts->wrongCountsByQuestionKey(self::TOOL);
-        $keyId = WeightedQuestionPicker::pick($activeKeys, $wrongCounts);
-        $key = MusicKey::get($keyId);
+        $pairId = WeightedQuestionPicker::pick($round['pairs'], $wrongCounts);
 
-        $session->set(self::SESSION_CURRENT, [
-            'keyId' => $keyId,
-            'progression' => $this->buildProgression($key),
+        $pair = null;
+        foreach (MusicKey::signaturePairs() as $candidate) {
+            if ($candidate['majorId'] === $pairId) {
+                $pair = $candidate;
+                break;
+            }
+        }
+
+        // Randomly generate from the major or minor variant for variety -
+        // the answer is the pair either way, so it doesn't change what's tested.
+        $variantId = random_int(0, 1) === 0 ? $pair['majorId'] : $pair['minorId'];
+        $variant = MusicKey::get($variantId);
+
+        $round['current'] = [
+            'pairId' => $pairId,
+            'progression' => $this->buildProgression($variant),
             'answered' => false,
             'guess' => null,
             'correct' => null,
-        ]);
+        ];
+        $session->set(self::SESSION_ROUND, $round);
     }
 
     /**
-     * @param string[] $activeKeys
      * @return array<string, mixed>
      */
-    private function viewData(Request $request, array $activeKeys): array
+    private function viewData(Request $request): array
     {
-        $current = $request->getSession()->get(self::SESSION_CURRENT);
-        $correctKey = MusicKey::get($current['keyId']);
+        $round = $request->getSession()->get(self::SESSION_ROUND);
+        $current = $round['current'];
+        $correctPair = null;
+        $correctKey = null;
+        if ($current !== null) {
+            $correctKey = MusicKey::get($current['pairId']);
+            foreach (MusicKey::signaturePairs() as $candidate) {
+                if ($candidate['majorId'] === $current['pairId']) {
+                    $correctPair = $candidate;
+                    break;
+                }
+            }
+        }
 
         return [
-            'allKeys' => MusicKey::guitarPool(),
-            'activeKeys' => $activeKeys,
-            'progression' => $current['progression'],
-            'answered' => $current['answered'],
-            'guess' => $current['guess'],
-            'correct' => $current['correct'],
+            'pairs' => MusicKey::signaturePairs(),
+            'activePairs' => $round['pairs'],
+            'questionIndex' => $round['questionIndex'],
+            'totalQuestions' => $round['totalQuestions'],
+            'correctCount' => $round['correctCount'],
+            'finished' => $round['finished'],
+            'progression' => $current['progression'] ?? null,
+            'answered' => $current['answered'] ?? false,
+            'guessLabel' => isset($current['guess']) ? $this->pairLabel($current['guess']) : null,
+            'correct' => $current['correct'] ?? null,
+            'correctPair' => $correctPair,
             'correctKey' => $correctKey,
-            'summary' => $this->attempts->summary(self::TOOL),
             'csrfIntention' => self::CSRF_INTENTION,
         ];
+    }
+
+    private function pairLabel(string $majorId): string
+    {
+        foreach (MusicKey::signaturePairs() as $pair) {
+            if ($pair['majorId'] === $majorId) {
+                return $pair['label'];
+            }
+        }
+
+        return $majorId;
     }
 
     /** @return string[] */

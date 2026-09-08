@@ -83,6 +83,12 @@
 @layer base {
   body {
     font-family: var(--font-sans);
+    background:
+      radial-gradient(ellipse 1100px 600px at 50% -12%, color-mix(in oklab, var(--color-primary) 10%, var(--color-base-200)) 0%, transparent 60%),
+      radial-gradient(ellipse 900px 700px at 100% 100%, color-mix(in oklab, var(--color-base-300) 55%, var(--color-base-100)) 0%, transparent 55%),
+      var(--color-base-100);
+    background-attachment: fixed;
+    min-height: 100vh;
   }
 
   h1, h2, h3, .font-display {

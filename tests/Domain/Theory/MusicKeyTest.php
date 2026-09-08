@@ -44,4 +44,22 @@ final class MusicKeyTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         MusicKey::get('H-Dur');
     }
+
+    public function testFullPoolHas24Keys(): void
+    {
+        self::assertCount(24, MusicKey::guitarPool());
+    }
+
+    public function testSignaturePairsHas12PairsWithMatchingSignatures(): void
+    {
+        $pairs = MusicKey::signaturePairs();
+        self::assertCount(12, $pairs);
+
+        $cMajorPair = array_values(array_filter($pairs, static fn (array $p) => $p['majorId'] === 'C-Dur'))[0];
+        self::assertSame('Am', $cMajorPair['minorId']);
+        self::assertSame('C-Dur/A-Moll', $cMajorPair['label']);
+
+        $fSharpPair = array_values(array_filter($pairs, static fn (array $p) => $p['majorId'] === 'F#-Dur'))[0];
+        self::assertSame('D#m', $fSharpPair['minorId']);
+    }
 }

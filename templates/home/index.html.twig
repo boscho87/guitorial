@@ -1,10 +1,10 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Guitorial – Übungstools{% endblock %}
+{% block title %}Guitorial – {{ 'home.title'|trans }}{% endblock %}
 
 {% block body %}
-    <h1 class="font-display text-3xl font-semibold sm:text-4xl">Übungstools</h1>
-    <p class="mt-2 text-base-content/70">Tonarten und Akkorde auswendig lernen – ein Tool pro Fertigkeit.</p>
+    <h1 class="font-display text-3xl font-semibold sm:text-4xl">{{ 'home.title'|trans }}</h1>
+    <p class="mt-2 text-base-content/70">{{ 'home.subtitle'|trans }}</p>
 
     <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {% for tool in tools %}
@@ -13,11 +13,11 @@
                     class="group flex flex-col justify-between rounded-box border border-base-300 bg-base-200/60 p-5 transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-lg sm:p-6"
             >
                 <div>
-                    <h2 class="font-display text-xl font-semibold">{{ tool.title }}</h2>
-                    <p class="mt-2 text-sm text-base-content/70">{{ tool.description }}</p>
+                    <h2 class="font-display text-xl font-semibold">{{ tool.title|trans }}</h2>
+                    <p class="mt-2 text-sm text-base-content/70">{{ tool.description|trans }}</p>
                 </div>
                 <span class="mt-5 inline-flex items-center gap-1 text-sm font-medium text-primary">
-                    Üben
+                    {{ 'home.cta'|trans }}
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="transition-transform group-hover:translate-x-1">
                         <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
