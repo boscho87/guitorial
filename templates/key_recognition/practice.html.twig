@@ -45,7 +45,7 @@
                     {{ 'key_recognition.summary.time'|trans({'%time%': elapsedLabel}) }}
                 </p>
                 <div class="mt-10 flex flex-wrap justify-center gap-3">
-                    <form method="post" action="{{ path('key_recognition_restart') }}">
+                    <form method="post" action="{{ path('key_recognition_restart') }}" data-controller="restart-shortcut">
                         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
                         <button type="submit" class="btn btn-primary">{{ 'key_recognition.summary.restart'|trans }}</button>
                     </form>
