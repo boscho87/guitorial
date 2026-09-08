@@ -84,6 +84,12 @@ final class KeyRecognitionController extends AbstractController
         return $this->render('key_recognition/practice.html.twig', $this->viewData($request));
     }
 
+    /**
+     * Grades the answer and immediately advances to the next question (or
+     * the summary) in the same response - the result is shown as a toast
+     * alongside the new question rather than as a separate click-through
+     * step, so practicing stays a single tap per question.
+     */
     #[Route('/antwort', name: 'key_recognition_answer', methods: ['POST'])]
     public function answer(Request $request): Response
     {
@@ -95,51 +101,35 @@ final class KeyRecognitionController extends AbstractController
             return $this->redirectToRoute('key_recognition_settings');
         }
 
-        $current = $round['current'];
+        $correctPairId = $round['current']['pairId'] ?? null;
         $guess = (string) $request->request->get('guess');
-        $correctPairId = $current['pairId'] ?? null;
         $isCorrect = $correctPairId !== null && $guess === $correctPairId;
 
-        if ($correctPairId !== null && !($current['answered'] ?? false)) {
+        $toast = null;
+        if ($correctPairId !== null) {
             $this->attempts->record(self::TOOL, $correctPairId, $isCorrect);
             if ($isCorrect) {
                 $round['correctCount']++;
             }
-        }
-
-        $current['answered'] = true;
-        $current['guess'] = $guess;
-        $current['correct'] = $isCorrect;
-        $round['current'] = $current;
-        $session->set(self::SESSION_ROUND, $round);
-
-        return $this->render('key_recognition/practice.html.twig', $this->viewData($request));
-    }
-
-    #[Route('/naechste', name: 'key_recognition_next', methods: ['POST'])]
-    public function next(Request $request): Response
-    {
-        $this->assertValidCsrf($request);
-
-        $session = $request->getSession();
-        $round = $this->currentRound($request);
-        if ($round === null) {
-            return $this->redirectToRoute('key_recognition_settings');
+            $toast = [
+                'correct' => $isCorrect,
+                'guessLabel' => $this->pairLabel($guess),
+                'correctLabel' => $this->pairLabel($correctPairId),
+            ];
         }
 
         if ($round['questionIndex'] >= $round['totalQuestions']) {
             $round['finished'] = true;
+            $round['current'] = null;
             $session->set(self::SESSION_ROUND, $round);
-
-            return $this->render('key_recognition/practice.html.twig', $this->viewData($request));
+        } else {
+            $round['questionIndex']++;
+            $round['current'] = null;
+            $session->set(self::SESSION_ROUND, $round);
+            $this->ensureCurrentQuestion($request);
         }
 
-        $round['questionIndex']++;
-        $round['current'] = null;
-        $session->set(self::SESSION_ROUND, $round);
-        $this->ensureCurrentQuestion($request);
-
-        return $this->render('key_recognition/practice.html.twig', $this->viewData($request));
+        return $this->render('key_recognition/practice.html.twig', $this->viewData($request, $toast));
     }
 
     #[Route('/neue-runde', name: 'key_recognition_restart', methods: ['POST'])]
@@ -160,7 +150,7 @@ final class KeyRecognitionController extends AbstractController
      * Reads the round from the session, discarding it if it's missing or
      * from an older, incompatible session schema (e.g. after a deploy).
      *
-     * @return array{pairs: string[], totalQuestions: int, questionIndex: int, correctCount: int, finished: bool, current: array{pairId: string, progression: string[], answered: bool, guess: ?string, correct: ?bool}|null}|null
+     * @return array{pairs: string[], totalQuestions: int, questionIndex: int, correctCount: int, finished: bool, current: array{pairId: string, progression: string[]}|null}|null
      */
     private function currentRound(Request $request): ?array
     {
@@ -229,31 +219,18 @@ final class KeyRecognitionController extends AbstractController
         $round['current'] = [
             'pairId' => $pairId,
             'progression' => $this->buildProgression($variant),
-            'answered' => false,
-            'guess' => null,
-            'correct' => null,
         ];
         $session->set(self::SESSION_ROUND, $round);
     }
 
     /**
+     * @param array{correct: bool, guessLabel: string, correctLabel: string}|null $toast result of the answer
+     *        that led to this render, shown as a transient toast - null on a plain page load
      * @return array<string, mixed>
      */
-    private function viewData(Request $request): array
+    private function viewData(Request $request, ?array $toast = null): array
     {
         $round = $this->currentRound($request);
-        $current = $round['current'];
-        $correctPair = null;
-        $correctKey = null;
-        if ($current !== null) {
-            $correctKey = MusicKey::get($current['pairId']);
-            foreach (MusicKey::signaturePairs() as $candidate) {
-                if ($candidate['majorId'] === $current['pairId']) {
-                    $correctPair = $candidate;
-                    break;
-                }
-            }
-        }
 
         return [
             'pairs' => MusicKey::signaturePairs(),
@@ -262,12 +239,8 @@ final class KeyRecognitionController extends AbstractController
             'totalQuestions' => $round['totalQuestions'],
             'correctCount' => $round['correctCount'],
             'finished' => $round['finished'],
-            'progression' => $current['progression'] ?? null,
-            'answered' => $current['answered'] ?? false,
-            'guessLabel' => isset($current['guess']) ? $this->pairLabel($current['guess']) : null,
-            'correct' => $current['correct'] ?? null,
-            'correctPair' => $correctPair,
-            'correctKey' => $correctKey,
+            'progression' => $round['current']['progression'] ?? null,
+            'toast' => $toast,
             'csrfIntention' => self::CSRF_INTENTION,
         ];
     }

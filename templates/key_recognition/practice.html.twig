@@ -17,6 +17,25 @@
         {% endif %}
     </div>
 
+    {% if toast %}
+        <div
+                class="toast toast-top toast-center z-50 pointer-events-none transition-opacity duration-300"
+                data-controller="toast"
+        >
+            <div class="alert {{ toast.correct ? 'alert-success' : 'alert-error' }} shadow-lg">
+                <span>
+                    {% if toast.correct %}
+                        {{ 'key_recognition.practice.correct'|trans }}
+                    {% else %}
+                        {{ 'key_recognition.practice.incorrect'|trans }}
+                        {{ 'key_recognition.practice.your_guess'|trans({'%guess%': toast.guessLabel}) }}
+                        {{ 'key_recognition.practice.key_is'|trans }} <strong>{{ toast.correctLabel }}</strong>.
+                    {% endif %}
+                </span>
+            </div>
+        </div>
+    {% endif %}
+
     <turbo-frame id="key-recognition-practice" class="mt-6 block">
         {% if finished %}
             <section class="rounded-box border border-base-300 bg-base-200/60 p-6 text-center sm:p-8">
@@ -37,40 +56,19 @@
                 <p class="text-sm text-base-content/60">{{ 'key_recognition.practice.prompt'|trans }}</p>
                 <p class="mt-2 font-mono text-2xl font-semibold sm:text-3xl">{{ progression|join(' – ') }}</p>
 
-                {% if not answered %}
-                    <form method="post" action="{{ path('key_recognition_answer') }}" class="mt-6">
-                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                        <div class="grid grid-cols-2 gap-2 sm:grid-cols-3" data-controller="quiz">
-                            {% for pair in pairs %}
-                                {% if pair.majorId in activePairs %}
-                                    <button
-                                            type="submit" name="guess" value="{{ pair.majorId }}"
-                                            class="answer-btn text-sm" data-quiz-target="answer" data-action="quiz#choose"
-                                    >{{ pair.label }}</button>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </form>
-                {% else %}
-                    <div class="alert {{ correct ? 'alert-success' : 'alert-error' }} mt-6">
-                        <span>
-                            {% if correct %}
-                                <strong>{{ 'key_recognition.practice.correct'|trans }}</strong>
-                            {% else %}
-                                <strong>{{ 'key_recognition.practice.incorrect'|trans }}</strong>
-                                {{ 'key_recognition.practice.your_guess'|trans({'%guess%': guessLabel}) }}
+                <form method="post" action="{{ path('key_recognition_answer') }}" class="mt-6">
+                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                    <div class="grid grid-cols-2 gap-2 sm:grid-cols-3" data-controller="quiz">
+                        {% for pair in pairs %}
+                            {% if pair.majorId in activePairs %}
+                                <button
+                                        type="submit" name="guess" value="{{ pair.majorId }}"
+                                        class="answer-btn text-sm" data-quiz-target="answer" data-action="quiz#choose"
+                                >{{ pair.label }}</button>
                             {% endif %}
-                            {{ 'key_recognition.practice.key_is'|trans }} <strong>{{ correctPair.label }}</strong>
-                            ({{ correctKey.signatureLabel }}): {{ correctKey.chordSummary }}.
-                        </span>
+                        {% endfor %}
                     </div>
-                    <form method="post" action="{{ path('key_recognition_next') }}" class="mt-4">
-                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                        <button type="submit" class="btn btn-primary">
-                            {{ (questionIndex >= totalQuestions ? 'key_recognition.practice.show_result' : 'key_recognition.practice.next')|trans }}
-                        </button>
-                    </form>
-                {% endif %}
+                </form>
             </section>
         {% endif %}
     </turbo-frame>
