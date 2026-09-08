@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'scale_generator.title'|trans }} – Guitorial{% endblock %}
+
+{% block body %}
+    <a href="{{ path('home_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{ 'nav.back_home'|trans }}
+    </a>
+
+    <turbo-frame id="scale-generator-practice" class="mt-4 block">
+        <div class="flex items-center justify-between gap-3 font-mono text-sm text-base-content/70">
+            <span>
+                {{ 'scale_generator.practice.progress'|trans({'%current%': drawnCount, '%total%': poolSize}) }}
+                {% if roundNumber > 1 %}
+                    <span class="text-base-content/40">&middot; {{ 'scale_generator.practice.round'|trans({'%round%': roundNumber}) }}</span>
+                {% endif %}
+            </span>
+            <span data-controller="timer" data-timer-start-value="{{ startedAtMs }}">0:00</span>
+        </div>
+
+        <section class="mt-16 text-center sm:mt-24">
+            <p class="text-xs uppercase tracking-widest text-base-content/70">{{ 'scale_generator.practice.prompt'|trans }}</p>
+            <p class="font-display mt-4 text-5xl font-semibold text-primary sm:text-6xl">{{ label }}</p>
+
+            <div class="mt-8 flex flex-wrap justify-center gap-2">
+                {% for note in notes %}
+                    <span class="rounded-box border border-base-300 bg-base-200/60 px-3 py-1.5 font-mono text-sm">{{ note }}</span>
+                {% endfor %}
+            </div>
+
+            <div class="mt-10 flex flex-wrap justify-center gap-3">
+                <form method="post" action="{{ path('scale_generator_next') }}" data-controller="restart-shortcut">
+                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                    <button type="submit" class="btn btn-primary">{{ 'scale_generator.practice.next'|trans }}</button>
+                </form>
+                <form method="post" action="{{ path('scale_generator_restart') }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                    <button type="submit" class="btn btn-ghost">{{ 'scale_generator.practice.reshuffle'|trans }}</button>
+                </form>
+                <a href="{{ path('scale_generator_settings') }}" data-turbo-frame="_top" class="btn btn-outline">{{ 'scale_generator.practice.change_settings'|trans }}</a>
+            </div>
+        </section>
+    </turbo-frame>
+{% endblock %}

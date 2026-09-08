@@ -132,3 +132,23 @@ fretboard:
     time: "in %time% Min."
     restart: "Neue Runde"
     change_settings: "Einstellungen ändern"
+
+scale_generator:
+  title: "Skalen-Generator"
+  description: "Zufällige Tonart und Tonleiter zum Improvisieren üben."
+  type:
+    major: Dur
+    natural_minor: Moll
+    harmonic_minor: "Harmonisch Moll"
+    melodic_minor: "Melodisch Moll"
+  settings:
+    intro: "Wähle, welche Tonleiter-Typen vorkommen sollen. Der Generator zieht danach zufällig eine Tonart + Typ – ohne Wiederholung, bis alle einmal dran waren."
+    types_label: "Tonleiter-Typen"
+    continue: "Los geht's"
+  practice:
+    prompt: "Spiel über"
+    progress: "%current% von %total%"
+    round: "Runde %round%"
+    next: Weiter
+    reshuffle: "Neu mischen"
+    change_settings: "Einstellungen ändern"

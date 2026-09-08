@@ -40,6 +40,12 @@ final class ToolRegistry
                 'description' => 'fretboard.description',
                 'route' => 'fretboard_settings',
             ],
+            [
+                'id' => 'skalen-generator',
+                'title' => 'scale_generator.title',
+                'description' => 'scale_generator.description',
+                'route' => 'scale_generator_settings',
+            ],
         ];
     }
 
