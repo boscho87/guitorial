@@ -17,26 +17,26 @@
         {% endif %}
     </div>
 
-    {% if toast %}
-        <div
-                class="toast toast-top toast-center z-50 pointer-events-none transition-opacity duration-300"
-                data-controller="toast"
-        >
-            <div class="alert {{ toast.correct ? 'alert-success' : 'alert-error' }} shadow-lg">
-                <span>
-                    {% if toast.correct %}
-                        {{ 'key_recognition.practice.correct'|trans }}
-                    {% else %}
-                        {{ 'key_recognition.practice.incorrect'|trans }}
-                        {{ 'key_recognition.practice.your_guess'|trans({'%guess%': toast.guessLabel}) }}
-                        {{ 'key_recognition.practice.key_is'|trans }} <strong>{{ toast.correctLabel }}</strong>.
-                    {% endif %}
-                </span>
-            </div>
-        </div>
-    {% endif %}
-
     <turbo-frame id="key-recognition-practice" class="mt-6 block">
+        {% if toast %}
+            <div
+                    class="toast toast-top toast-center z-50 pointer-events-none transition-opacity duration-300"
+                    data-controller="toast"
+            >
+                <div class="alert {{ toast.correct ? 'alert-success' : 'alert-error' }} shadow-lg">
+                    <span>
+                        {% if toast.correct %}
+                            {{ 'key_recognition.practice.correct'|trans }}
+                        {% else %}
+                            {{ 'key_recognition.practice.incorrect'|trans }}
+                            {{ 'key_recognition.practice.your_guess'|trans({'%guess%': toast.guessLabel}) }}
+                            {{ 'key_recognition.practice.key_is'|trans }} <strong>{{ toast.correctLabel }}</strong>.
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        {% endif %}
+
         {% if finished %}
             <section class="rounded-box border border-base-300 bg-base-200/60 p-6 text-center sm:p-8">
                 <h2 class="font-display text-xl font-semibold sm:text-2xl">{{ 'key_recognition.summary.title'|trans }}</h2>
