@@ -6,12 +6,16 @@
     <h1 class="font-display text-3xl font-semibold sm:text-4xl">{{ 'home.title'|trans }}</h1>
     <p class="mt-2 text-base-content/70">{{ 'home.subtitle'|trans }}</p>
 
-    <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2" data-controller="nav-shortcuts">
         {% for tool in tools %}
             <a
                     href="{{ path(tool.route) }}"
-                    class="group flex flex-col justify-between rounded-box border border-base-300 bg-base-200/60 p-5 transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-lg sm:p-6"
+                    class="group relative flex flex-col justify-between rounded-box border border-base-300 bg-base-200/60 p-5 transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-lg sm:p-6"
+                    data-nav-shortcuts-target="link"
             >
+                {% if loop.index <= 10 %}
+                    <span class="absolute right-4 top-4 hidden font-mono text-xs text-base-content/25 sm:inline">{{ loop.index == 10 ? 0 : loop.index }}</span>
+                {% endif %}
                 <div>
                     <h2 class="font-display text-xl font-semibold">{{ tool.title|trans }}</h2>
                     <p class="mt-2 text-sm text-base-content/70">{{ tool.description|trans }}</p>
