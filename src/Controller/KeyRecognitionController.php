@@ -217,9 +217,22 @@ final class KeyRecognitionController extends AbstractController
         $variantId = random_int(0, 1) === 0 ? $pair['majorId'] : $pair['minorId'];
         $variant = MusicKey::get($variantId);
 
+        // Neighbouring keys on the circle of fifths share most of their
+        // chords (e.g. C, Am, Em, G are diatonic to *both* C-Dur and
+        // G-Dur) - compare against every other selectable pair so the
+        // generated progression can't accidentally fit one of them too.
+        $otherKeys = [];
+        foreach (MusicKey::signaturePairs() as $candidate) {
+            if ($candidate['majorId'] === $pairId || !in_array($candidate['majorId'], $round['pairs'], true)) {
+                continue;
+            }
+            $otherKeys[] = MusicKey::get($candidate['majorId']);
+            $otherKeys[] = MusicKey::get($candidate['minorId']);
+        }
+
         $round['current'] = [
             'pairId' => $pairId,
-            'progression' => $this->buildProgression($variant),
+            'progression' => $this->buildProgression($variant, $otherKeys),
         ];
         $session->set(self::SESSION_ROUND, $round);
     }
@@ -267,25 +280,51 @@ final class KeyRecognitionController extends AbstractController
         return $majorId;
     }
 
-    /** @return string[] */
-    private function buildProgression(MusicKey $key): array
+    /**
+     * @param MusicKey[] $otherKeys every other selectable key/pair variant in
+     *        this round - the progression must not be fully explainable by
+     *        one of them too (see the comment in ensureCurrentQuestion())
+     * @return string[]
+     */
+    private function buildProgression(MusicKey $key, array $otherKeys): array
     {
         $chords = $key->diatonicChords();
-        $usableDegrees = array_column(
-            array_filter($chords, static fn (array $c) => $c['quality'] !== 'dim'),
-            'degree',
-        );
-
-        $selectedDegrees = [1];
-        $rest = array_values(array_diff($usableDegrees, [1]));
-        shuffle($rest);
-        foreach (array_slice($rest, 0, 3) as $degree) {
-            $selectedDegrees[] = $degree;
-        }
-        shuffle($selectedDegrees);
-
         $namesByDegree = array_column($chords, 'name', 'degree');
+        $allDegrees = array_keys($namesByDegree);
 
-        return array_map(static fn (int $degree) => $namesByDegree[$degree], $selectedDegrees);
+        $fallback = null;
+        for ($attempt = 0; $attempt < 30; $attempt++) {
+            $selectedDegrees = [1];
+            $rest = array_values(array_diff($allDegrees, [1]));
+            shuffle($rest);
+            foreach (array_slice($rest, 0, 3) as $degree) {
+                $selectedDegrees[] = $degree;
+            }
+            shuffle($selectedDegrees);
+
+            $names = array_map(static fn (int $degree) => $namesByDegree[$degree], $selectedDegrees);
+            $fallback ??= $names;
+
+            if (!$this->fitsAnyOtherKey($names, $otherKeys)) {
+                return $names;
+            }
+        }
+
+        // Every attempt was ambiguous (e.g. only 1-2 very similar keys are
+        // active) - fall back to the last try rather than looping forever.
+        return $fallback;
+    }
+
+    /** @param MusicKey[] $otherKeys */
+    private function fitsAnyOtherKey(array $chordNames, array $otherKeys): bool
+    {
+        foreach ($otherKeys as $other) {
+            $otherNames = array_column($other->diatonicChords(), 'name');
+            if (array_diff($chordNames, $otherNames) === []) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

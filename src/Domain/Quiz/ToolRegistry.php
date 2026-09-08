@@ -28,6 +28,12 @@ final class ToolRegistry
                 'description' => 'capo_trainer.description',
                 'route' => 'capo_trainer_practice',
             ],
+            [
+                'id' => 'funktion-bestimmen',
+                'title' => 'harmonic_function.title',
+                'description' => 'harmonic_function.description',
+                'route' => 'harmonic_function_settings',
+            ],
         ];
     }
 

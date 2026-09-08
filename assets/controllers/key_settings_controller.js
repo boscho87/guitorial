@@ -1,15 +1,14 @@
 import { Controller } from '@hotwired/stimulus';
 
-const STORAGE_KEY = 'guitorial:key-recognition:settings';
-
 /**
- * Lets the "Tonart erkennen" settings screen remember the last-used
- * selection in the browser (so returning users don't have to reconfigure)
- * and offers one-click presets (grouped by how often each key actually
- * comes up on guitar) to lower the barrier to start.
+ * Lets a settings screen (Tonart erkennen, Funktion bestimmen, ...)
+ * remember the last-used selection in the browser (so returning users
+ * don't have to reconfigure) and offers one-click presets to lower the
+ * barrier to start. storageKeyValue keeps each tool's memory separate.
  */
 export default class extends Controller {
-    static targets = ['checkbox', 'questionCount'];
+    static targets = ['checkbox', 'questionCount', 'modeRadio'];
+    static values = { storageKey: { type: String, default: 'guitorial:key-recognition:settings' } };
 
     connect() {
         this.restore();
@@ -18,7 +17,7 @@ export default class extends Controller {
     restore() {
         let saved;
         try {
-            saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+            saved = JSON.parse(localStorage.getItem(this.storageKeyValue) || 'null');
         } catch {
             saved = null;
         }
@@ -35,13 +34,22 @@ export default class extends Controller {
         if (saved.questionCount && this.hasQuestionCountTarget) {
             this.questionCountTarget.value = saved.questionCount;
         }
+        if (saved.mode && this.hasModeRadioTarget) {
+            this.modeRadioTargets.forEach((radio) => {
+                radio.checked = radio.value === saved.mode;
+            });
+        }
     }
 
     persist() {
         const pairs = this.checkboxTargets.filter((c) => c.checked).map((c) => c.value);
         const questionCount = this.hasQuestionCountTarget ? this.questionCountTarget.value : null;
+        const checkedMode = this.hasModeRadioTarget ? this.modeRadioTargets.find((r) => r.checked) : null;
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ pairs, questionCount }));
+            localStorage.setItem(
+                this.storageKeyValue,
+                JSON.stringify({ pairs, questionCount, mode: checkedMode ? checkedMode.value : null }),
+            );
         } catch {
             // localStorage unavailable (private mode, quota) - just skip remembering.
         }

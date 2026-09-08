@@ -35,6 +35,38 @@ key_recognition:
     restart: "Neue Runde"
     change_settings: "Einstellungen ändern"
 
+harmonic_function:
+  title: Funktion bestimmen
+  description: "Erkennen, welche Stufe ein Akkord oder Ton in einer Tonart ist."
+  settings:
+    intro: "Du siehst eine Tonart und einen Akkord oder Ton daraus (z.B. F#m in D-Dur) und bestimmst, welche Stufe das ist (hier: vi). Im Gegensatz zu \"Tonart erkennen\" zählen Dur und Moll hier als unterschiedliche Antworten, da dieselbe Note in Dur und Moll eine andere Stufe sein kann."
+    presets_label: "Schnellauswahl nach Wichtigkeit"
+    preset_common: "Häufig (C, G, D, A, E + Moll-Parallelen)"
+    preset_extended: "Erweitert (+ F, Bb, Eb + Moll-Parallelen)"
+    preset_all: Alle
+    major_group: "Dur-Tonarten"
+    minor_group: "Moll-Tonarten"
+    mode_label: "Was wird abgefragt?"
+    mode_chord: Akkorde
+    mode_note: "Tonleiter-Töne"
+    mode_mixed: Gemischt
+    question_count_label: "Anzahl Fragen"
+    continue: Weiter
+  practice:
+    question_progress: "Frage %current% von %total%"
+    key_context: "Tonart: %key%"
+    prompt: "Welche Stufe ist das?"
+    correct: "Richtig!"
+    incorrect: "Leider falsch."
+    your_guess: "Du hast %guess% gewählt."
+    correct_is: "%item% ist die %roman% in %key%."
+  summary:
+    title: "Runde beendet"
+    result: "%correct% von %total% richtig"
+    time: "in %time% Min."
+    restart: "Neue Runde"
+    change_settings: "Einstellungen ändern"
+
 capo_trainer:
   title: Kapo-Trainer
   description: "Griffbild, Kapo-Bund und klingenden Akkord ineinander umrechnen."
