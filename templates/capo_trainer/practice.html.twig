@@ -49,7 +49,7 @@
                         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
                         <button type="submit" class="btn btn-primary">{{ 'capo_trainer.summary.restart'|trans }}</button>
                     </form>
-                    <a href="{{ path('capo_trainer_settings') }}" class="btn btn-outline">{{ 'capo_trainer.summary.change_settings'|trans }}</a>
+                    <a href="{{ path('capo_trainer_settings') }}" data-turbo-frame="_top" class="btn btn-outline">{{ 'capo_trainer.summary.change_settings'|trans }}</a>
                 </div>
             </section>
         {% else %}

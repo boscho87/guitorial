@@ -49,7 +49,7 @@
                         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
                         <button type="submit" class="btn btn-primary">{{ 'fretboard.summary.restart'|trans }}</button>
                     </form>
-                    <a href="{{ path('fretboard_settings') }}" class="btn btn-outline">{{ 'fretboard.summary.change_settings'|trans }}</a>
+                    <a href="{{ path('fretboard_settings') }}" data-turbo-frame="_top" class="btn btn-outline">{{ 'fretboard.summary.change_settings'|trans }}</a>
                 </div>
             </section>
         {% else %}

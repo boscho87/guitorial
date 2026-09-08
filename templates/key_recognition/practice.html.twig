@@ -49,7 +49,7 @@
                         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
                         <button type="submit" class="btn btn-primary">{{ 'key_recognition.summary.restart'|trans }}</button>
                     </form>
-                    <a href="{{ path('key_recognition_settings') }}" class="btn btn-outline">{{ 'key_recognition.summary.change_settings'|trans }}</a>
+                    <a href="{{ path('key_recognition_settings') }}" data-turbo-frame="_top" class="btn btn-outline">{{ 'key_recognition.summary.change_settings'|trans }}</a>
                 </div>
             </section>
         {% else %}

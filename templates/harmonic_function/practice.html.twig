@@ -49,7 +49,7 @@
                         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
                         <button type="submit" class="btn btn-primary">{{ 'harmonic_function.summary.restart'|trans }}</button>
                     </form>
-                    <a href="{{ path('harmonic_function_settings') }}" class="btn btn-outline">{{ 'harmonic_function.summary.change_settings'|trans }}</a>
+                    <a href="{{ path('harmonic_function_settings') }}" data-turbo-frame="_top" class="btn btn-outline">{{ 'harmonic_function.summary.change_settings'|trans }}</a>
                 </div>
             </section>
         {% else %}
