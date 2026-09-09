@@ -122,11 +122,14 @@ final class FretboardController extends AbstractController
             }
             $toast = [
                 'correct' => $isCorrect,
-                'guess' => $guess,
-                'mode' => $current['mode'],
-                'stringLabel' => GuitarString::get($current['stringNumber'])->label(),
-                'fret' => $current['fret'],
-                'note' => $current['note'],
+                'guessLabel' => $current['mode'] === 'string' && $guess !== '' && array_key_exists($guess, GuitarString::all())
+                    ? GuitarString::get($guess)->label()
+                    : $guess,
+                'answerLabel' => match ($current['mode']) {
+                    'string' => GuitarString::get($current['stringNumber'])->label(),
+                    'fret' => (string) $current['fret'],
+                    default => $current['note'],
+                },
             ];
         }
 
@@ -290,7 +293,7 @@ final class FretboardController extends AbstractController
     }
 
     /**
-     * @param array{correct: bool, guess: string, mode: string, stringLabel: string, fret: int, note: string}|null $toast
+     * @param array{correct: bool, guessLabel: string, answerLabel: string}|null $toast
      * @return array<string, mixed>
      */
     private function viewData(Request $request, ?array $toast = null): array

@@ -1,0 +1,53 @@
+{# Expects `points`: list<{date: \DateTimeImmutable, accuracy: float}>, >= 2 entries,
+   chronological (oldest first). All geometry is computed here, server-side -
+   no chart library, no client-side JSON parsing. #}
+{% set vbW, vbH = 600, 220 %}
+{% set padL, padR, padT, padB = 40, 12, 16, 28 %}
+{% set plotW = vbW - padL - padR %}
+{% set plotH = vbH - padT - padB %}
+{% set n = points|length %}
+{% set baseline = padT + plotH %}
+
+{% set px = [] %}
+{% for p in points %}
+    {% set x = padL + (n > 1 ? (loop.index0 / (n - 1)) * plotW : 0) %}
+    {% set y = padT + (1 - p.accuracy / 100) * plotH %}
+    {% set px = px|merge([{x: x, y: y, date: p.date, accuracy: p.accuracy}]) %}
+{% endfor %}
+
+{% set linePath = '' %}
+{% for p in px %}
+    {% set linePath = linePath ~ (loop.first ? 'M' : 'L') ~ p.x|number_format(1, '.', '') ~ ',' ~ p.y|number_format(1, '.', '') ~ ' ' %}
+{% endfor %}
+{% set areaPath = linePath ~ 'L' ~ px[n - 1].x|number_format(1, '.', '') ~ ',' ~ baseline ~ ' L' ~ px[0].x|number_format(1, '.', '') ~ ',' ~ baseline ~ ' Z' %}
+
+<div class="relative w-full" data-controller="history-chart">
+    <svg viewBox="0 0 {{ vbW }} {{ vbH }}" class="h-auto w-full"
+         data-history-chart-target="svg"
+         data-action="mousemove->history-chart#hover mouseleave->history-chart#clear touchmove->history-chart#hover touchend->history-chart#clear">
+
+        {% for pct, label in {0: '0%', 50: '50%', 100: '100%'} %}
+            {% set gy = padT + (1 - pct / 100) * plotH %}
+            <line x1="{{ padL }}" x2="{{ vbW - padR }}" y1="{{ gy }}" y2="{{ gy }}" class="stroke-base-content/10" stroke-width="1"/>
+            <text x="{{ padL - 6 }}" y="{{ gy }}" text-anchor="end" dominant-baseline="middle" class="fill-base-content/70 font-mono text-[10px]">{{ label }}</text>
+        {% endfor %}
+
+        <path d="{{ areaPath }}" class="fill-primary/10" stroke="none"/>
+        <path d="{{ linePath }}" fill="none" class="stroke-primary" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+        {% for p in px %}
+            <circle cx="{{ p.x|number_format(1, '.', '') }}" cy="{{ p.y|number_format(1, '.', '') }}" r="4" class="fill-primary stroke-base-100" stroke-width="2"
+                    data-history-chart-target="point"
+                    data-accuracy="{{ p.accuracy }}"
+                    data-tooltip="{{ 'history.chart.tooltip'|trans({'%date%': p.date|date('d.m.Y'), '%percent%': p.accuracy|round}) }}"/>
+        {% endfor %}
+
+        <text x="{{ px[n - 1].x|number_format(1, '.', '') }}" y="{{ px[n - 1].y - 10 }}" text-anchor="end" class="fill-base-content/80 font-mono text-xs font-semibold">{{ px[n - 1].accuracy|round }}%</text>
+
+        <text x="{{ px[0].x|number_format(1, '.', '') }}" y="{{ baseline + 18 }}" text-anchor="start" class="fill-base-content/70 font-mono text-[10px]">{{ px[0].date|date('d.m.') }}</text>
+        <text x="{{ px[n - 1].x|number_format(1, '.', '') }}" y="{{ baseline + 18 }}" text-anchor="end" class="fill-base-content/70 font-mono text-[10px]">{{ px[n - 1].date|date('d.m.') }}</text>
+
+        <line data-history-chart-target="crosshair" x1="0" x2="0" y1="{{ padT }}" y2="{{ baseline }}" class="stroke-base-content/20" stroke-width="1" style="display:none"/>
+    </svg>
+    <div data-history-chart-target="tooltip" class="chart-tooltip" style="display:none"></div>
+</div>

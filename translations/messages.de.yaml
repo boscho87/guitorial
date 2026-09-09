@@ -9,6 +9,12 @@ home:
 nav:
   back_home: Zurück
   history: Verlauf
+  diary: Tagebuch
+  practice_guide: Tipps
+
+practice_toast:
+  chosen: Gewählt
+  correct: Richtig
 
 key_recognition:
   title: Tonart erkennen
@@ -25,10 +31,6 @@ key_recognition:
   practice:
     question_progress: "Frage %current% von %total%"
     prompt: "Welche Tonart passt zu dieser Akkordfolge?"
-    correct: "Richtig!"
-    incorrect: "Leider falsch."
-    your_guess: "Du hast %guess% gewählt."
-    key_is: "Die Tonart ist"
   summary:
     title: "Runde beendet"
     result: "%correct% von %total% richtig"
@@ -58,10 +60,6 @@ harmonic_function:
     question_progress: "Frage %current% von %total%"
     key_context: "Tonart: %key%"
     prompt: "Welche Stufe ist das?"
-    correct: "Richtig!"
-    incorrect: "Leider falsch."
-    your_guess: "Du hast %guess% gewählt."
-    correct_is: "%item% ist die %roman% in %key%."
   summary:
     title: "Runde beendet"
     result: "%correct% von %total% richtig"
@@ -91,10 +89,6 @@ capo_trainer:
     mode_2_prompt: "Welches Griffbild spielst du?"
     mode_3_hint: "Du greifst %shape%, willst aber %sounding% hören."
     mode_3_prompt: "Auf welchen Bund kommt der Kapo?"
-    correct: "Richtig!"
-    incorrect: "Leider falsch."
-    your_guess: "Du hast %guess% gewählt."
-    correct_is: "%shape% + Kapo %fret% = %sounding%."
   summary:
     title: "Runde beendet"
     result: "%correct% von %total% richtig"
@@ -124,10 +118,6 @@ fretboard:
     mode_string_prompt: "Welche Saite ist das?"
     mode_fret_hint: "Saite %string%, Ton %note%."
     mode_fret_prompt: "Welcher Bund ist das?"
-    correct: "Richtig!"
-    incorrect: "Leider falsch."
-    your_guess: "Du hast %guess% gewählt."
-    correct_is: "Saite %string%, Bund %fret% = %note%."
   summary:
     title: "Runde beendet"
     result: "%correct% von %total% richtig"
@@ -158,7 +148,92 @@ scale_generator:
 
 history:
   title: Verlauf
-  intro: "Deine letzten Übungsrunden auf diesem Gerät/Browser. Fortschritt wird über ein anonymes Cookie gespeichert – ein Login zum dauerhaften Speichern folgt später."
+  intro: "Deine letzten Übungsrunden auf diesem Gerät/Browser. Fortschritt wird über ein anonymes Cookie gespeichert."
   empty: "Noch keine Übungsrunden aufgezeichnet. Fang mit einem der Tools an."
   finished: Abgeschlossen
   in_progress: "In Bearbeitung (Frage %current%)"
+  tones_practiced: "%count% Töne geübt"
+  stats:
+    rounds_label: "Abgeschlossene Runden"
+    accuracy_label: "Ø Genauigkeit"
+    accuracy_empty: "Noch keine gewerteten Runden"
+    streak_label: Serie
+    streak_value_one: "%days% Tag"
+    streak_value_other: "%days% Tage"
+    streak_empty: "Noch keine Serie"
+  chart:
+    tab_all: Alle
+    tooltip: "%date% – %percent% % korrekt"
+    not_enough_data: "Noch nicht genug gewertete Runden für ein Diagramm. Übe mindestens zwei Runden in einem der Tools."
+  table:
+    tool: Tool
+    date: Datum
+    result: Ergebnis
+    status: Status
+  pagination:
+    previous: Zurück
+    next: Weiter
+    page_of: "Seite %page% von %total%"
+    stats_cap_hint: "Statistik und Diagramm oben basieren auf den letzten %window% deiner insgesamt %total% Runden."
+
+diary:
+  title: Übungstagebuch
+  intro: "Dein tägliches Übungs-Häkchen. Änderungen an einem Punkt wirken erst ab heute, vergangene Tage bleiben unverändert."
+  empty: "Noch keine Punkte im Tagebuch."
+  empty_past: "An diesem Tag gab es noch keine Punkte im Tagebuch."
+  manage_link: "Punkte verwalten"
+  pager:
+    today: Heute
+    previous: "Vorheriger Tag"
+    next: "Nächster Tag"
+  category:
+    theorie: Theorie
+    praxis: Praxis
+  manage:
+    title: "Punkte verwalten"
+    intro: "Eigene Punkte schreiben oder aus den Vorschlägen wählen, optional mit einem Tool und einem Zeitziel verknüpfen. Änderungen wirken ab heute."
+    back_to_diary: "Zurück zum Tagebuch"
+  item:
+    toggle: "Erledigt umschalten"
+    linked_to: "Verknüpft mit %tool%"
+    progress: "%minutes% von %target% Min."
+    practice_now: "Jetzt üben"
+    edit: Bearbeiten
+    remove: Entfernen
+  form:
+    no_tool: "Kein Tool verknüpft"
+    minutes_placeholder: Minuten
+    save: Speichern
+    cancel: Abbrechen
+  add:
+    suggestions_label: Vorschläge
+    label_placeholder: "Eigener Punkt…"
+    submit: Hinzufügen
+  suggestions:
+    key_recognition: "Tonart erkennen üben"
+    capo_trainer: "Kapo-Trainer üben"
+    harmonic_function: "Funktion bestimmen üben"
+    fretboard: "Griffbrett-Töne üben"
+    scale_generator: "Skalen üben"
+    warm_up: "Aufwärmen (Fingerübungen)"
+    new_chords: "Neue Akkorde lernen"
+    song_practice: "Ein Stück/Lied üben"
+    repertoire: "Repertoire wiederholen"
+  recent:
+    title: "Letzte 7 Tage"
+
+practice_guide:
+  title: "Richtig üben"
+  structure:
+    title: "Struktur schlägt Zufall"
+    body: "Fang mit ein paar Minuten Aufwärmen an, um die Finger locker zu machen. Übe danach gezielt das, was bisher oft schiefging – die Tools gewichten automatisch stärker, was du bereits falsch beantwortet hast. Erst danach kommt Neues dazu: ein Akkord, ein Konzept, ein Stück. Am Ende darf es auch einfach Spass machen: frei spielen."
+  balance:
+    title: "Theorie und Praxis brauchen sich gegenseitig"
+    body: "Die fünf Übungs-Tools trainieren dein Musiktheorie-Verständnis – Tonarten, Funktionen, das Griffbrett. Fortschritt am Instrument entsteht aber erst, wenn du das auch wirklich spielst. Das Tagebuch trennt deshalb bewusst zwischen „Theorie“ und „Praxis“, damit beides sichtbar bleibt und keins der beiden untergeht."
+  consistency:
+    title: "Kurz und regelmässig statt lang und selten"
+    body: "10 bis 15 fokussierte Minuten am Tag bringen mehr als eine lange Session einmal pro Woche. Im Verlauf siehst du deine aktuelle Serie – ein einfacher Anreiz, dranzubleiben, statt alles auf einmal nachzuholen."
+  cta:
+    title: "Leg los"
+    diary: "Zum Tagebuch"
+    tools: "Zu den Tools"

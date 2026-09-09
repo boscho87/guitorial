@@ -14,25 +14,103 @@
     {% if sessions is empty %}
         <p class="mt-10 text-sm text-base-content/60">{{ 'history.empty'|trans }}</p>
     {% else %}
-        <div class="mt-8 space-y-2">
-            {% for session in sessions %}
-                <div class="flex items-center justify-between gap-4 rounded-box border border-base-300 bg-base-200/40 px-4 py-3">
-                    <div>
-                        <p class="font-medium">{{ session.title|trans }}</p>
-                        <p class="mt-0.5 font-mono text-xs text-base-content/60">{{ session.startedAt|date('d.m.Y, H:i') }}</p>
-                    </div>
-                    <div class="text-right">
-                        {% if session.finishedAt %}
-                            {% if session.totalQuestions %}
-                                <p class="font-mono text-sm font-semibold text-primary">{{ session.correctCount }}/{{ session.totalQuestions }}</p>
-                            {% endif %}
-                            <p class="text-xs text-base-content/60">{{ 'history.finished'|trans }}</p>
-                        {% else %}
-                            <p class="text-xs text-base-content/60">{{ 'history.in_progress'|trans({'%current%': session.questionIndex}) }}</p>
-                        {% endif %}
-                    </div>
+        <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div class="stat-tile">
+                <p class="text-sm text-base-content/70">{{ 'history.stats.rounds_label'|trans }}</p>
+                <p class="mt-1 font-mono text-2xl font-semibold text-primary">{{ stats.totalFinishedRounds }}</p>
+            </div>
+            <div class="stat-tile">
+                <p class="text-sm text-base-content/70">{{ 'history.stats.accuracy_label'|trans }}</p>
+                {% if stats.averageAccuracy is not null %}
+                    <p class="mt-1 font-mono text-2xl font-semibold text-primary">{{ stats.averageAccuracy|round }}&nbsp;%</p>
+                {% else %}
+                    <p class="mt-1 text-sm text-base-content/60">{{ 'history.stats.accuracy_empty'|trans }}</p>
+                {% endif %}
+            </div>
+            <div class="stat-tile">
+                <p class="text-sm text-base-content/70">{{ 'history.stats.streak_label'|trans }}</p>
+                {% if stats.currentStreak > 0 %}
+                    <p class="mt-1 font-mono text-2xl font-semibold text-primary">{{ (stats.currentStreak == 1 ? 'history.stats.streak_value_one' : 'history.stats.streak_value_other')|trans({'%days%': stats.currentStreak}) }}</p>
+                {% else %}
+                    <p class="mt-1 text-sm text-base-content/60">{{ 'history.stats.streak_empty'|trans }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if stats.series is not empty %}
+            <div class="mt-8 flex flex-wrap gap-1" data-controller="history-tabs">
+                {% for key, s in stats.series %}
+                    <input type="radio" name="history-chart-tab" id="tab-{{ key }}" value="{{ key }}"
+                           class="sr-only" {{ key == 'all' ? 'checked' : '' }}
+                           data-action="change->history-tabs#switch">
+                    <label for="tab-{{ key }}" class="chip-toggle">{{ (key == 'all' ? 'history.chart.tab_all' : s.label)|trans }}</label>
+                {% endfor %}
+            </div>
+
+            {% for key, s in stats.series %}
+                <div data-history-tabs-target="panel" data-tool="{{ key }}" class="mt-4 {{ key == 'all' ? '' : 'hidden' }}">
+                    {{ include('history/_chart.html.twig', { points: s.points }) }}
                 </div>
             {% endfor %}
+        {% else %}
+            <p class="mt-8 text-sm text-base-content/60">{{ 'history.chart.not_enough_data'|trans }}</p>
+        {% endif %}
+
+        <div class="mt-8 overflow-x-auto">
+            <table class="table">
+                <thead>
+                    <tr class="text-xs uppercase tracking-wide text-base-content/70">
+                        <th>{{ 'history.table.tool'|trans }}</th>
+                        <th>{{ 'history.table.date'|trans }}</th>
+                        <th class="text-right">{{ 'history.table.result'|trans }}</th>
+                        <th class="text-right">{{ 'history.table.status'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in sessions %}
+                        <tr>
+                            <td class="font-medium">{{ session.title|trans }}</td>
+                            <td class="font-mono text-xs text-base-content/60">{{ session.startedAt|date('d.m.Y, H:i') }}</td>
+                            <td class="text-right font-mono text-sm font-semibold text-primary">
+                                {% if session.finishedAt %}
+                                    {% if session.toolId == 'skalen-generator' %}
+                                        {{ 'history.tones_practiced'|trans({'%count%': session.totalQuestions}) }}
+                                    {% elseif session.totalQuestions %}
+                                        {{ session.correctCount }}/{{ session.totalQuestions }}
+                                    {% endif %}
+                                {% endif %}
+                            </td>
+                            <td class="text-right text-xs text-base-content/60">
+                                {% if session.finishedAt %}
+                                    {{ 'history.finished'|trans }}
+                                {% else %}
+                                    {{ 'history.in_progress'|trans({'%current%': session.questionIndex}) }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+
+        {% if totalPages > 1 %}
+            <div class="mt-4 flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-2">
+                {% if page > 1 %}
+                    <a href="{{ path('history_index', {seite: page - 1}) }}" class="btn btn-ghost btn-xs">&larr; {{ 'history.pagination.previous'|trans }}</a>
+                {% else %}
+                    <span class="btn btn-ghost btn-xs invisible" aria-hidden="true">&larr;</span>
+                {% endif %}
+                <p class="font-mono text-sm text-base-content/70">{{ 'history.pagination.page_of'|trans({'%page%': page, '%total%': totalPages}) }}</p>
+                {% if page < totalPages %}
+                    <a href="{{ path('history_index', {seite: page + 1}) }}" class="btn btn-ghost btn-xs">{{ 'history.pagination.next'|trans }} &rarr;</a>
+                {% else %}
+                    <span class="btn btn-ghost btn-xs invisible" aria-hidden="true">&rarr;</span>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% if totalSessions > statsWindow %}
+            <p class="mt-3 text-xs text-base-content/50">{{ 'history.pagination.stats_cap_hint'|trans({'%window%': statsWindow, '%total%': totalSessions}) }}</p>
+        {% endif %}
     {% endif %}
 {% endblock %}

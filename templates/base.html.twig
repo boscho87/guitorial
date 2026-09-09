@@ -25,7 +25,11 @@
             </svg>
             Guitorial
         </a>
-        <a href="{{ path('history_index') }}" class="text-sm text-base-content/70 hover:text-primary">{{ 'nav.history'|trans }}</a>
+        <div class="flex items-center gap-4">
+            <a href="{{ path('diary_index') }}" class="text-sm text-base-content/70 hover:text-primary">{{ 'nav.diary'|trans }}</a>
+            <a href="{{ path('history_index') }}" class="text-sm text-base-content/70 hover:text-primary">{{ 'nav.history'|trans }}</a>
+            <a href="{{ path('practice_guide_index') }}" class="text-sm text-base-content/70 hover:text-primary">{{ 'nav.practice_guide'|trans }}</a>
+        </div>
     </nav>
 </header>
 <main class="mx-auto w-full max-w-3xl flex-grow px-4 py-6 sm:px-6 sm:py-10">

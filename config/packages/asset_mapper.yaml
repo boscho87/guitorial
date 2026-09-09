@@ -3,6 +3,12 @@ framework:
         # The paths to make available to the asset mapper.
         paths:
             - assets/
+        # tailwind.css is a build-time-only input for the Tailwind CLI (its
+        # `@import "tailwindcss"` is a bare package specifier, not a servable
+        # asset reference) - the asset mapper must never try to compile it as
+        # a public asset. Only the committed, pre-compiled app.css is served.
+        excluded_patterns:
+            - '*/assets/styles/tailwind.css'
         missing_import_mode: strict
 
 when@prod:

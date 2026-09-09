@@ -8,8 +8,12 @@
         {{ 'nav.back_home'|trans }}
     </a>
 
-    <turbo-frame
-            id="scale-generator-practice" class="mt-4 block"
+    {# The practice-sync controller must live on an element *inside* the turbo-frame, not on
+       the frame itself: Turbo only swaps a frame's content on navigation, never its own
+       attributes, so a controller on the <turbo-frame> tag would never reconnect and its
+       data-*-value attributes would stay frozen at their first-load values forever. #}
+    <turbo-frame id="scale-generator-practice" class="mt-4 block">
+    <div
             data-controller="practice-sync" data-practice-sync-tool-value="skalen-generator"
             data-practice-sync-finished-value="{{ finished ? 'true' : 'false' }}"
             data-practice-sync-question-index-value="{{ questionIndex }}"
@@ -56,5 +60,6 @@
                 {% endif %}
             </section>
         {% endif %}
+    </div>
     </turbo-frame>
 {% endblock %}

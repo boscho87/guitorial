@@ -8,8 +8,12 @@
         {{ 'nav.back_home'|trans }}
     </a>
 
-    <turbo-frame
-            id="capo-trainer-practice" class="mt-4 block"
+    {# The practice-sync controller must live on an element *inside* the turbo-frame, not on
+       the frame itself: Turbo only swaps a frame's content on navigation, never its own
+       attributes, so a controller on the <turbo-frame> tag would never reconnect and its
+       data-*-value attributes would stay frozen at their first-load values forever. #}
+    <turbo-frame id="capo-trainer-practice" class="mt-4 block">
+    <div
             data-controller="practice-sync" data-practice-sync-tool-value="kapo-trainer"
             data-practice-sync-finished-value="{{ finished ? 'true' : 'false' }}"
             data-practice-sync-question-index-value="{{ questionIndex }}"
@@ -23,24 +27,7 @@
             </div>
         {% endif %}
 
-        {% if toast %}
-            <div
-                    class="toast toast-top toast-center z-50 pointer-events-none transition-opacity duration-300"
-                    data-controller="toast"
-            >
-                <div class="alert {{ toast.correct ? 'alert-success' : 'alert-error' }} shadow-lg">
-                    <span>
-                        {% if toast.correct %}
-                            {{ 'capo_trainer.practice.correct'|trans }}
-                        {% else %}
-                            {{ 'capo_trainer.practice.incorrect'|trans }}
-                            {{ 'capo_trainer.practice.your_guess'|trans({'%guess%': toast.guess}) }}
-                        {% endif %}
-                        {{ 'capo_trainer.practice.correct_is'|trans({'%shape%': toast.shapeId, '%fret%': toast.fret, '%sounding%': toast.sounding}) }}
-                    </span>
-                </div>
-            </div>
-        {% endif %}
+        {{ include('practice/_toast.html.twig', {toast: toast}) }}
 
         {% if finished %}
             <section class="mt-16 text-center sm:mt-24">
@@ -85,5 +72,6 @@
                 </form>
             </section>
         {% endif %}
+    </div>
     </turbo-frame>
 {% endblock %}

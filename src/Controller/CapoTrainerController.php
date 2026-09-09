@@ -120,10 +120,12 @@ final class CapoTrainerController extends AbstractController
             }
             $toast = [
                 'correct' => $isCorrect,
-                'guess' => $guess,
-                'shapeId' => $current['shapeId'],
-                'fret' => $current['fret'],
-                'sounding' => $current['sounding'],
+                'guessLabel' => $guess,
+                'answerLabel' => match ($current['mode']) {
+                    '1' => $current['sounding'],
+                    '2' => $current['shapeId'],
+                    default => (string) $current['fret'],
+                },
             ];
         }
 
@@ -268,7 +270,7 @@ final class CapoTrainerController extends AbstractController
     }
 
     /**
-     * @param array{correct: bool, guess: string, shapeId: string, fret: int, sounding: string}|null $toast
+     * @param array{correct: bool, guessLabel: string, answerLabel: string}|null $toast
      * @return array<string, mixed>
      */
     private function viewData(Request $request, ?array $toast = null): array

@@ -1,0 +1,89 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'diary.manage.title'|trans }} – Guitorial{% endblock %}
+
+{% block body %}
+    <a href="{{ path('diary_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{ 'diary.manage.back_to_diary'|trans }}
+    </a>
+
+    <h1 class="font-display mt-3 text-2xl font-semibold sm:text-3xl">{{ 'diary.manage.title'|trans }}</h1>
+    <p class="mt-2 text-base-content/70">{{ 'diary.manage.intro'|trans }}</p>
+
+    {% if activeItems is empty %}
+        <p class="mt-8 text-sm text-base-content/60">{{ 'diary.empty'|trans }}</p>
+    {% else %}
+        <ul class="mt-8 space-y-2">
+            {% for item in activeItems %}
+                <li class="rounded-box border border-base-300 p-4" data-controller="diary-item">
+                    <div class="flex items-start justify-between gap-3" data-diary-item-target="display">
+                        <div>
+                            <p class="text-sm font-medium">{{ item.label }}</p>
+                            <p class="mt-0.5 text-xs text-base-content/60">
+                                {{ ('diary.category.' ~ item.category)|trans }}
+                                {% if item.linkedTool %}
+                                    &middot; {{ 'diary.item.linked_to'|trans({'%tool%': toolTitles[item.linkedTool]|trans}) }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="flex shrink-0 gap-1">
+                            <button type="button" class="btn btn-ghost btn-xs" data-action="diary-item#showEdit">{{ 'diary.item.edit'|trans }}</button>
+                            <form method="post" action="{{ path('diary_remove', {id: item.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                                <button type="submit" class="btn btn-ghost btn-xs text-error">{{ 'diary.item.remove'|trans }}</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <form method="post" action="{{ path('diary_edit', {id: item.id}) }}" class="mt-3 hidden space-y-2" data-diary-item-target="editForm" data-controller="diary-item-form">
+                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                        <input type="text" name="label" value="{{ item.label }}" maxlength="120" required class="input input-sm input-bordered w-full">
+                        <div class="flex gap-1">
+                            {% for c in categories %}
+                                <input type="radio" class="sr-only" id="cat-{{ item.id }}-{{ c }}" name="category" value="{{ c }}" {{ item.category == c ? 'checked' : '' }}>
+                                <label class="chip-toggle" for="cat-{{ item.id }}-{{ c }}">{{ ('diary.category.' ~ c)|trans }}</label>
+                            {% endfor %}
+                        </div>
+                        <select name="linked_tool" class="select select-sm select-bordered" data-diary-item-form-target="toolSelect" data-action="change->diary-item-form#syncMinutesVisibility">
+                            <option value="">{{ 'diary.form.no_tool'|trans }}</option>
+                            {% for tool in tools %}<option value="{{ tool.id }}" {{ item.linkedTool == tool.id ? 'selected' : '' }}>{{ tool.title|trans }}</option>{% endfor %}
+                        </select>
+                        <input type="number" name="target_minutes" min="1" max="120" value="{{ item.targetMinutes }}" class="input input-sm input-bordered w-28 {{ item.linkedTool ? '' : 'hidden' }}" data-diary-item-form-target="minutesField" placeholder="{{ 'diary.form.minutes_placeholder'|trans }}">
+                        <div class="flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-xs">{{ 'diary.form.save'|trans }}</button>
+                            <button type="button" class="btn btn-ghost btn-xs" data-action="diary-item#showEdit">{{ 'diary.form.cancel'|trans }}</button>
+                        </div>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <div class="mt-8" data-controller="diary-add">
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.add.suggestions_label'|trans }}</h2>
+        <div class="mt-3 flex flex-wrap gap-2">
+            {% for s in suggestions %}
+                <button type="button" class="chip-toggle border border-base-300" data-action="diary-add#applySuggestion" data-label="{{ s.label|trans }}" data-category="{{ s.category }}" data-tool="{{ s.linkedTool }}" data-minutes="{{ s.targetMinutes }}">{{ s.label|trans }}</button>
+            {% endfor %}
+        </div>
+        <form method="post" action="{{ path('diary_add') }}" class="mt-4 space-y-2" data-controller="diary-item-form">
+            <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+            <input type="text" name="label" maxlength="120" required class="input input-sm input-bordered w-full" placeholder="{{ 'diary.add.label_placeholder'|trans }}" data-diary-add-target="labelInput">
+            <div class="flex gap-1" data-diary-add-target="categoryGroup">
+                {% for cat in categories %}
+                    <input type="radio" class="sr-only" id="new-cat-{{ cat }}" name="category" value="{{ cat }}" {{ cat == 'praxis' ? 'checked' : '' }}>
+                    <label class="chip-toggle" for="new-cat-{{ cat }}">{{ ('diary.category.' ~ cat)|trans }}</label>
+                {% endfor %}
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <select name="linked_tool" class="select select-sm select-bordered" data-diary-item-form-target="toolSelect" data-diary-add-target="toolSelect" data-action="change->diary-item-form#syncMinutesVisibility">
+                    <option value="">{{ 'diary.form.no_tool'|trans }}</option>
+                    {% for tool in tools %}<option value="{{ tool.id }}">{{ tool.title|trans }}</option>{% endfor %}
+                </select>
+                <input type="number" name="target_minutes" min="1" max="120" class="input input-sm input-bordered w-28 hidden" placeholder="{{ 'diary.form.minutes_placeholder'|trans }}" data-diary-item-form-target="minutesField" data-diary-add-target="minutesField">
+                <button type="submit" class="btn btn-primary btn-sm">{{ 'diary.add.submit'|trans }}</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}

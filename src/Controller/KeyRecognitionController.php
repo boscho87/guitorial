@@ -114,7 +114,7 @@ final class KeyRecognitionController extends AbstractController
             $toast = [
                 'correct' => $isCorrect,
                 'guessLabel' => $this->pairLabel($guess),
-                'correctLabel' => $this->pairLabel($correctPairId),
+                'answerLabel' => $this->pairLabel($correctPairId),
             ];
         }
 
@@ -238,7 +238,7 @@ final class KeyRecognitionController extends AbstractController
     }
 
     /**
-     * @param array{correct: bool, guessLabel: string, correctLabel: string}|null $toast result of the answer
+     * @param array{correct: bool, guessLabel: string, answerLabel: string}|null $toast result of the answer
      *        that led to this render, shown as a transient toast - null on a plain page load
      * @return array<string, mixed>
      */

@@ -114,10 +114,8 @@ final class HarmonicFunctionController extends AbstractController
             }
             $toast = [
                 'correct' => $isCorrect,
-                'guess' => $guess,
-                'roman' => $current['roman'],
-                'keyId' => $current['keyId'],
-                'itemLabel' => $current['itemLabel'],
+                'guessLabel' => $guess,
+                'answerLabel' => $current['roman'],
             ];
         }
 
@@ -238,7 +236,7 @@ final class HarmonicFunctionController extends AbstractController
     }
 
     /**
-     * @param array{correct: bool, guess: string, roman: string, keyId: string, itemLabel: string}|null $toast
+     * @param array{correct: bool, guessLabel: string, answerLabel: string}|null $toast
      * @return array<string, mixed>
      */
     private function viewData(Request $request, ?array $toast = null): array

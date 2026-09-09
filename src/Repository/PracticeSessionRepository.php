@@ -44,4 +44,29 @@ class PracticeSessionRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return PracticeSession[] one page, most recent first
+     */
+    public function forVisitorPage(string $visitorId, int $offset, int $limit): array
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.visitorId = :visitorId')
+            ->setParameter('visitorId', $visitorId)
+            ->orderBy('s.startedAt', 'DESC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countForVisitor(string $visitorId): int
+    {
+        return (int) $this->createQueryBuilder('s')
+            ->select('COUNT(s.id)')
+            ->andWhere('s.visitorId = :visitorId')
+            ->setParameter('visitorId', $visitorId)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
