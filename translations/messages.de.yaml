@@ -44,6 +44,7 @@ harmonic_function:
     preset_common: "Häufig (C, G, D, A, E + Moll-Parallelen)"
     preset_extended: "Erweitert (+ F, Bb, Eb + Moll-Parallelen)"
     preset_all: Alle
+    customize_keys: "Tonarten einzeln anpassen"
     major_group: "Dur-Tonarten"
     minor_group: "Moll-Tonarten"
     mode_label: "Was wird abgefragt?"
@@ -135,7 +136,7 @@ fretboard:
 
 scale_generator:
   title: "Skalen-Generator"
-  description: "Zufällige Tonart und Tonleiter zum Improvisieren üben."
+  description: "Zufällige Tonart und Tonleiter zum Üben – zum Improvisieren, Auswendiglernen oder für Fingersätze."
   type:
     major: Dur
     natural_minor: Moll
@@ -146,7 +147,7 @@ scale_generator:
     types_label: "Tonleiter-Typen"
     continue: "Los geht's"
   practice:
-    prompt: "Spiel über"
+    prompt: "Deine nächste Tonleiter"
     progress: "%current% von %total%"
     round: "Runde %round%"
     next: Weiter

@@ -35,11 +35,11 @@
     {% endfor %}
     {% block body %}{% endblock %}
 </main>
-<footer class="mt-auto bg-neutral text-neutral-content">
+<footer class="mt-auto border-t border-primary/20 bg-footer text-footer-content">
     <div class="mx-auto flex max-w-3xl flex-col items-center gap-1 px-4 py-6 text-center sm:px-6">
-        <p class="font-display text-sm font-medium">Guitorial <span class="text-neutral-content/50">&ndash;</span> {{ 'app.tagline'|trans }}</p>
-        <p class="text-xs text-neutral-content/60">
-            &copy; {{ "now"|date("Y") }} itscoding / <a href="mailto:simon.d.mueller@itscoding.ch" class="underline decoration-neutral-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">boscho87</a>
+        <p class="font-display text-sm font-medium">Guitorial <span class="text-footer-content/40">&ndash;</span> {{ 'app.tagline'|trans }}</p>
+        <p class="text-xs text-footer-content/50">
+            &copy; {{ "now"|date("Y") }} itscoding / <a href="mailto:simon.d.mueller@itscoding.ch" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">boscho87</a>
         </p>
     </div>
 </footer>

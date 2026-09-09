@@ -78,6 +78,14 @@
   --font-display: "Fraunces", ui-serif, Georgia, serif;
   --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /*
+   * Deliberately fixed (not per-DaisyUI-theme, unlike --color-neutral which
+   * flips light/dark between the two themes) - the footer should always
+   * read as a dark band grounding the page, in both themes.
+   */
+  --color-footer: #17130c;
+  --color-footer-content: #fdf6ea;
 }
 
 @layer base {
