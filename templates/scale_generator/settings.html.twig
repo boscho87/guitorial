@@ -18,17 +18,27 @@
         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
 
         <div>
-            <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'scale_generator.settings.types_label'|trans }}</h2>
+            <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'scale_generator.settings.tones_label'|trans }}</h2>
             <div class="mt-3 flex flex-wrap gap-2">
-                {% for typeId in typeIds %}
+                {% for tone in allTones %}
                     <input
-                            type="checkbox" class="sr-only" id="sg-type-{{ typeId }}" name="types[]" value="{{ typeId }}"
-                            {{ typeId in activeTypes ? 'checked' : '' }}
+                            type="checkbox" class="sr-only" id="sg-tone-{{ loop.index }}" name="tones[]" value="{{ tone }}"
+                            {{ tone in activeTones ? 'checked' : '' }}
                             data-key-settings-target="checkbox" data-action="change->key-settings#persist"
                     >
-                    <label class="chip-toggle" for="sg-type-{{ typeId }}">{{ ('scale_generator.type.' ~ typeId)|trans }}</label>
+                    <label class="chip-toggle font-mono" for="sg-tone-{{ loop.index }}">{{ tone }}</label>
                 {% endfor %}
             </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <label for="auto_advance_seconds" class="text-sm text-base-content/70">{{ 'scale_generator.settings.auto_advance_label'|trans }}</label>
+            <input
+                    type="number" min="0" max="120" step="5" name="auto_advance_seconds" id="auto_advance_seconds"
+                    value="{{ autoAdvanceSeconds }}" class="input input-sm input-bordered w-20 font-mono"
+                    data-key-settings-target="questionCount" data-action="input->key-settings#persist"
+            >
+            <span class="text-xs text-base-content/60">{{ 'scale_generator.settings.auto_advance_hint'|trans }}</span>
         </div>
 
         <button type="submit" class="btn btn-primary">{{ 'scale_generator.settings.continue'|trans }}</button>

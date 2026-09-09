@@ -8,7 +8,14 @@
         {{ 'nav.back_home'|trans }}
     </a>
 
-    <turbo-frame id="key-recognition-practice" class="mt-4 block">
+    <turbo-frame
+            id="key-recognition-practice" class="mt-4 block"
+            data-controller="practice-sync" data-practice-sync-tool-value="tonart-erkennen"
+            data-practice-sync-finished-value="{{ finished ? 'true' : 'false' }}"
+            data-practice-sync-question-index-value="{{ questionIndex }}"
+            data-practice-sync-total-questions-value="{{ totalQuestions }}"
+            data-practice-sync-correct-count-value="{{ correctCount }}"
+    >
         {% if not finished %}
             <div class="flex items-center justify-end gap-3 font-mono text-sm text-base-content/70">
                 <span data-controller="timer" data-timer-start-value="{{ startedAtMs }}">0:00</span>

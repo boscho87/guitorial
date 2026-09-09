@@ -4,24 +4,35 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Domain\Theory\Scale;
+use App\Domain\Theory\Note;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 /**
- * A random scale/key generator for improvisation practice - no right/wrong
- * answer, just "here's what to play over next". Draws without repeats from
- * a shuffled pool of the active scale types until it's exhausted, then
- * reshuffles (a new "round"), mirroring therandomscalemachine.com's
- * behaviour but scoped to a single, simpler tool.
+ * A random tone generator for practice - no right/wrong answer, just "here's
+ * the next tone". For now (v1) it draws single tones rather than full
+ * scales; Scale/ScaleType (Dur/Moll/Harmonisch/Melodisch) is built and
+ * tested but intentionally not wired in yet, per explicit request to keep
+ * this simple first and layer scale types on later.
+ *
+ * A round is bounded (one draw per active tone, no repeats) rather than
+ * open-ended, matching the other tools' settings -> practice -> summary
+ * flow. Optional auto-advance moves on after N seconds without a click.
  */
 #[Route('/skalen-generator')]
 final class ScaleGeneratorController extends AbstractController
 {
     private const SESSION_ROUND = 'scale_generator.round';
     private const CSRF_INTENTION = 'scale-generator';
+    private const MAX_AUTO_ADVANCE_SECONDS = 120;
+
+    /** @return string[] */
+    private static function allTones(): array
+    {
+        return array_map(static fn (int $i): string => Note::nameFromIndex($i), range(0, 11));
+    }
 
     #[Route('', name: 'scale_generator_settings', methods: ['GET'])]
     public function settings(Request $request): Response
@@ -29,8 +40,9 @@ final class ScaleGeneratorController extends AbstractController
         $round = $this->currentRound($request);
 
         return $this->render('scale_generator/settings.html.twig', [
-            'typeIds' => Scale::typeIds(),
-            'activeTypes' => $round !== null ? $round['types'] : Scale::typeIds(),
+            'allTones' => self::allTones(),
+            'activeTones' => $round !== null ? $round['tones'] : self::allTones(),
+            'autoAdvanceSeconds' => $round !== null ? $round['autoAdvanceSeconds'] : 0,
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
     }
@@ -40,12 +52,17 @@ final class ScaleGeneratorController extends AbstractController
     {
         $this->assertValidCsrf($request);
 
-        $types = array_values(array_intersect($request->request->all('types'), Scale::typeIds()));
-        if ($types === []) {
-            $types = Scale::typeIds();
+        $tones = array_values(array_intersect($request->request->all('tones'), self::allTones()));
+        if ($tones === []) {
+            $tones = self::allTones();
         }
 
-        $this->beginRound($request, $types);
+        $autoAdvanceSeconds = max(0, min(
+            self::MAX_AUTO_ADVANCE_SECONDS,
+            (int) $request->request->get('auto_advance_seconds', 0),
+        ));
+
+        $this->beginRound($request, $tones, $autoAdvanceSeconds);
 
         return $this->redirectToRoute('scale_generator_practice');
     }
@@ -72,27 +89,27 @@ final class ScaleGeneratorController extends AbstractController
         }
 
         if ($round['queue'] === []) {
-            $round['queue'] = $this->shuffledPool($round['types']);
-            $round['roundNumber']++;
-            $round['drawnCount'] = 0;
+            $round['finished'] = true;
+            $round['current'] = null;
+        } else {
+            $round['current'] = array_shift($round['queue']);
+            $round['questionIndex']++;
         }
-
-        $round['current'] = array_shift($round['queue']);
-        $round['drawnCount']++;
         $session->set(self::SESSION_ROUND, $round);
 
         return $this->render('scale_generator/practice.html.twig', $this->viewData($request));
     }
 
-    #[Route('/neu-mischen', name: 'scale_generator_restart', methods: ['POST'])]
+    #[Route('/neue-runde', name: 'scale_generator_restart', methods: ['POST'])]
     public function restart(Request $request): Response
     {
         $this->assertValidCsrf($request);
 
         $round = $this->currentRound($request);
-        $types = $round !== null ? $round['types'] : Scale::typeIds();
+        $tones = $round !== null ? $round['tones'] : self::allTones();
+        $autoAdvanceSeconds = $round !== null ? $round['autoAdvanceSeconds'] : 0;
 
-        $this->beginRound($request, $types);
+        $this->beginRound($request, $tones, $autoAdvanceSeconds);
 
         return $this->redirectToRoute('scale_generator_practice');
     }
@@ -106,7 +123,7 @@ final class ScaleGeneratorController extends AbstractController
     }
 
     /**
-     * @return array{types: string[], queue: string[], current: string|null, drawnCount: int, poolSize: int, roundNumber: int, startedAt: float}|null
+     * @return array{tones: string[], queue: string[], current: string|null, questionIndex: int, totalQuestions: int, finished: bool, autoAdvanceSeconds: int, startedAt: float}|null
      */
     private function currentRound(Request $request): ?array
     {
@@ -115,7 +132,7 @@ final class ScaleGeneratorController extends AbstractController
 
         if (
             !is_array($round)
-            || !isset($round['types'], $round['queue'], $round['drawnCount'], $round['poolSize'], $round['roundNumber'], $round['startedAt'])
+            || !isset($round['tones'], $round['queue'], $round['questionIndex'], $round['totalQuestions'], $round['finished'], $round['autoAdvanceSeconds'], $round['startedAt'])
             || !array_key_exists('current', $round)
         ) {
             $session->remove(self::SESSION_ROUND);
@@ -127,56 +144,52 @@ final class ScaleGeneratorController extends AbstractController
     }
 
     /**
-     * @param string[] $types
+     * @param string[] $tones
      */
-    private function beginRound(Request $request, array $types): void
+    private function beginRound(Request $request, array $tones, int $autoAdvanceSeconds): void
     {
-        $queue = $this->shuffledPool($types);
+        $queue = $tones;
+        shuffle($queue);
+        // Shift before building the array literal - 'queue' => $queue would
+        // otherwise capture the pre-shift snapshot (PHP evaluates array
+        // literal values left-to-right), duplicating the first tone.
+        $current = array_shift($queue);
 
         $request->getSession()->set(self::SESSION_ROUND, [
-            'types' => $types,
+            'tones' => $tones,
             'queue' => $queue,
-            'current' => array_shift($queue),
-            'drawnCount' => 1,
-            'poolSize' => count($queue) + 1,
-            'roundNumber' => 1,
+            'current' => $current,
+            'questionIndex' => 1,
+            'totalQuestions' => count($tones),
+            'finished' => false,
+            'autoAdvanceSeconds' => $autoAdvanceSeconds,
             'startedAt' => microtime(true),
         ]);
-    }
-
-    /**
-     * @param string[] $types
-     * @return string[]
-     */
-    private function shuffledPool(array $types): array
-    {
-        $ids = array_keys(array_filter(
-            Scale::pool(),
-            static fn (Scale $scale): bool => in_array($scale->typeId, $types, true),
-        ));
-        shuffle($ids);
-
-        return $ids;
     }
 
     /** @return array<string, mixed> */
     private function viewData(Request $request): array
     {
         $round = $this->currentRound($request);
-        $scale = Scale::get($round['current']);
 
         return [
-            'typeIds' => Scale::typeIds(),
-            'activeTypes' => $round['types'],
-            'tonic' => $scale->tonic,
-            'typeLabel' => Scale::typeLabel($scale->typeId),
-            'label' => $scale->label(),
-            'notes' => $scale->notes,
-            'drawnCount' => $round['drawnCount'],
-            'poolSize' => $round['poolSize'],
-            'roundNumber' => $round['roundNumber'],
+            'allTones' => self::allTones(),
+            'activeTones' => $round['tones'],
+            'tone' => $round['current'],
+            'questionIndex' => $round['questionIndex'],
+            'totalQuestions' => $round['totalQuestions'],
+            'finished' => $round['finished'],
+            'autoAdvanceSeconds' => $round['autoAdvanceSeconds'],
             'startedAtMs' => (int) round($round['startedAt'] * 1000),
+            'elapsedLabel' => $this->formatElapsed(microtime(true) - $round['startedAt']),
             'csrfIntention' => self::CSRF_INTENTION,
         ];
+    }
+
+    private function formatElapsed(float $seconds): string
+    {
+        $whole = max(0, (int) round($seconds));
+
+        return sprintf('%d:%02d', intdiv($whole, 60), $whole % 60);
     }
 }

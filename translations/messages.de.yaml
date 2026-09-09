@@ -8,6 +8,7 @@ home:
 
 nav:
   back_home: Zurück
+  history: Verlauf
 
 key_recognition:
   title: Tonart erkennen
@@ -136,20 +137,28 @@ fretboard:
 
 scale_generator:
   title: "Skalen-Generator"
-  description: "Zufällige Tonart und Tonleiter zum Üben – zum Improvisieren, Auswendiglernen oder für Fingersätze."
-  type:
-    major: Dur
-    natural_minor: Moll
-    harmonic_minor: "Harmonisch Moll"
-    melodic_minor: "Melodisch Moll"
+  description: "Zufälliger Ton zum Üben – zum Improvisieren, Auswendiglernen oder für Fingersätze."
   settings:
-    intro: "Wähle, welche Tonleiter-Typen vorkommen sollen. Der Generator zieht danach zufällig eine Tonart + Typ – ohne Wiederholung, bis alle einmal dran waren."
-    types_label: "Tonleiter-Typen"
+    intro: "Wähle, welche Töne vorkommen sollen. Der Generator zieht danach zufällig einen Ton – ohne Wiederholung, bis alle einmal dran waren. Optional wechselt er nach einer festen Zeit von selbst weiter."
+    tones_label: Töne
+    auto_advance_label: "Automatisch weiter nach"
+    auto_advance_hint: "Sekunden (0 = manuell)"
     continue: "Los geht's"
   practice:
-    prompt: "Deine nächste Tonleiter"
+    prompt: "Dein nächster Ton"
     progress: "%current% von %total%"
-    round: "Runde %round%"
     next: Weiter
-    reshuffle: "Neu mischen"
+    auto_advance_hint: "Wechselt automatisch nach %seconds% Sek."
+  summary:
+    title: "Runde beendet"
+    result: "%total% Töne geübt"
+    time: "in %time% Min."
+    restart: "Neue Runde"
     change_settings: "Einstellungen ändern"
+
+history:
+  title: Verlauf
+  intro: "Deine letzten Übungsrunden auf diesem Gerät/Browser. Fortschritt wird über ein anonymes Cookie gespeichert – ein Login zum dauerhaften Speichern folgt später."
+  empty: "Noch keine Übungsrunden aufgezeichnet. Fang mit einem der Tools an."
+  finished: Abgeschlossen
+  in_progress: "In Bearbeitung (Frage %current%)"
