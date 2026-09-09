@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Domain\Quiz\AnswerOptionPicker;
 use App\Domain\Quiz\WeightedQuestionPicker;
 use App\Domain\Theory\MusicKey;
 use App\Repository\QuizAttemptRepository;
@@ -246,10 +247,16 @@ final class KeyRecognitionController extends AbstractController
     {
         $round = $this->currentRound($request);
         $startedAt = $round['startedAt'] ?? microtime(true);
+        $correctPairId = $round['current']['pairId'] ?? null;
+        $optionIds = $correctPairId !== null
+            ? AnswerOptionPicker::pick($round['pairs'], $correctPairId)
+            : [];
 
         return [
-            'pairs' => MusicKey::signaturePairs(),
-            'activePairs' => $round['pairs'],
+            'answerOptions' => array_map(
+                fn (string $id): array => ['id' => $id, 'label' => $this->pairLabel($id)],
+                $optionIds,
+            ),
             'questionIndex' => $round['questionIndex'],
             'totalQuestions' => $round['totalQuestions'],
             'correctCount' => $round['correctCount'],

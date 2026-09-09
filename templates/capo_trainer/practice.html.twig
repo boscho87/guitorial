@@ -66,7 +66,7 @@
                             <button
                                     type="submit" name="guess" value="{{ option }}"
                                     class="answer-btn" data-quiz-target="answer" data-action="quiz#choose"
-                            >{% if loop.index <= 10 %}<span class="keycap">{{ loop.index == 10 ? 0 : loop.index }}</span>{% endif %}{{ option }}</button>
+                            ><span class="keycap">{{ loop.index == 10 ? 0 : loop.index }}</span>{{ option }}</button>
                         {% endfor %}
                     </div>
                 </form>

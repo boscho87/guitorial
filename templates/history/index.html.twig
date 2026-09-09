@@ -38,20 +38,22 @@
         </div>
 
         {% if stats.series is not empty %}
-            <div class="mt-8 flex flex-wrap gap-1" data-controller="history-tabs">
+            <div data-controller="history-tabs">
+                <div class="mt-8 flex flex-wrap gap-1">
+                    {% for key, s in stats.series %}
+                        <input type="radio" name="history-chart-tab" id="tab-{{ key }}" value="{{ key }}"
+                               class="sr-only" {{ key == 'all' ? 'checked' : '' }}
+                               data-action="change->history-tabs#switch">
+                        <label for="tab-{{ key }}" class="chip-toggle">{{ (key == 'all' ? 'history.chart.tab_all' : s.label)|trans }}</label>
+                    {% endfor %}
+                </div>
+
                 {% for key, s in stats.series %}
-                    <input type="radio" name="history-chart-tab" id="tab-{{ key }}" value="{{ key }}"
-                           class="sr-only" {{ key == 'all' ? 'checked' : '' }}
-                           data-action="change->history-tabs#switch">
-                    <label for="tab-{{ key }}" class="chip-toggle">{{ (key == 'all' ? 'history.chart.tab_all' : s.label)|trans }}</label>
+                    <div data-history-tabs-target="panel" data-tool="{{ key }}" class="mt-4 {{ key == 'all' ? '' : 'hidden' }}">
+                        {{ include('history/_chart.html.twig', { points: s.points }) }}
+                    </div>
                 {% endfor %}
             </div>
-
-            {% for key, s in stats.series %}
-                <div data-history-tabs-target="panel" data-tool="{{ key }}" class="mt-4 {{ key == 'all' ? '' : 'hidden' }}">
-                    {{ include('history/_chart.html.twig', { points: s.points }) }}
-                </div>
-            {% endfor %}
         {% else %}
             <p class="mt-8 text-sm text-base-content/60">{{ 'history.chart.not_enough_data'|trans }}</p>
         {% endif %}

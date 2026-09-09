@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Domain\Quiz\AnswerOptionPicker;
 use App\Domain\Quiz\WeightedQuestionPicker;
 use App\Domain\Theory\GuitarString;
 use App\Domain\Theory\Note;
@@ -306,7 +307,7 @@ final class FretboardController extends AbstractController
         // {value, label}: the submitted value the grader understands, and
         // what the button shows - identical for note/fret, but "string"
         // mode submits the bare number while showing e.g. "6 (E)".
-        $answerOptions = match ($mode) {
+        $allOptions = match ($mode) {
             'note' => array_map(
                 static fn (int $i) => ['value' => Note::nameFromIndex($i), 'label' => Note::nameFromIndex($i)],
                 range(0, 11),
@@ -321,6 +322,23 @@ final class FretboardController extends AbstractController
             ),
             default => [],
         };
+
+        // Cap at 10 choices (always including the correct one) so every
+        // button can carry a 1-9/0 keyboard shortcut, even when the full
+        // pool (e.g. all 12 chromatic notes, or a wide fret range) is bigger.
+        $correctValue = match ($mode) {
+            'note' => $current['note'] ?? null,
+            'string' => $current['stringNumber'] ?? null,
+            'fret' => isset($current['fret']) ? (string) $current['fret'] : null,
+            default => null,
+        };
+        if ($correctValue !== null) {
+            $byValue = array_column($allOptions, null, 'value');
+            $pickedValues = AnswerOptionPicker::pick(array_keys($byValue), $correctValue);
+            $answerOptions = array_map(static fn (string $v) => $byValue[$v], $pickedValues);
+        } else {
+            $answerOptions = $allOptions;
+        }
 
         return [
             'allStrings' => GuitarString::all(),

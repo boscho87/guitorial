@@ -237,3 +237,51 @@ practice_guide:
     title: "Leg los"
     diary: "Zum Tagebuch"
     tools: "Zu den Tools"
+
+footer:
+  privacy: Datenschutz
+  imprint: Impressum
+  github: GitHub
+
+legal:
+  privacy:
+    title: Datenschutzerklärung
+    meta_description: "Wie Guitorial mit Cookies und Nutzungsdaten umgeht."
+    controller:
+      title: "Verantwortliche Stelle"
+      body: |
+        [PLATZHALTER: Name einfügen]
+        [PLATZHALTER: Adresse einfügen]
+        E-Mail: simon.d.mueller@itscoding.ch
+    cookies:
+      title: Cookies
+      body: "Guitorial verwendet zwei technisch notwendige Cookies: ein Session-Cookie (PHPSESSID, wird beim Schliessen des Browsers gelöscht) und ein anonymes Wiedererkennungs-Cookie (guitorial_visitor, ein Jahr gültig, HttpOnly, SameSite=Lax). Über das zweite Cookie wird dein Übungsverlauf und Übungstagebuch diesem Gerät/Browser zugeordnet – ohne Registrierung, ohne Namen, ohne E-Mail-Adresse."
+    data:
+      title: "Welche Daten werden gespeichert?"
+      body: "Gespeichert werden ausschliesslich Übungsdaten (welches Tool, wann, wie viele Fragen richtig) und die Einträge deines Übungstagebuchs – jeweils verknüpft mit der zufälligen Cookie-ID, nie mit einer echten Identität. Diese Daten dienen ausschliesslich der Anzeige deines eigenen Verlaufs und werden nicht an Dritte weitergegeben oder verkauft."
+    fonts:
+      title: "Google Fonts"
+      body: "Diese Seite lädt Schriftarten von den Servern von Google (fonts.googleapis.com, fonts.gstatic.com). Dabei kann Google die IP-Adresse des aufrufenden Geräts verarbeiten. Weitere Informationen findest du in der Datenschutzerklärung von Google."
+    no_tracking:
+      title: "Keine Analyse- oder Tracking-Tools"
+      body: "Guitorial setzt keine Analyse-, Marketing- oder Tracking-Dienste ein und zeigt keine Werbung."
+    rights:
+      title: "Deine Rechte"
+      body: |
+        Da keine Registrierung stattfindet, kann eine einzelne Person anhand der gespeicherten Daten nicht zuverlässig identifiziert werden. Möchtest du deine Daten trotzdem einsehen oder löschen lassen, melde dich per E-Mail (siehe oben) – wenn möglich mit einem Hinweis auf Gerät/Browser und ungefährem Nutzungszeitraum.
+  imprint:
+    title: Impressum
+    meta_description: "Anbieterkennzeichnung für Guitorial."
+    responsible:
+      title: "Verantwortlich für den Inhalt"
+      body: |
+        [PLATZHALTER: Name einfügen]
+        [PLATZHALTER: Adresse einfügen]
+    contact:
+      title: Kontakt
+    disclaimer:
+      title: Haftungsausschluss
+      body: "Guitorial ist ein privates, nicht-kommerzielles Übungsprojekt ohne Gewähr auf Richtigkeit oder Verfügbarkeit der Inhalte. Für Inhalte externer Links, auf die verwiesen wird, wird keine Haftung übernommen."
+    copyright:
+      title: Urheberrecht
+      body: "Die auf dieser Seite erstellten Inhalte unterliegen dem Urheberrecht. Verwendete Schriftarten und Bibliotheken stehen unter ihren jeweiligen eigenen Lizenzen."

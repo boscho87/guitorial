@@ -1,0 +1,71 @@
+name: Bug report
+description: Something in Guitorial isn't working as expected
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where did this happen?
+      options:
+        - Tonart erkennen (key recognition)
+        - Kapo-Trainer (capo trainer)
+        - Funktion bestimmen (harmonic function)
+        - Griffbrett (fretboard)
+        - Skalen-Generator (scale generator)
+        - Übungstagebuch (practice diary)
+        - Verlauf (history)
+        - Richtig üben (practice guide)
+        - Home / navigation
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to ...
+        2. Click on ...
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: false
+
+  - type: input
+    id: environment
+    attributes:
+      label: Browser / device
+      placeholder: e.g. Chrome 128 on Android, Safari on iPhone 15
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots (optional)
+      description: Drag & drop images here if helpful.
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context (optional)
+    validations:
+      required: false

@@ -4,6 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Guitorial{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}Guitorial hilft dir, Musiktheorie und Gitarrenspiel gezielt zu üben – Tonarten, Akkordfunktionen, Griffbrett und mehr, mit Verlauf und Übungstagebuch.{% endblock %}">
+    <meta name="theme-color" content="#a8752e">
+    <link rel="canonical" href="{{ app.request.uri }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Guitorial">
+    <meta property="og:title" content="{{ block('title') }}">
+    <meta property="og:description" content="{{ block('meta_description') }}">
+    <meta property="og:url" content="{{ app.request.uri }}">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ block('title') }}">
+    <meta name="twitter:description" content="{{ block('meta_description') }}">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 
     {% block stylesheets %}
@@ -41,11 +52,16 @@
     {% block body %}{% endblock %}
 </main>
 <footer class="mt-auto border-t border-primary/20 bg-footer text-footer-content">
-    <div class="mx-auto flex max-w-3xl flex-col items-center gap-1 px-4 py-6 text-center sm:px-6">
+    <div class="mx-auto flex max-w-3xl flex-col items-center gap-2 px-4 py-6 text-center sm:px-6">
         <p class="font-display text-sm font-medium">Guitorial <span class="text-footer-content/40">&ndash;</span> {{ 'app.tagline'|trans }}</p>
         <p class="text-xs text-footer-content/50">
             &copy; {{ "now"|date("Y") }} itscoding / <a href="mailto:simon.d.mueller@itscoding.ch" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">boscho87</a>
         </p>
+        <nav class="flex items-center gap-3 text-xs text-footer-content/50">
+            <a href="{{ path('privacy_index') }}" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">{{ 'footer.privacy'|trans }}</a>
+            <a href="{{ path('imprint_index') }}" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">{{ 'footer.imprint'|trans }}</a>
+            <a href="https://github.com/boscho87/guitorial" target="_blank" rel="noopener" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">{{ 'footer.github'|trans }}</a>
+        </nav>
     </div>
 </footer>
 </body>

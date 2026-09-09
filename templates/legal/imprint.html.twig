@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'legal.imprint.title'|trans }} – Guitorial{% endblock %}
+{% block meta_description %}{{ 'legal.imprint.meta_description'|trans }}{% endblock %}
+
+{% block body %}
+    <a href="{{ path('home_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{ 'nav.back_home'|trans }}
+    </a>
+
+    <h1 class="font-display mt-3 text-2xl font-semibold sm:text-3xl">{{ 'legal.imprint.title'|trans }}</h1>
+
+    <section class="mt-8">
+        <h2 class="font-display text-lg font-semibold">{{ 'legal.imprint.responsible.title'|trans }}</h2>
+        <p class="mt-2 whitespace-pre-line text-base-content/70">{{ 'legal.imprint.responsible.body'|trans }}</p>
+    </section>
+
+    <section class="mt-8">
+        <h2 class="font-display text-lg font-semibold">{{ 'legal.imprint.contact.title'|trans }}</h2>
+        <p class="mt-2 text-base-content/70">
+            <a href="mailto:simon.d.mueller@itscoding.ch" class="underline decoration-base-content/30 underline-offset-2 hover:text-primary">simon.d.mueller@itscoding.ch</a>
+        </p>
+    </section>
+
+    <section class="mt-8">
+        <h2 class="font-display text-lg font-semibold">{{ 'legal.imprint.disclaimer.title'|trans }}</h2>
+        <p class="mt-2 text-base-content/70">{{ 'legal.imprint.disclaimer.body'|trans }}</p>
+    </section>
+
+    <section class="mt-8">
+        <h2 class="font-display text-lg font-semibold">{{ 'legal.imprint.copyright.title'|trans }}</h2>
+        <p class="mt-2 text-base-content/70">{{ 'legal.imprint.copyright.body'|trans }}</p>
+    </section>
+{% endblock %}

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Domain\Quiz\AnswerOptionPicker;
 use App\Domain\Quiz\WeightedQuestionPicker;
 use App\Domain\Theory\CapoShape;
 use App\Domain\Theory\CapoTransposer;
@@ -281,15 +282,22 @@ final class CapoTrainerController extends AbstractController
         $mode = $current['mode'] ?? $round['modes'][0];
         $shape = $current !== null ? CapoShape::get($current['shapeId']) : null;
 
-        $answerOptions = match ($mode) {
+        $pool = match ($mode) {
             '1' => array_map(
                 static fn (int $i) => Note::nameFromIndex($i) . ($shape?->isMinor ? 'm' : ''),
                 range(0, 11),
             ),
             '2' => $round['shapes'],
-            '3' => range(1, $round['maxFret']),
+            '3' => array_map('strval', range(1, $round['maxFret'])),
             default => [],
         };
+        $correctAnswer = match ($mode) {
+            '1' => $current['sounding'] ?? null,
+            '2' => $current['shapeId'] ?? null,
+            '3' => isset($current['fret']) ? (string) $current['fret'] : null,
+            default => null,
+        };
+        $answerOptions = $correctAnswer !== null ? AnswerOptionPicker::pick($pool, $correctAnswer) : $pool;
 
         return [
             'allShapes' => CapoShape::all(),
