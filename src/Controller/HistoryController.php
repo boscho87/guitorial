@@ -10,6 +10,7 @@ use App\Domain\Quiz\ToolRegistry;
 use App\Entity\Exercise;
 use App\Entity\ExerciseResource;
 use App\Entity\ExerciseVersion;
+use App\Entity\PracticeSession;
 use App\Repository\ExerciseGroupRepository;
 use App\Repository\ExerciseRepository;
 use App\Repository\ExerciseVersionRepository;
@@ -51,11 +52,7 @@ final class HistoryController extends AbstractController
             : [];
 
         $rows = array_map(function ($session) {
-            try {
-                $title = $this->tools->get($session->getTool())['title'];
-            } catch (\InvalidArgumentException) {
-                $title = $session->getTool();
-            }
+            $title = $this->resolveTitle($session);
 
             return [
                 'id' => $session->getId(),
@@ -222,6 +219,27 @@ final class HistoryController extends AbstractController
         }
 
         return $current;
+    }
+
+    /**
+     * ToolRegistry::get() only knows the 5 built-in tools and requires a
+     * non-null id - a session created from an exercise/resource (e.g. an
+     * external-link resource practiced via the diary) has no tool at all
+     * (PracticeSession::getTool() is nullable since the exercise-plan
+     * migration), so falls through to the resource's own title instead.
+     */
+    private function resolveTitle(PracticeSession $session): string
+    {
+        $toolId = $session->getTool() ?? $session->getResource()?->getInternalToolId();
+        if ($toolId !== null) {
+            try {
+                return $this->tools->get($toolId)['title'];
+            } catch (\InvalidArgumentException) {
+                return $toolId;
+            }
+        }
+
+        return $session->getResource()?->getExternalTitle() ?? 'history.untitled_session';
     }
 
     private function requireVisitorId(Request $request): string

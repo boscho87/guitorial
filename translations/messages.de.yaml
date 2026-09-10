@@ -153,6 +153,7 @@ history:
   meta_description: "Dein Übungsverlauf bei Guitorial: Genauigkeit, aktuelle Serie und Fortschritt über die Zeit, für alle Tools."
   intro: "Deine letzten Übungsrunden auf diesem Gerät/Browser. Fortschritt wird über ein anonymes Cookie gespeichert."
   empty: "Noch keine Übungsrunden aufgezeichnet. Fang mit einem der Tools an."
+  untitled_session: Übung
   finished: Abgeschlossen
   discarded: Verworfen
   in_progress: "In Bearbeitung (Frage %current%)"
