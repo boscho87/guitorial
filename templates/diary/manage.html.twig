@@ -30,7 +30,7 @@
                 {% for entry in activeExercises %}
                     <li class="rounded-box border border-base-300 p-4">
                         <div class="flex items-start justify-between gap-2">
-                            <p class="min-w-0 flex-1 text-sm font-medium">{{ entry.version.title }}</p>
+                            <p class="min-w-0 flex-1 text-sm font-medium sm:text-base">{{ entry.version.title }}</p>
                             <div class="flex shrink-0 gap-0.5">
                                 <a href="{{ path('history_exercise_detail', {id: entry.exercise.id}) }}" class="btn btn-ghost btn-xs btn-square" title="{{ 'history.title'|trans }}" aria-label="{{ 'history.title'|trans }}">
                                     {{ icons.icon('history') }}
@@ -93,7 +93,7 @@
             <ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {% for entry in archivedExercises %}
                     <li class="flex items-center justify-between gap-2 rounded-box border border-base-300 p-4 opacity-70">
-                        <p class="min-w-0 flex-1 text-sm font-medium">{{ entry.version.title }}</p>
+                        <p class="min-w-0 flex-1 text-sm font-medium sm:text-base">{{ entry.version.title }}</p>
                         <div class="flex shrink-0 gap-0.5">
                             <form method="post" action="{{ path('diary_reactivate', {id: entry.exercise.id}) }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">

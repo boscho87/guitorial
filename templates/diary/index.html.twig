@@ -57,11 +57,17 @@
                                 {% endif %}
                                 <div class="min-w-0 flex-1">
                                     <p class="text-sm font-medium {{ row.checked ? 'text-base-content/50 line-through' : '' }}">{{ row.version.title }}</p>
-                                    <p class="mt-0.5 text-xs text-base-content/60">
-                                        {{ ('diary.rhythm.' ~ row.version.repeatRhythm)|trans }}
-                                        {% if row.weeklyTarget %} &middot; {{ 'diary.item.weekly_progress'|trans({'%done%': row.weeklyDone, '%target%': row.weeklyTarget}) }}{% endif %}
-                                        {% if row.version.targetMinutes %} &middot; {{ 'diary.item.progress'|trans({'%minutes%': row.practicedMinutes, '%target%': row.version.targetMinutes}) }}{% endif %}
-                                    </p>
+                                    <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                                        <span class="badge badge-sm badge-outline">
+                                            {{ ('diary.rhythm.' ~ row.version.repeatRhythm)|trans }}
+                                            {% if row.weeklyTarget %} {{ row.weeklyDone }}/{{ row.weeklyTarget }}{% endif %}
+                                        </span>
+                                        {% if bucket.group %}<span class="badge badge-sm badge-ghost">{{ bucket.group.name }}</span>{% endif %}
+                                        {% if row.version.targetMinutes %}<span class="text-xs text-base-content/60">{{ 'diary.item.progress'|trans({'%minutes%': row.practicedMinutes, '%target%': row.version.targetMinutes}) }}</span>{% endif %}
+                                    </div>
+                                    {% if exercise.note %}
+                                        <p class="mt-1 text-xs text-base-content/50">{{ exercise.note|length > 80 ? exercise.note|slice(0, 80) ~ '…' : exercise.note }}</p>
+                                    {% endif %}
 
                                     {% if isToday %}
                                         <div class="mt-2 flex flex-wrap items-center gap-2">

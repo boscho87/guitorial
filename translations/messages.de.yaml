@@ -241,7 +241,6 @@ diary:
   item:
     linked_to: "Verknüpft mit %tool%"
     progress: "%minutes% von %target% Min."
-    weekly_progress: "%done% von %target% diese Woche"
     start: Start
     resume: Fortsetzen
     mark_done: "Als erledigt markieren"
