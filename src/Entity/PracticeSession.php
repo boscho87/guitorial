@@ -223,6 +223,18 @@ class PracticeSession
         $this->learningState = $learningState;
     }
 
+    /**
+     * For a manual "mark done" credit on a minute-target exercise: an
+     * instantly start()+finish()'d session has ~0 elapsed minutes, which
+     * could never satisfy a target of e.g. 30 - backdating startedAt makes
+     * the credited duration exactly the target, same as if it had really
+     * been practiced that long.
+     */
+    public function backdateStart(int $minutes): void
+    {
+        $this->startedAt = $this->startedAt->modify(sprintf('-%d minutes', $minutes));
+    }
+
     public function discard(): void
     {
         $this->status = self::STATUS_DISCARDED;

@@ -41,6 +41,26 @@ final class SessionRecorder
     }
 
     /**
+     * A manual "mark done" click rather than real, timed practice - credits
+     * exactly creditMinutes (backdating startedAt) so a minute-target
+     * exercise is satisfied immediately, the same as genuinely practicing
+     * that long would. creditMinutes null (no target) just needs to exist
+     * at all, so an instant 0-minute session is fine as-is.
+     */
+    public function completeManually(string $visitorId, Exercise $exercise, ?int $creditMinutes): PracticeSession
+    {
+        $session = new PracticeSession($visitorId, $this->generateClientSessionId(), null, $exercise);
+        if ($creditMinutes !== null && $creditMinutes > 0) {
+            $session->backdateStart($creditMinutes);
+        }
+        $this->em->persist($session);
+        $session->finish();
+        $this->em->flush();
+
+        return $session;
+    }
+
+    /**
      * Idempotent - only the first call per session actually writes.
      */
     public function markInteraction(PracticeSession $session): void

@@ -386,14 +386,19 @@ final class DiaryController extends AbstractController
     }
 
     #[Route('/{id}/abhaken', name: 'diary_mark_done', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function markDone(int $id, Request $request, ExerciseRepository $exercises, SessionRecorder $sessionRecorder): Response
-    {
+    public function markDone(
+        int $id,
+        Request $request,
+        ExerciseRepository $exercises,
+        ExerciseVersionRepository $versions,
+        SessionRecorder $sessionRecorder,
+    ): Response {
         $this->assertValidCsrf($request);
         $visitorId = $this->requireVisitorId($request);
         $exercise = $exercises->findForVisitor($id, $visitorId);
         if ($exercise !== null) {
-            $session = $sessionRecorder->start($visitorId, null, exercise: $exercise);
-            $sessionRecorder->finish($session);
+            $version = $versions->currentFor($exercise, new \DateTimeImmutable('today'));
+            $sessionRecorder->completeManually($visitorId, $exercise, $version?->getTargetMinutes());
         }
 
         return $this->redirectToRoute('diary_index');
