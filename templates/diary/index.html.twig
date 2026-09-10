@@ -42,7 +42,19 @@
                         {% set resources = resourcesByExerciseId[exercise.id] %}
                         <li class="rounded-box border border-base-300 p-4">
                             <div class="flex items-start gap-3">
-                                <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border {{ row.checked ? 'border-primary bg-primary/10 text-primary' : 'border-base-300 text-base-content/40' }}">{% if row.checked %}&check;{% endif %}</span>
+                                {% if isToday and not row.checked %}
+                                    <form method="post" action="{{ path('diary_mark_done', {id: exercise.id}) }}" class="shrink-0">
+                                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                                        <button
+                                                type="submit"
+                                                class="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border border-base-300 text-transparent transition-colors hover:border-primary hover:bg-primary/10 hover:text-primary focus-visible:border-primary focus-visible:text-primary"
+                                                title="{{ 'diary.item.mark_done'|trans }}"
+                                                aria-label="{{ 'diary.item.mark_done'|trans }}"
+                                        >&check;</button>
+                                    </form>
+                                {% else %}
+                                    <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border {{ row.checked ? 'border-primary bg-primary/10 text-primary' : 'border-base-300 text-base-content/40' }}">{% if row.checked %}&check;{% endif %}</span>
+                                {% endif %}
                                 <div class="min-w-0 flex-1">
                                     <p class="text-sm font-medium {{ row.checked ? 'text-base-content/50 line-through' : '' }}">{{ row.version.title }}</p>
                                     <p class="mt-0.5 text-xs text-base-content/60">
@@ -80,11 +92,6 @@
                                                     <button type="submit" class="btn btn-outline btn-xs">{{ 'diary.item.start'|trans }}</button>
                                                 </form>
                                             {% endif %}
-
-                                            <form method="post" action="{{ path('diary_mark_done', {id: exercise.id}) }}">
-                                                <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                                                <button type="submit" class="btn btn-ghost btn-xs">{{ 'diary.item.mark_done'|trans }}</button>
-                                            </form>
                                         </div>
                                     {% endif %}
                                 </div>
