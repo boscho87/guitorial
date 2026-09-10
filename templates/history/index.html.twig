@@ -13,7 +13,11 @@
     <div class="mt-3 flex flex-wrap items-start justify-between gap-3">
         <div>
             <h1 class="font-display text-2xl font-semibold sm:text-3xl">{{ 'history.title'|trans }}</h1>
-            <p class="mt-2 text-base-content/70">{{ 'history.intro'|trans }}</p>
+            {% if app.user %}
+                <p class="mt-2 text-base-content/70">{{ 'history.intro_logged_in'|trans({'%email%': app.user.email}) }}</p>
+            {% else %}
+                <p class="mt-2 text-warning">{{ 'history.intro_anonymous'|trans }}</p>
+            {% endif %}
         </div>
         <a href="{{ path('history_groups') }}" class="btn btn-outline btn-sm shrink-0">{{ 'history.groups_link'|trans }}</a>
     </div>

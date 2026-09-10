@@ -28,7 +28,7 @@
             <ul class="mt-4 space-y-2">
                 {% for entry in activeExercises %}
                     <li class="rounded-box border border-base-300 p-4">
-                        <div class="flex items-start justify-between gap-3">
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
                                 <p class="text-sm font-medium">{{ entry.version.title }}</p>
                                 <p class="mt-0.5 text-xs text-base-content/60">
@@ -39,7 +39,7 @@
                                 </p>
                                 {% if entry.exercise.note %}<p class="mt-1 text-xs text-base-content/50">{{ entry.exercise.note }}</p>{% endif %}
                             </div>
-                            <div class="flex shrink-0 gap-1">
+                            <div class="flex flex-wrap gap-1 sm:shrink-0">
                                 <a href="{{ path('history_exercise_detail', {id: entry.exercise.id}) }}" class="btn btn-ghost btn-xs">{{ 'history.title'|trans }}</a>
                                 <a href="{{ path('diary_setup', {id: entry.exercise.id}) }}" class="btn btn-ghost btn-xs">{{ 'diary.item.edit'|trans }}</a>
                                 <form method="post" action="{{ path('diary_archive', {id: entry.exercise.id}) }}">
@@ -67,9 +67,9 @@
             <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.archive.title'|trans }}</h2>
             <ul class="mt-4 space-y-2">
                 {% for entry in archivedExercises %}
-                    <li class="flex items-center justify-between gap-3 rounded-box border border-base-300 p-4 opacity-70">
+                    <li class="flex flex-col gap-3 rounded-box border border-base-300 p-4 opacity-70 sm:flex-row sm:items-center sm:justify-between">
                         <p class="text-sm font-medium">{{ entry.version.title }}</p>
-                        <div class="flex shrink-0 gap-1">
+                        <div class="flex flex-wrap gap-1 sm:shrink-0">
                             <form method="post" action="{{ path('diary_reactivate', {id: entry.exercise.id}) }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
                                 <button type="submit" class="btn btn-ghost btn-xs">{{ 'diary.archive.reactivate'|trans }}</button>

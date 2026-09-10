@@ -13,6 +13,7 @@ nav:
   practice_guide: Tipps
   login: Anmelden
   logout: Abmelden
+  logged_in_as: "Angemeldet als %email%"
 
 practice_toast:
   chosen: Gewählt
@@ -151,7 +152,8 @@ scale_generator:
 history:
   title: Verlauf
   meta_description: "Dein Übungsverlauf bei Guitorial: Genauigkeit, aktuelle Serie und Fortschritt über die Zeit, für alle Tools."
-  intro: "Deine letzten Übungsrunden auf diesem Gerät/Browser. Fortschritt wird über ein anonymes Cookie gespeichert."
+  intro_logged_in: "Dein Übungsverlauf ist mit deinem Konto (%email%) verknüpft und bleibt auch auf einem neuen Gerät erhalten, sobald du dich dort ebenfalls anmeldest."
+  intro_anonymous: "Du bist nicht angemeldet – dein Fortschritt wird nur lokal über ein anonymes Cookie in diesem Browser gespeichert und geht bei dessen Verlust verloren. Melde dich an, um ihn dauerhaft zu sichern."
   empty: "Noch keine Übungsrunden aufgezeichnet. Fang mit einem der Tools an."
   untitled_session: Übung
   finished: Abgeschlossen

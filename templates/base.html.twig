@@ -42,10 +42,16 @@
             <a href="{{ path('practice_guide_index') }}" class="text-base-content/70 hover:text-primary">{{ 'nav.practice_guide'|trans }}</a>
             <div class="flex items-center gap-4 sm:border-l sm:border-primary/30 sm:pl-4">
                 {% if app.user %}
-                    <span class="font-medium text-base-content/90" title="{{ app.user.email }}">{{ app.user.firstName }}</span>
+                    <span class="inline-flex items-center gap-1.5 font-medium text-base-content/90" title="{{ 'nav.logged_in_as'|trans({'%email%': app.user.email}) }}">
+                        <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-success"></span>
+                        {{ app.user.firstName }}
+                    </span>
                     <a href="{{ path('app_logout') }}" class="text-base-content/70 hover:text-error">{{ 'nav.logout'|trans }}</a>
                 {% else %}
-                    <a href="{{ path('app_login') }}" class="text-base-content/70 hover:text-primary">{{ 'nav.login'|trans }}</a>
+                    <a href="{{ path('app_login') }}" class="inline-flex items-center gap-1.5 text-base-content/70 hover:text-primary">
+                        <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-base-content/25"></span>
+                        {{ 'nav.login'|trans }}
+                    </a>
                 {% endif %}
             </div>
         </div>
