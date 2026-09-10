@@ -46,7 +46,7 @@
                     </form>
                     <a href="{{ path('fretboard_settings') }}" data-turbo-frame="_top" class="btn btn-outline">{{ 'fretboard.summary.change_settings'|trans }}</a>
                     {% if promotable %}
-                        <form method="post" action="{{ path('history_promote_to_exercise', {session: sessionId}) }}">
+                        <form method="post" action="{{ path('history_promote_to_exercise', {session: sessionId}) }}" data-turbo-frame="_top">
                             <input type="hidden" name="_token" value="{{ csrf_token('history') }}">
                             <button type="submit" class="btn btn-ghost">{{ 'history.promote.submit'|trans }}</button>
                         </form>
