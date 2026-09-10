@@ -6,7 +6,13 @@ namespace App\Controller;
 
 use App\Domain\Quiz\AnswerOptionPicker;
 use App\Domain\Quiz\WeightedQuestionPicker;
+use App\Domain\Session\ExercisePlanLink;
+use App\Domain\Session\SessionRecorder;
+use App\Domain\Session\ToolConfigSnapshot;
 use App\Domain\Theory\MusicKey;
+use App\Entity\Exercise;
+use App\Entity\ExerciseResource;
+use App\Repository\PracticeSessionRepository;
 use App\Repository\QuizAttemptRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,8 +37,11 @@ final class KeyRecognitionController extends AbstractController
     private const MIN_QUESTION_COUNT = 3;
     private const MAX_QUESTION_COUNT = 30;
 
-    public function __construct(private readonly QuizAttemptRepository $attempts)
-    {
+    public function __construct(
+        private readonly QuizAttemptRepository $attempts,
+        private readonly SessionRecorder $sessionRecorder,
+        private readonly ExercisePlanLink $planLink,
+    ) {
     }
 
     #[Route('', name: 'key_recognition_settings', methods: ['GET'])]
@@ -41,11 +50,14 @@ final class KeyRecognitionController extends AbstractController
         $pairs = MusicKey::signaturePairs();
         $round = $this->currentRound($request);
         $activePairs = $round !== null ? $round['pairs'] : array_column($pairs, 'majorId');
+        $plan = $this->resolvePlanLink($request, $request->query->get('uebung'), $request->query->get('ressource'));
 
         return $this->render('key_recognition/settings.html.twig', [
             'pairs' => $pairs,
             'activePairs' => $activePairs,
             'questionCount' => $round !== null ? $round['totalQuestions'] : self::DEFAULT_QUESTION_COUNT,
+            'planExerciseId' => $plan !== null ? $plan['exercise']->getId() : null,
+            'planResourceId' => $plan !== null ? $plan['resource']->getId() : null,
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
     }
@@ -68,7 +80,8 @@ final class KeyRecognitionController extends AbstractController
             min(self::MAX_QUESTION_COUNT, (int) $request->request->get('question_count', self::DEFAULT_QUESTION_COUNT)),
         );
 
-        $this->beginRound($request, $selected, $questionCount);
+        $plan = $this->resolvePlanLink($request, $request->request->get('uebung'), $request->request->get('ressource'));
+        $this->beginRound($request, $selected, $questionCount, $plan['exercise'] ?? null, $plan['resource'] ?? null);
 
         return $this->redirectToRoute('key_recognition_practice');
     }
@@ -92,7 +105,7 @@ final class KeyRecognitionController extends AbstractController
      * step, so practicing stays a single tap per question.
      */
     #[Route('/antwort', name: 'key_recognition_answer', methods: ['POST'])]
-    public function answer(Request $request): Response
+    public function answer(Request $request, PracticeSessionRepository $sessions): Response
     {
         $this->assertValidCsrf($request);
 
@@ -100,6 +113,11 @@ final class KeyRecognitionController extends AbstractController
         $round = $this->currentRound($request);
         if ($round === null) {
             return $this->redirectToRoute('key_recognition_settings');
+        }
+
+        $practiceSession = $sessions->find($round['practiceSessionId']);
+        if ($practiceSession !== null) {
+            $this->sessionRecorder->markInteraction($practiceSession);
         }
 
         $correctPairId = $round['current']['pairId'] ?? null;
@@ -123,6 +141,9 @@ final class KeyRecognitionController extends AbstractController
             $round['finished'] = true;
             $round['current'] = null;
             $session->set(self::SESSION_ROUND, $round);
+            if ($practiceSession !== null) {
+                $this->sessionRecorder->finish($practiceSession);
+            }
         } else {
             $round['questionIndex']++;
             $round['current'] = null;
@@ -151,7 +172,7 @@ final class KeyRecognitionController extends AbstractController
      * Reads the round from the session, discarding it if it's missing or
      * from an older, incompatible session schema (e.g. after a deploy).
      *
-     * @return array{pairs: string[], totalQuestions: int, questionIndex: int, correctCount: int, finished: bool, current: array{pairId: string, progression: string[]}|null}|null
+     * @return array{pairs: string[], totalQuestions: int, questionIndex: int, correctCount: int, finished: bool, current: array{pairId: string, progression: string[]}|null, practiceSessionId: int}|null
      */
     private function currentRound(Request $request): ?array
     {
@@ -160,7 +181,7 @@ final class KeyRecognitionController extends AbstractController
 
         if (
             !is_array($round)
-            || !isset($round['pairs'], $round['totalQuestions'], $round['questionIndex'], $round['correctCount'], $round['finished'])
+            || !isset($round['pairs'], $round['totalQuestions'], $round['questionIndex'], $round['correctCount'], $round['finished'], $round['practiceSessionId'])
             || !array_key_exists('current', $round)
         ) {
             $session->remove(self::SESSION_ROUND);
@@ -179,9 +200,33 @@ final class KeyRecognitionController extends AbstractController
         }
     }
 
-    /** @param string[] $pairs */
-    private function beginRound(Request $request, array $pairs, int $questionCount): void
+    /**
+     * @return array{exercise: Exercise, resource: ExerciseResource}|null
+     */
+    private function resolvePlanLink(Request $request, mixed $exerciseId, mixed $resourceId): ?array
     {
+        $visitorId = $request->attributes->get('visitorId');
+
+        return $this->planLink->resolve(
+            is_string($visitorId) ? $visitorId : '',
+            $exerciseId !== null ? (string) $exerciseId : null,
+            $resourceId !== null ? (string) $resourceId : null,
+            self::TOOL,
+        );
+    }
+
+    /** @param string[] $pairs */
+    private function beginRound(Request $request, array $pairs, int $questionCount, ?Exercise $exercise = null, ?ExerciseResource $resource = null): void
+    {
+        $visitorId = $request->attributes->get('visitorId');
+        $practiceSession = $this->sessionRecorder->start(
+            is_string($visitorId) ? $visitorId : '',
+            self::TOOL,
+            exercise: $exercise,
+            resource: $resource,
+            configSnapshot: ToolConfigSnapshot::keyRecognition($pairs, $questionCount),
+        );
+
         $request->getSession()->set(self::SESSION_ROUND, [
             'pairs' => $pairs,
             'totalQuestions' => $questionCount,
@@ -190,6 +235,8 @@ final class KeyRecognitionController extends AbstractController
             'finished' => false,
             'current' => null,
             'startedAt' => microtime(true),
+            'practiceSessionId' => $practiceSession->getId(),
+            'fromPlan' => $exercise !== null,
         ]);
         $this->ensureCurrentQuestion($request);
     }
@@ -253,6 +300,7 @@ final class KeyRecognitionController extends AbstractController
             : [];
 
         return [
+            'sessionId' => $round['practiceSessionId'],
             'answerOptions' => array_map(
                 fn (string $id): array => ['id' => $id, 'label' => $this->pairLabel($id)],
                 $optionIds,
@@ -261,6 +309,7 @@ final class KeyRecognitionController extends AbstractController
             'totalQuestions' => $round['totalQuestions'],
             'correctCount' => $round['correctCount'],
             'finished' => $round['finished'],
+            'promotable' => $round['finished'] && !($round['fromPlan'] ?? false),
             'progression' => $round['current']['progression'] ?? null,
             'toast' => $toast,
             'startedAtMs' => (int) round($startedAt * 1000),
@@ -297,7 +346,17 @@ final class KeyRecognitionController extends AbstractController
     {
         $chords = $key->diatonicChords();
         $namesByDegree = array_column($chords, 'name', 'degree');
-        $allDegrees = array_keys($namesByDegree);
+
+        // The diminished degree (vii° in major, ii° in minor) occurs on
+        // exactly one degree of the scale, so seeing it instantly gives
+        // away the key without needing to read the rest of the
+        // progression - excluded from the pool the other 3 chords are
+        // drawn from (the tonic itself is never diminished).
+        $diminishedDegrees = array_column(
+            array_filter($chords, static fn (array $c): bool => $c['quality'] === 'dim'),
+            'degree',
+        );
+        $allDegrees = array_diff(array_keys($namesByDegree), $diminishedDegrees);
 
         $fallback = null;
         for ($attempt = 0; $attempt < 30; $attempt++) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\EventListener;
 
+use App\Domain\Session\VisitorId;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -39,8 +40,8 @@ final class VisitorCookieSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
         $visitorId = $request->cookies->get(self::COOKIE_NAME);
 
-        if (!is_string($visitorId) || !preg_match('/^[0-9a-f-]{36}$/', $visitorId)) {
-            $visitorId = self::generateUuid();
+        if (!is_string($visitorId) || !VisitorId::isValid($visitorId)) {
+            $visitorId = VisitorId::generate();
             $request->attributes->set('visitorIdIsNew', true);
         }
 
@@ -66,14 +67,5 @@ final class VisitorCookieSubscriber implements EventSubscriberInterface
                 ->withHttpOnly(true)
                 ->withSameSite(Cookie::SAMESITE_LAX),
         );
-    }
-
-    private static function generateUuid(): string
-    {
-        $bytes = random_bytes(16);
-        $bytes[6] = chr((ord($bytes[6]) & 0x0f) | 0x40);
-        $bytes[8] = chr((ord($bytes[8]) & 0x3f) | 0x80);
-
-        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($bytes), 4));
     }
 }

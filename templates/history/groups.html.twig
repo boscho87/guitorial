@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'history.groups_page.title'|trans }} – Guitorial{% endblock %}
+
+{% block body %}
+    <a href="{{ path('history_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{ 'history.title'|trans }}
+    </a>
+
+    <h1 class="font-display mt-3 text-2xl font-semibold sm:text-3xl">{{ 'history.groups_page.title'|trans }}</h1>
+    <p class="mt-2 text-base-content/70">{{ 'history.groups_page.intro'|trans }}</p>
+
+    {% if rows is empty %}
+        <p class="mt-10 text-sm text-base-content/60">{{ 'history.groups_page.empty'|trans }}</p>
+    {% else %}
+        <ul class="mt-6 space-y-3">
+            {% for row in rows %}
+                {% set total = row.learningStates|reduce((carry, count) => carry + count, 0) %}
+                <li class="stat-tile">
+                    <div class="flex items-baseline justify-between gap-3">
+                        <p class="font-medium">{{ row.group ? row.group.name : 'diary.form.no_group'|trans }}</p>
+                        <p class="text-xs text-base-content/60">{{ 'history.groups_page.exercises'|trans({'%count%': row.exerciseCount}) }}</p>
+                    </div>
+                    <p class="mt-1 text-sm text-base-content/70">
+                        {{ 'history.groups_page.minutes'|trans({'%minutes%': row.practicedMinutes}) }}
+                        &middot; {{ 'history.groups_page.sessions'|trans({'%count%': row.sessionCount}) }}
+                    </p>
+
+                    {% if total > 0 %}
+                        <div class="mt-3 flex h-2 overflow-hidden rounded-full bg-base-300">
+                            {% for state, count in row.learningStates %}
+                                <div
+                                        class="{{ state == 'sicher' ? 'bg-success' : (state == 'wird_besser' ? 'bg-primary' : (state == 'schwierig' ? 'bg-warning' : 'bg-base-content/20')) }}"
+                                        style="width: {{ (count / total * 100)|round }}%"
+                                        title="{{ ('history.groups_page.learning_state.' ~ state)|trans }}: {{ count }}"
+                                ></div>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/60">
+                            {% for state, count in row.learningStates %}
+                                <span>{{ ('history.groups_page.learning_state.' ~ state)|trans }}: {{ count }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

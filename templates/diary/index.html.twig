@@ -2,6 +2,8 @@
 
 {% block title %}{{ 'diary.title'|trans }} – Guitorial{% endblock %}
 
+{% block meta_description %}{{ 'diary.meta_description'|trans }}{% endblock %}
+
 {% block body %}
     <a href="{{ path('home_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -28,40 +30,69 @@
         {% endif %}
     </div>
 
-    {% if dayItems is empty %}
+    {% if grouped is empty %}
         <p class="mt-8 text-sm text-base-content/60">{{ isToday ? 'diary.empty'|trans : 'diary.empty_past'|trans }}</p>
     {% else %}
-        {% for cat in categories %}
-            {% set catItems = dayItems|filter(row => row.item.category == cat) %}
-            {% if catItems is not empty %}
-                <section class="mt-8">
-                    <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ ('diary.category.' ~ cat)|trans }}</h2>
-                    <ul class="mt-3 space-y-2">
-                        {% for row in catItems %}
-                            <li class="flex items-start gap-3 rounded-box border border-base-300 p-4">
-                                {% if isToday and not row.autoTracked %}
-                                    <form method="post" action="{{ path('diary_toggle_check', {id: row.item.id}) }}">
-                                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                                        <button type="submit" class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border {{ row.checked ? 'border-primary bg-primary/10 text-primary' : 'border-base-300 text-base-content/40 hover:border-primary' }}" aria-label="{{ 'diary.item.toggle'|trans }}">{% if row.checked %}&check;{% endif %}</button>
-                                    </form>
-                                {% else %}
-                                    <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border {{ row.checked ? 'border-primary bg-primary/10 text-primary' : 'border-base-300 text-base-content/40' }}">{% if row.checked %}&check;{% endif %}</span>
-                                {% endif %}
-                                <div>
-                                    <p class="text-sm font-medium {{ row.checked ? 'text-base-content/50 line-through' : '' }}">{{ row.item.label }}</p>
-                                    {% if row.toolTitle %}
-                                        <p class="mt-0.5 text-xs text-base-content/60">
-                                            {{ 'diary.item.linked_to'|trans({'%tool%': row.toolTitle|trans}) }}
-                                            {% if row.autoTracked %} &middot; {{ 'diary.item.progress'|trans({'%minutes%': row.practicedMinutes, '%target%': row.item.targetMinutes}) }}{% endif %}
-                                            {% if isToday %}<a href="{{ path(row.toolRoute) }}" data-turbo-frame="_top" class="ml-1 underline">{{ 'diary.item.practice_now'|trans }}</a>{% endif %}
-                                        </p>
+        {% for bucket in grouped %}
+            <section class="mt-8">
+                <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ bucket.group ? bucket.group.name : 'diary.form.no_group'|trans }}</h2>
+                <ul class="mt-3 space-y-2">
+                    {% for row in bucket.rows %}
+                        {% set exercise = row.version.exercise %}
+                        {% set resources = resourcesByExerciseId[exercise.id] %}
+                        <li class="rounded-box border border-base-300 p-4">
+                            <div class="flex items-start gap-3">
+                                <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border {{ row.checked ? 'border-primary bg-primary/10 text-primary' : 'border-base-300 text-base-content/40' }}">{% if row.checked %}&check;{% endif %}</span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-medium {{ row.checked ? 'text-base-content/50 line-through' : '' }}">{{ row.version.title }}</p>
+                                    <p class="mt-0.5 text-xs text-base-content/60">
+                                        {{ ('diary.rhythm.' ~ row.version.repeatRhythm)|trans }}
+                                        {% if row.weeklyTarget %} &middot; {{ 'diary.item.weekly_progress'|trans({'%done%': row.weeklyDone, '%target%': row.weeklyTarget}) }}{% endif %}
+                                        {% if row.version.targetMinutes %} &middot; {{ 'diary.item.progress'|trans({'%minutes%': row.practicedMinutes, '%target%': row.version.targetMinutes}) }}{% endif %}
+                                    </p>
+
+                                    {% if isToday %}
+                                        <div class="mt-2 flex flex-wrap items-center gap-2">
+                                            {% if row.runningSessionId %}
+                                                {% if row.runningSessionTool %}
+                                                    <a href="{{ path(toolPracticeRoutes[row.runningSessionTool]) }}" data-turbo-frame="_top" class="btn btn-primary btn-xs">{{ 'diary.item.resume'|trans }}</a>
+                                                {% else %}
+                                                    <a href="{{ path('exercise_session_running', {id: row.runningSessionId}) }}" class="btn btn-primary btn-xs">{{ 'diary.item.resume'|trans }}</a>
+                                                {% endif %}
+                                            {% elseif resources is not empty %}
+                                                {% for resource in resources %}
+                                                    {% if resource.isInternalTool %}
+                                                        <a href="{{ path(toolSettingsRoutes[resource.internalToolId], {uebung: exercise.id, ressource: resource.id}) }}" data-turbo-frame="_top" class="btn btn-outline btn-xs">{{ 'diary.item.start'|trans }}: {{ toolTitles[resource.internalToolId]|trans }}</a>
+                                                    {% else %}
+                                                        <button
+                                                                type="button" class="btn btn-outline btn-xs"
+                                                                data-controller="exercise-external-start"
+                                                                data-exercise-external-start-url-value="{{ resource.externalUrl }}"
+                                                                data-exercise-external-start-start-url-value="{{ path('exercise_start_external', {id: exercise.id, resourceId: resource.id}) }}"
+                                                                data-exercise-external-start-token-value="{{ csrf_token(sessionCsrfIntention) }}"
+                                                                data-action="click->exercise-external-start#start"
+                                                        >{{ 'diary.item.start'|trans }}: {{ resource.externalProvider ?? resource.externalUrl }}</button>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                <form method="post" action="{{ path('exercise_start_manual', {id: exercise.id}) }}">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token(sessionCsrfIntention) }}">
+                                                    <button type="submit" class="btn btn-outline btn-xs">{{ 'diary.item.start'|trans }}</button>
+                                                </form>
+                                            {% endif %}
+
+                                            <form method="post" action="{{ path('diary_mark_done', {id: exercise.id}) }}">
+                                                <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                                                <button type="submit" class="btn btn-ghost btn-xs">{{ 'diary.item.mark_done'|trans }}</button>
+                                            </form>
+                                        </div>
                                     {% endif %}
                                 </div>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </section>
-            {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
         {% endfor %}
     {% endif %}
 

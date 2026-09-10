@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ version ? version.title : 'exercise_session.untitled'|trans }} – Guitorial{% endblock %}
+
+{% block body %}
+    <a href="{{ path('history_groups') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{ 'history.exercise_detail.back'|trans }}
+    </a>
+
+    <h1 class="font-display mt-3 text-2xl font-semibold sm:text-3xl">{{ version ? version.title : 'exercise_session.untitled'|trans }}</h1>
+
+    {% if sessions is empty %}
+        <p class="mt-10 text-sm text-base-content/60">{{ 'history.exercise_detail.empty'|trans }}</p>
+    {% else %}
+        <div class="mt-6 overflow-x-auto">
+            <table class="table">
+                <thead>
+                    <tr class="text-xs uppercase tracking-wide text-base-content/70">
+                        <th>{{ 'history.table.date'|trans }}</th>
+                        <th class="text-right">{{ 'history.table.result'|trans }}</th>
+                        <th class="text-right">{{ 'history.table.status'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for session in sessions %}
+                        <tr>
+                            <td class="font-mono text-xs text-base-content/60">{{ session.startedAt|date('d.m.Y, H:i') }}</td>
+                            <td class="text-right font-mono text-sm font-semibold text-primary">
+                                {% if session.totalQuestions %}{{ session.correctCount }}/{{ session.totalQuestions }}{% endif %}
+                            </td>
+                            <td class="text-right text-xs text-base-content/60">
+                                {% if session.learningState %}
+                                    {{ ('exercise_session.learning_state.' ~ session.learningState)|trans }}
+                                {% elseif session.status == 'abgeschlossen' %}
+                                    {{ 'history.finished'|trans }}
+                                {% elseif session.status == 'verworfen' %}
+                                    {{ 'history.discarded'|trans }}
+                                {% else %}
+                                    {{ 'history.in_progress'|trans({'%current%': session.questionIndex}) }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <form
+                method="post" action="{{ path('history_exercise_delete', {id: exercise.id}) }}" class="mt-4"
+                data-controller="confirm-submit" data-confirm-submit-message-value="{{ 'history.exercise_detail.delete_confirm'|trans }}"
+                data-action="submit->confirm-submit#submit"
+        >
+            <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+            <button type="submit" class="btn btn-ghost btn-xs text-error">{{ 'history.exercise_detail.delete'|trans }}</button>
+        </form>
+    {% endif %}
+{% endblock %}

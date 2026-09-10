@@ -1,0 +1,94 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'diary.setup.title'|trans }} – Guitorial{% endblock %}
+
+{% block body %}
+    <a href="{{ path('diary_manage') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{ 'diary.manage.back_to_list'|trans }}
+    </a>
+
+    <h1 class="font-display mt-3 text-2xl font-semibold sm:text-3xl">{{ 'diary.setup.title'|trans }}</h1>
+    <p class="mt-2 text-base-content/70">{{ 'diary.setup.intro'|trans }}</p>
+
+    <form method="post" action="{{ path('diary_edit', {id: exercise.id}) }}" class="mt-8 space-y-8" data-controller="exercise-form">
+        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+
+        <div>
+            <label class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.title'|trans }}</label>
+            <input type="text" name="title" value="{{ version.title }}" maxlength="120" required class="input input-bordered mt-2 w-full">
+        </div>
+
+        <div>
+            <label class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.resources'|trans }}</label>
+            <p class="mt-1 text-xs text-base-content/50">{{ 'diary.setup.section.resources_hint'|trans }}</p>
+            <div class="mt-3 space-y-2" data-exercise-form-target="resourceList">
+                {% for resource in resources %}
+                    <div class="flex items-center gap-2" data-controller="resource-row">
+                        <select name="resource_type[]" class="select select-sm select-bordered" data-resource-row-target="typeSelect" data-action="change->resource-row#syncVisibility">
+                            <option value="internal_tool" {{ resource.type == 'internal_tool' ? 'selected' : '' }}>{{ 'diary.resource.type.internal_tool'|trans }}</option>
+                            <option value="external_link" {{ resource.type == 'external_link' ? 'selected' : '' }}>{{ 'diary.resource.type.external_link'|trans }}</option>
+                        </select>
+                        <select name="resource_tool_id[]" class="select select-sm select-bordered {{ resource.isInternalTool ? '' : 'hidden' }}" data-resource-row-target="toolField">
+                            <option value="">—</option>
+                            {% for tool in tools %}<option value="{{ tool.id }}" {{ resource.internalToolId == tool.id ? 'selected' : '' }}>{{ tool.title|trans }}</option>{% endfor %}
+                        </select>
+                        <input type="url" name="resource_url[]" value="{{ resource.externalUrl }}" class="input input-sm input-bordered flex-1 {{ resource.isInternalTool ? 'hidden' : '' }}" placeholder="https://…" data-resource-row-target="urlField">
+                        <button type="button" class="btn btn-ghost btn-xs text-error" data-action="exercise-form#removeResource">✕</button>
+                    </div>
+                {% endfor %}
+            </div>
+            <template data-exercise-form-target="resourceTemplate">
+                <div class="flex items-center gap-2" data-controller="resource-row">
+                    <select name="resource_type[]" class="select select-sm select-bordered" data-resource-row-target="typeSelect" data-action="change->resource-row#syncVisibility">
+                        <option value="internal_tool">{{ 'diary.resource.type.internal_tool'|trans }}</option>
+                        <option value="external_link">{{ 'diary.resource.type.external_link'|trans }}</option>
+                    </select>
+                    <select name="resource_tool_id[]" class="select select-sm select-bordered" data-resource-row-target="toolField">
+                        <option value="">—</option>
+                        {% for tool in tools %}<option value="{{ tool.id }}">{{ tool.title|trans }}</option>{% endfor %}
+                    </select>
+                    <input type="url" name="resource_url[]" class="input input-sm input-bordered flex-1 hidden" placeholder="https://…" data-resource-row-target="urlField">
+                    <button type="button" class="btn btn-ghost btn-xs text-error" data-action="exercise-form#removeResource">✕</button>
+                </div>
+            </template>
+            <button type="button" class="btn btn-ghost btn-xs mt-2" data-action="exercise-form#addResource">{{ 'diary.form.add_resource'|trans }}</button>
+        </div>
+
+        <div>
+            <label for="target_minutes" class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.target_minutes'|trans }}</label>
+            <p class="mt-1 text-xs text-base-content/50">{{ 'diary.setup.section.target_minutes_hint'|trans }}</p>
+            <input type="number" id="target_minutes" name="target_minutes" min="1" max="180" value="{{ version.targetMinutes }}" class="input input-sm input-bordered mt-2 w-28" placeholder="{{ 'diary.form.minutes_placeholder'|trans }}">
+        </div>
+
+        <div>
+            <label class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.rhythm'|trans }}</label>
+            <p class="mt-1 text-xs text-base-content/50">{{ 'diary.setup.section.rhythm_hint'|trans }}</p>
+            <div class="mt-2 flex flex-wrap items-center gap-2">
+                <select name="rhythm" class="select select-sm select-bordered" data-exercise-form-target="rhythmSelect" data-action="change->exercise-form#syncRepeatVisibility">
+                    {% for r in rhythms %}
+                        <option value="{{ r }}" {{ version.repeatRhythm == r ? 'selected' : '' }}>{{ ('diary.rhythm.' ~ r)|trans }}</option>
+                    {% endfor %}
+                </select>
+                <input type="number" name="repeat_count" min="1" max="14" value="{{ version.repeatCount ?: 1 }}" class="input input-sm input-bordered w-20 {{ version.repeatRhythm == 'pro_woche' ? '' : 'hidden' }}" data-exercise-form-target="repeatCountField" placeholder="{{ 'diary.form.repeat_count_placeholder'|trans }}">
+            </div>
+        </div>
+
+        <div>
+            <label for="group_id" class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.group'|trans }}</label>
+            <select id="group_id" name="group_id" class="select select-sm select-bordered mt-2">
+                <option value="0">{{ 'diary.form.no_group'|trans }}</option>
+                {% for group in groups %}
+                    <option value="{{ group.id }}" {{ version.group and version.group.id == group.id ? 'selected' : '' }}>{{ group.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="note" class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.note'|trans }}</label>
+            <textarea id="note" name="note" rows="3" maxlength="2000" class="textarea textarea-bordered mt-2 w-full" placeholder="{{ 'diary.form.note_placeholder'|trans }}">{{ exercise.note }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">{{ 'diary.setup.done'|trans }}</button>
+    </form>
+{% endblock %}

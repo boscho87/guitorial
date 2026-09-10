@@ -1,0 +1,31 @@
+security:
+    # OAuth-only login (Google/Microsoft) - no passwords exist anywhere in
+    # this app, so no password_hashers config is needed.
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    firewalls:
+        dev:
+            # Ensure dev tools and static assets are always allowed
+            pattern: ^/(_profiler|_wdt|assets|build)/
+            security: false
+        main:
+            lazy: true
+            provider: app_user_provider
+            custom_authenticators:
+                - App\Security\GoogleAuthenticator
+                - App\Security\AzureAuthenticator
+            logout:
+                path: app_logout
+                target: diary_index
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 7776000 # 90 days - login is optional but should feel persistent once chosen
+                path: /
+
+    # Every route stays publicly reachable, logged in or not - login only
+    # ever changes what $this->getUser() returns, never what's accessible.
+    access_control: []

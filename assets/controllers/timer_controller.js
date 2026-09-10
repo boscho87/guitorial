@@ -2,12 +2,17 @@ import { Controller } from '@hotwired/stimulus';
 
 /**
  * Live-ticking m:ss elapsed-time display for a practice round, purely
- * informational (Monkeytype-style) - not used for grading.
+ * informational (Monkeytype-style) - not used for grading. Optionally, once
+ * elapsed reaches targetSecondsValue, fires a single Web Audio beep (a
+ * synthesized tone, not a shipped audio file) - used by the exercise
+ * running page to signal a target time was reached without forcing an
+ * auto-completion.
  */
 export default class extends Controller {
-    static values = { start: Number };
+    static values = { start: Number, targetSeconds: Number };
 
     connect() {
+        this.beeped = false;
         this.tick();
         this.interval = setInterval(() => this.tick(), 1000);
     }
@@ -21,5 +26,27 @@ export default class extends Controller {
         const minutes = Math.floor(elapsed / 60);
         const seconds = elapsed % 60;
         this.element.textContent = `${minutes}:${String(seconds).padStart(2, '0')}`;
+
+        if (this.hasTargetSecondsValue && !this.beeped && elapsed >= this.targetSecondsValue) {
+            this.beeped = true;
+            this.beep();
+        }
+    }
+
+    beep() {
+        try {
+            const context = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = context.createOscillator();
+            const gain = context.createGain();
+            oscillator.connect(gain);
+            gain.connect(context.destination);
+            oscillator.frequency.value = 880;
+            gain.gain.setValueAtTime(0.15, context.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.5);
+            oscillator.start();
+            oscillator.stop(context.currentTime + 0.5);
+        } catch {
+            // Web Audio unavailable/blocked - the visual timer already shows the target was reached.
+        }
     }
 }

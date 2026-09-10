@@ -18,6 +18,7 @@
             data-practice-sync-finished-value="{{ finished ? 'true' : 'false' }}"
             data-practice-sync-question-index-value="{{ questionIndex }}"
             data-practice-sync-total-questions-value="{{ totalQuestions }}"
+            data-practice-sync-session-id-value="{{ sessionId }}"
     >
         {% if not finished %}
             <div class="flex items-center justify-end gap-3 font-mono text-sm text-base-content/70">
@@ -39,6 +40,12 @@
                         <button type="submit" class="btn btn-primary">{{ 'scale_generator.summary.restart'|trans }}</button>
                     </form>
                     <a href="{{ path('scale_generator_settings') }}" data-turbo-frame="_top" class="btn btn-outline">{{ 'scale_generator.summary.change_settings'|trans }}</a>
+                    {% if promotable %}
+                        <form method="post" action="{{ path('history_promote_to_exercise', {session: sessionId}) }}">
+                            <input type="hidden" name="_token" value="{{ csrf_token('history') }}">
+                            <button type="submit" class="btn btn-ghost">{{ 'history.promote.submit'|trans }}</button>
+                        </form>
+                    {% endif %}
                 </div>
             </section>
         {% else %}

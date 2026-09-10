@@ -12,9 +12,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
 /**
- * Prototype sync endpoint: the practice-sync Stimulus controller calls this
- * on round start, every N seconds while practicing, and on completion, so a
- * round's result survives even if the tab closes before "finished" fires.
+ * The practice-sync Stimulus controller calls this on round start, every N
+ * seconds while practicing, and on completion, so a round's progress
+ * survives even if the tab closes before "finished" fires. The
+ * PracticeSession row itself already exists by this point - created
+ * synchronously at round start by SessionRecorder::start() - so this only
+ * ever updates an existing row by its server-issued id, never creates one.
  * No auth yet - scoped to the anonymous visitorId cookie (VisitorCookieSubscriber).
  */
 #[Route('/api')]
@@ -33,13 +36,16 @@ final class PracticeSyncController extends AbstractController
             return $this->json(['error' => 'invalid body'], 400);
         }
 
-        $clientSessionId = (string) ($data['sessionId'] ?? '');
-        $tool = (string) ($data['tool'] ?? '');
-        if ($clientSessionId === '' || $tool === '') {
+        $sessionId = (int) ($data['sessionId'] ?? 0);
+        if ($sessionId <= 0) {
             return $this->json(['error' => 'missing fields'], 400);
         }
 
-        $session = $sessions->findOrCreate($visitorId, $clientSessionId, $tool);
+        $session = $sessions->find($sessionId);
+        if ($session === null || $session->getVisitorId() !== $visitorId) {
+            return $this->json(['error' => 'unknown session'], 404);
+        }
+
         $session->applySync(
             questionIndex: (int) ($data['questionIndex'] ?? 0),
             totalQuestions: isset($data['totalQuestions']) ? (int) $data['totalQuestions'] : null,

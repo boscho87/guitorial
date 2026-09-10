@@ -11,6 +11,8 @@ nav:
   history: Verlauf
   diary: Tagebuch
   practice_guide: Tipps
+  login: Anmelden
+  logout: Abmelden
 
 practice_toast:
   chosen: Gewählt
@@ -148,11 +150,36 @@ scale_generator:
 
 history:
   title: Verlauf
+  meta_description: "Dein Übungsverlauf bei Guitorial: Genauigkeit, aktuelle Serie und Fortschritt über die Zeit, für alle Tools."
   intro: "Deine letzten Übungsrunden auf diesem Gerät/Browser. Fortschritt wird über ein anonymes Cookie gespeichert."
   empty: "Noch keine Übungsrunden aufgezeichnet. Fang mit einem der Tools an."
   finished: Abgeschlossen
+  discarded: Verworfen
   in_progress: "In Bearbeitung (Frage %current%)"
   tones_practiced: "%count% Töne geübt"
+  groups_link: "Nach Gruppe"
+  delete_all: "Gesamten Verlauf löschen"
+  delete_all_confirm: "Den gesamten Verlauf wirklich löschen? Deine Übungen im Tagebuch bleiben erhalten, nur die aufgezeichneten Runden werden entfernt."
+  promote:
+    submit: "Als Übung übernehmen"
+    flash: "Als wiederkehrende Übung übernommen – im Tagebuch anpassbar."
+  groups_page:
+    title: "Verlauf nach Gruppe"
+    intro: "Übungszeit und Lernstand der letzten 30 Tage, aggregiert nach Gruppe."
+    empty: "Noch keine Übungen mit Verlauf in den letzten 30 Tagen."
+    minutes: "%minutes% Min."
+    sessions: "%count% Runden"
+    exercises: "%count% Übungen"
+    learning_state:
+      schwierig: "Noch schwierig"
+      wird_besser: "Wird besser"
+      sicher: Sicher
+      unbewertet: Unbewertet
+  exercise_detail:
+    back: "Zurück zur Gruppen-Übersicht"
+    empty: "Noch kein Verlauf für diese Übung."
+    delete: "Verlauf dieser Übung löschen"
+    delete_confirm: "Den Verlauf dieser Übung wirklich löschen? Die Übung selbst bleibt im Tagebuch erhalten."
   stats:
     rounds_label: "Abgeschlossene Runden"
     accuracy_label: "Ø Genauigkeit"
@@ -177,38 +204,87 @@ history:
     stats_cap_hint: "Statistik und Diagramm oben basieren auf den letzten %window% deiner insgesamt %total% Runden."
 
 diary:
-  title: Übungstagebuch
-  intro: "Dein tägliches Übungs-Häkchen. Änderungen an einem Punkt wirken erst ab heute, vergangene Tage bleiben unverändert."
-  empty: "Noch keine Punkte im Tagebuch."
-  empty_past: "An diesem Tag gab es noch keine Punkte im Tagebuch."
-  manage_link: "Punkte verwalten"
+  title: Übetagebuch
+  meta_description: "Dein persönlicher Übe-Plan bei Guitorial: Übungen anlegen, Fortschritt festhalten und den Überblick behalten – mit oder ohne Konto."
+  intro: "Dein täglicher Übungsplan. Änderungen an einer Übung wirken erst ab heute, vergangene Tage bleiben unverändert."
+  empty: "Noch keine Übungen im Plan."
+  empty_past: "An diesem Tag gab es noch keine Übungen im Plan."
+  manage_link: "Übungen verwalten"
   pager:
     today: Heute
     previous: "Vorheriger Tag"
     next: "Nächster Tag"
-  category:
-    theorie: Theorie
-    praxis: Praxis
+  rhythm:
+    taeglich: Täglich
+    pro_woche: "Pro Woche"
+    ohne_vorgabe: "Ohne Vorgabe"
+  groups:
+    title: Gruppen
+    intro: "Gruppen fassen Übungen thematisch zusammen (z. B. \"Theorie\", \"Repertoire\") – maximal 6, optional."
+    empty: "Noch keine Gruppen angelegt."
+    add_placeholder: "Neue Gruppe…"
+    add_submit: Hinzufügen
+    move_up: "Nach oben"
+    move_down: "Nach unten"
+    remove_confirm: "Gruppe wirklich entfernen? Enthaltene Übungen bleiben erhalten, verlieren aber diese Gruppenzuordnung."
+    max_reached: "Maximal 6 Gruppen erreicht."
   manage:
-    title: "Punkte verwalten"
-    intro: "Eigene Punkte schreiben oder aus den Vorschlägen wählen, optional mit einem Tool und einem Zeitziel verknüpfen. Änderungen wirken ab heute."
+    title: "Übungen verwalten"
+    intro: "Deine bestehenden Übungen – bearbeiten, archivieren oder löschen. Änderungen wirken ab heute."
+    active_heading: "Aktive Übungen"
     back_to_diary: "Zurück zum Tagebuch"
+    back_to_list: "Zurück zur Liste"
   item:
-    toggle: "Erledigt umschalten"
     linked_to: "Verknüpft mit %tool%"
     progress: "%minutes% von %target% Min."
-    practice_now: "Jetzt üben"
+    weekly_progress: "%done% von %target% diese Woche"
+    start: Start
+    resume: Fortsetzen
+    mark_done: "Als erledigt markieren"
     edit: Bearbeiten
+    archive: Archivieren
+    delete: Löschen
+    delete_confirm: "Übung wirklich löschen? Das entfernt auch ihren gesamten Verlauf unwiderruflich."
     remove: Entfernen
   form:
-    no_tool: "Kein Tool verknüpft"
+    no_group: "Ohne Gruppe"
+    title_placeholder: "Titel der Übung…"
+    note_placeholder: "Notiz (optional)…"
     minutes_placeholder: Minuten
+    repeat_count_placeholder: "x pro Woche"
+    add_resource: "Ressource hinzufügen"
     save: Speichern
-    cancel: Abbrechen
+  resource:
+    type:
+      internal_tool: "Internes Tool"
+      external_link: "Externer Link"
   add:
+    title: "Neue Übung"
+    intro: "Wähle einen Vorschlag oder gib einen eigenen Titel ein – die Übung wird sofort angelegt, Details wie Ressource oder Zeitziel stellst du im nächsten Schritt ein."
+    new_button: "+ Neue Übung"
     suggestions_label: Vorschläge
-    label_placeholder: "Eigener Punkt…"
+    custom_label: "Eigene Übung"
+    custom_hint: "Erstellt die Übung sofort – Ressource, Zeitziel, Gruppe und Rhythmus stellst du im nächsten Schritt ein."
     submit: Hinzufügen
+  archive:
+    title: Archiviert
+    reactivate: Reaktivieren
+  setup:
+    title: "Übung einrichten"
+    intro: "Die Übung ist bereits angelegt. Ergänze hier optional, womit du übst, wie lange, wie oft und in welcher Gruppe."
+    done: Fertig
+    flash:
+      saved: "Gespeichert."
+    section:
+      title: Titel
+      resources: Ressourcen
+      resources_hint: "Womit übst du das – ein internes Tool, ein externer Link (z. B. YouTube), oder beides? Optional, auch ganz ohne Ressource nutzbar."
+      target_minutes: Zielzeit
+      target_minutes_hint: "Optional. Sobald du an einem Tag mindestens so lange geübt hast, gilt die Übung für diesen Tag als erledigt."
+      rhythm: Rhythmus
+      rhythm_hint: "Wie oft gehört diese Übung in deinen Plan – täglich, x-mal pro Woche, oder ganz ohne feste Vorgabe?"
+      group: Gruppe
+      note: Notiz
   suggestions:
     key_recognition: "Tonart erkennen üben"
     capo_trainer: "Kapo-Trainer üben"
@@ -222,8 +298,27 @@ diary:
   recent:
     title: "Letzte 7 Tage"
 
+exercise_session:
+  title: Übungssitzung
+  untitled: Übung
+  target: "Ziel: %minutes% Min."
+  reopen_resource: "Ressource erneut öffnen"
+  finish:
+    title: "Wie lief's?"
+    submit: "Ohne Bewertung abschliessen"
+  learning_state:
+    schwierig: "Noch schwierig"
+    wird_besser: "Wird besser"
+    sicher: Sicher
+  discard:
+    submit: Verwerfen
+    confirm: "Diese Sitzung wirklich verwerfen? Der bisherige Fortschritt geht verloren."
+  flash:
+    finished: "Übung abgeschlossen."
+
 practice_guide:
   title: "Richtig üben"
+  meta_description: "Tipps für effektives Musiktheorie- und Gitarrenüben: Struktur statt Zufall, Balance zwischen Theorie und Praxis, und wie du dranbleibst."
   structure:
     title: "Struktur schlägt Zufall"
     body: "Fang mit ein paar Minuten Aufwärmen an, um die Finger locker zu machen. Übe danach gezielt das, was bisher oft schiefging – die Tools gewichten automatisch stärker, was du bereits falsch beantwortet hast. Erst danach kommt Neues dazu: ein Akkord, ein Konzept, ein Stück. Am Ende darf es auch einfach Spass machen: frei spielen."
@@ -241,7 +336,20 @@ practice_guide:
 footer:
   privacy: Datenschutz
   imprint: Impressum
+  terms: Nutzungsbestimmungen
   github: GitHub
+  feature_request: "Wunsch/Feature vorschlagen"
+
+security:
+  login:
+    title: Anmelden
+    meta_description: "Optional mit Google oder Microsoft bei Guitorial anmelden, um deinen Übungsfortschritt geräteübergreifend zu speichern."
+    intro: "Optional – ohne Anmeldung funktioniert Guitorial genau wie bisher. Mit Konto bleibt dein Fortschritt auch nach einem Cookie-Verlust oder auf einem neuen Gerät erhalten (sobald du dich dort ebenfalls anmeldest)."
+    google: "Mit Google anmelden"
+    microsoft: "Mit Microsoft anmelden"
+    privacy_hint: "Es werden nur E-Mail-Adresse, Vor- und Nachname gespeichert. Details siehe Datenschutzerklärung."
+    failed: "Anmeldung fehlgeschlagen. Bitte versuch es erneut."
+    no_email: "Der gewählte Anbieter hat keine E-Mail-Adresse geliefert – Anmeldung nicht möglich."
 
 legal:
   privacy:
@@ -250,15 +358,18 @@ legal:
     controller:
       title: "Verantwortliche Stelle"
       body: |
-        [PLATZHALTER: Name einfügen]
-        [PLATZHALTER: Adresse einfügen]
+        Simon Müller
+        Oftringen, Schweiz
         E-Mail: simon.d.mueller@itscoding.ch
     cookies:
       title: Cookies
-      body: "Guitorial verwendet zwei technisch notwendige Cookies: ein Session-Cookie (PHPSESSID, wird beim Schliessen des Browsers gelöscht) und ein anonymes Wiedererkennungs-Cookie (guitorial_visitor, ein Jahr gültig, HttpOnly, SameSite=Lax). Über das zweite Cookie wird dein Übungsverlauf und Übungstagebuch diesem Gerät/Browser zugeordnet – ohne Registrierung, ohne Namen, ohne E-Mail-Adresse."
+      body: "Guitorial verwendet technisch notwendige Cookies: ein Session-Cookie (PHPSESSID, wird beim Schliessen des Browsers gelöscht), ein anonymes Wiedererkennungs-Cookie (guitorial_visitor, ein Jahr gültig, HttpOnly, SameSite=Lax) und – nur wenn du dich anmeldest – ein Login-Cookie zum Angemeldetbleiben (bis zu 90 Tage). Über das Wiedererkennungs-Cookie wird dein Übungsverlauf und Übetagebuch diesem Gerät/Browser zugeordnet."
+    account:
+      title: "Optionales Konto (Google/Microsoft-Anmeldung)"
+      body: "Die Anmeldung ist freiwillig und für die Nutzung von Guitorial nicht erforderlich – ohne Anmeldung funktioniert die App unverändert vollständig. Meldest du dich mit Google oder Microsoft an, fragen wir ausschliesslich deine E-Mail-Adresse und deinen Namen (Vor- und Nachname) ab, wie vom jeweiligen Anbieter über die Berechtigungen \"E-Mail-Adresse\" und \"Profil\" übermittelt – keine weiteren Daten, keine Kontakte, keine Dateien, kein Kalender. Zweck ist ausschliesslich, dein Konto wiederzuerkennen und deinen Übungsfortschritt geräteübergreifend verfügbar zu machen. Guitorial erhält dabei kein Passwort und keinen darüberhinausgehenden Zugriff auf dein Google-/Microsoft-Konto, und diese Daten werden nicht verkauft, nicht zu Werbezwecken genutzt und nicht an Dritte weitergegeben. Die erste Anmeldung auf einem Gerät übernimmt automatisch den bisherigen anonymen Fortschritt dieses Geräts; bei weiteren Geräten bleiben dort bereits vorhandene anonyme Daten getrennt vom Konto. Den Zugriff von Guitorial auf dein Google-Konto kannst du jederzeit selbst und unabhängig von uns unter myaccount.google.com/permissions widerrufen; die zugehörigen Daten bei uns kannst du wie unten unter \"Deine Rechte\" beschrieben löschen lassen."
     data:
       title: "Welche Daten werden gespeichert?"
-      body: "Gespeichert werden ausschliesslich Übungsdaten (welches Tool, wann, wie viele Fragen richtig) und die Einträge deines Übungstagebuchs – jeweils verknüpft mit der zufälligen Cookie-ID, nie mit einer echten Identität. Diese Daten dienen ausschliesslich der Anzeige deines eigenen Verlaufs und werden nicht an Dritte weitergegeben oder verkauft."
+      body: "Gespeichert werden ausschliesslich Übungsdaten (welches Tool, wann, wie viele Fragen richtig) und die Einträge deines Übetagebuchs – jeweils verknüpft mit der zufälligen Cookie-ID bzw., bei Anmeldung, mit deinem Konto. Diese Daten dienen ausschliesslich der Anzeige deines eigenen Verlaufs und werden nicht an Dritte weitergegeben oder verkauft."
     fonts:
       title: "Google Fonts"
       body: "Diese Seite lädt Schriftarten von den Servern von Google (fonts.googleapis.com, fonts.gstatic.com). Dabei kann Google die IP-Adresse des aufrufenden Geräts verarbeiten. Weitere Informationen findest du in der Datenschutzerklärung von Google."
@@ -268,15 +379,15 @@ legal:
     rights:
       title: "Deine Rechte"
       body: |
-        Da keine Registrierung stattfindet, kann eine einzelne Person anhand der gespeicherten Daten nicht zuverlässig identifiziert werden. Möchtest du deine Daten trotzdem einsehen oder löschen lassen, melde dich per E-Mail (siehe oben) – wenn möglich mit einem Hinweis auf Gerät/Browser und ungefährem Nutzungszeitraum.
+        Ohne Anmeldung kann eine einzelne Person anhand der gespeicherten Daten nicht zuverlässig identifiziert werden. Mit einem Konto sind E-Mail-Adresse, Vor- und Nachname mit deinen Daten verknüpft. In beiden Fällen kannst du Einsicht oder Löschung anfragen, indem du dich per E-Mail meldest (siehe oben) – bei einem Konto am einfachsten mit der E-Mail-Adresse, mit der du angemeldet bist, sonst mit einem Hinweis auf Gerät/Browser und ungefährem Nutzungszeitraum.
   imprint:
     title: Impressum
     meta_description: "Anbieterkennzeichnung für Guitorial."
     responsible:
       title: "Verantwortlich für den Inhalt"
       body: |
-        [PLATZHALTER: Name einfügen]
-        [PLATZHALTER: Adresse einfügen]
+        Simon Müller
+        Oftringen, Schweiz
     contact:
       title: Kontakt
     disclaimer:
@@ -285,3 +396,24 @@ legal:
     copyright:
       title: Urheberrecht
       body: "Die auf dieser Seite erstellten Inhalte unterliegen dem Urheberrecht. Verwendete Schriftarten und Bibliotheken stehen unter ihren jeweiligen eigenen Lizenzen."
+  terms:
+    title: Nutzungsbestimmungen
+    meta_description: "Nutzungsbestimmungen für Guitorial."
+    scope:
+      title: Geltungsbereich
+      body: "Diese Nutzungsbestimmungen gelten für die Nutzung von Guitorial (guitorial.com). Mit der Nutzung der Seite erklärst du dich mit ihnen einverstanden."
+    usage:
+      title: Nutzung
+      body: "Guitorial ist kostenlos nutzbar, ohne Registrierung. Die Übungstools, der Verlauf und das Übetagebuch stehen dir frei zur Verfügung – für den privaten, nicht-kommerziellen Gebrauch beim Erlernen von Musiktheorie und Gitarrenspiel."
+    account:
+      title: "Optionales Konto"
+      body: "Die Anmeldung mit Google oder Microsoft ist freiwillig und dient ausschliesslich dazu, deinen Fortschritt geräteübergreifend verfügbar zu machen. Du bist selbst für die Sicherheit deines Google-/Microsoft-Kontos verantwortlich. Eine Löschung deines Guitorial-Kontos und der damit verknüpften Daten kannst du jederzeit per E-Mail anfragen (siehe Impressum/Datenschutz)."
+    conduct:
+      title: Nutzungsverhalten
+      body: "Guitorial darf nicht missbräuchlich genutzt werden, etwa durch automatisierte Zugriffe, die den Betrieb der Seite beeinträchtigen, oder Versuche, unberechtigten Zugriff auf Daten anderer Nutzer:innen zu erlangen."
+    liability:
+      title: Haftung
+      body: "Guitorial ist ein privates, nicht-kommerzielles Übungsprojekt ohne Gewähr auf Richtigkeit, Vollständigkeit oder ständige Verfügbarkeit der Inhalte. Details siehe Haftungsausschluss im Impressum."
+    changes:
+      title: Änderungen
+      body: "Diese Nutzungsbestimmungen können bei Bedarf angepasst werden, etwa wenn neue Funktionen dazukommen. Die jeweils aktuelle Fassung ist auf dieser Seite abrufbar."

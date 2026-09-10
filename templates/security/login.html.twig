@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'security.login.title'|trans }} – Guitorial{% endblock %}
+
+{% block meta_description %}{{ 'security.login.meta_description'|trans }}{% endblock %}
+
+{% block body %}
+    <a href="{{ path('home_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{ 'nav.back_home'|trans }}
+    </a>
+
+    <h1 class="font-display mt-3 text-2xl font-semibold sm:text-3xl">{{ 'security.login.title'|trans }}</h1>
+    <p class="mt-2 text-base-content/70">{{ 'security.login.intro'|trans }}</p>
+
+    <div class="mt-8 flex flex-col gap-3 sm:max-w-xs">
+        <a href="{{ path('connect_start', {provider: 'google'}) }}" class="btn btn-outline btn-block">
+            {{ 'security.login.google'|trans }}
+        </a>
+        <a href="{{ path('connect_start', {provider: 'azure'}) }}" class="btn btn-outline btn-block">
+            {{ 'security.login.microsoft'|trans }}
+        </a>
+    </div>
+
+    <p class="mt-6 text-xs text-base-content/50">{{ 'security.login.privacy_hint'|trans }}</p>
+{% endblock %}

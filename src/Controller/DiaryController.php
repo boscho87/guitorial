@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Domain\Diary\DiaryDayViewBuilder;
 use App\Domain\Diary\DiarySuggestions;
+use App\Domain\Diary\ExerciseDayViewBuilder;
 use App\Domain\Quiz\ToolRegistry;
-use App\Entity\DiaryCheck;
-use App\Entity\DiaryItem;
-use App\Repository\DiaryCheckRepository;
-use App\Repository\DiaryItemRepository;
+use App\Domain\Session\SessionRecorder;
+use App\Entity\Exercise;
+use App\Entity\ExerciseGroup;
+use App\Entity\ExerciseResource;
+use App\Entity\ExerciseVersion;
+use App\Repository\ExerciseGroupRepository;
+use App\Repository\ExerciseRepository;
+use App\Repository\ExerciseResourceRepository;
+use App\Repository\ExerciseVersionRepository;
 use App\Repository\PracticeSessionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,127 +23,406 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+/**
+ * Manages the plan (groups + exercises + resources) and renders the daily
+ * checklist built from it. Starting/running/finishing a session lives in
+ * ExerciseSessionController instead - this controller only ever touches
+ * Exercise/ExerciseVersion/ExerciseGroup/ExerciseResource, never
+ * PracticeSession directly (except the one-tap "als erledigt markieren").
+ */
 #[Route('/tagebuch')]
 final class DiaryController extends AbstractController
 {
     private const CSRF_INTENTION = 'diary';
     private const RECENT_DAYS = 7;
-    private const LABEL_MAX_LENGTH = 120;
-    private const MAX_MINUTES = 120;
+    private const TITLE_MAX_LENGTH = 120;
+    private const NOTE_MAX_LENGTH = 2000;
+    private const GROUP_NAME_MAX_LENGTH = 40;
+    private const MAX_MINUTES = 180;
+    private const MAX_REPEAT_COUNT = 14;
+    private const MAX_EXTERNAL_URL_LENGTH = 2048;
 
     public function __construct(
         private readonly ToolRegistry $tools,
         private readonly DiarySuggestions $suggestions,
-        private readonly DiaryDayViewBuilder $dayViewBuilder,
+        private readonly ExerciseDayViewBuilder $dayViewBuilder,
     ) {
     }
 
     #[Route('', name: 'diary_index', methods: ['GET'])]
-    public function index(Request $request, DiaryItemRepository $items, DiaryCheckRepository $checks, PracticeSessionRepository $sessions): Response
-    {
+    public function index(
+        Request $request,
+        ExerciseVersionRepository $versions,
+        ExerciseResourceRepository $resources,
+        ExerciseGroupRepository $groups,
+        PracticeSessionRepository $sessions,
+    ): Response {
         $visitorId = $this->requireVisitorId($request);
         $today = new \DateTimeImmutable('today');
         $viewDate = $this->readViewDate($request, $today);
         $isToday = $viewDate->format('Y-m-d') === $today->format('Y-m-d');
 
-        // Fetched once, unbounded by the viewed date - buildDay()/buildRecentRatios()
-        // do their own date filtering in PHP, same as HistoryStatsBuilder.
-        $allVersions = $visitorId !== '' ? $items->forVisitor($visitorId) : [];
-        $recentChecks = $visitorId !== '' ? $checks->forVisitorSince($visitorId, $today->modify('-'.self::RECENT_DAYS.' days')) : [];
-        $finished = $visitorId !== '' ? array_values(array_filter($sessions->forVisitor($visitorId, 200), static fn ($s) => $s->isFinished())) : [];
+        $allVersions = $visitorId !== '' ? $versions->forVisitor($visitorId) : [];
+        $allSessions = $visitorId !== '' ? $sessions->forVisitor($visitorId, 300) : [];
+
+        $rows = $this->dayViewBuilder->buildDay($allVersions, $allSessions, $viewDate);
+        $recentRatios = $this->dayViewBuilder->buildRecentRatios($allVersions, $allSessions, $today, self::RECENT_DAYS);
+
+        $resourcesByExerciseId = [];
+        foreach ($rows as $row) {
+            $exercise = $row['version']->getExercise();
+            $resourcesByExerciseId[$exercise->getId()] = $resources->forExercise($exercise);
+        }
+
+        $toolTitles = [];
+        $toolSettingsRoutes = [];
+        $toolPracticeRoutes = [];
+        foreach ($this->tools->all() as $tool) {
+            $toolTitles[$tool['id']] = $tool['title'];
+            $toolSettingsRoutes[$tool['id']] = $tool['route'];
+            $toolPracticeRoutes[$tool['id']] = str_replace('_settings', '_practice', $tool['route']);
+        }
 
         return $this->render('diary/index.html.twig', [
             'viewDate' => $viewDate,
             'isToday' => $isToday,
             'previousDate' => $viewDate->modify('-1 day'),
             'nextDate' => $isToday ? null : $viewDate->modify('+1 day'),
-            'dayItems' => $this->dayViewBuilder->buildDay($allVersions, $recentChecks, $finished, $viewDate),
-            'recentRatios' => $this->dayViewBuilder->buildRecentRatios($allVersions, $recentChecks, $finished, $today, self::RECENT_DAYS),
-            'categories' => DiaryItem::CATEGORIES,
+            'grouped' => $this->groupRows($rows, $visitorId !== '' ? $groups->forVisitor($visitorId) : []),
+            'resourcesByExerciseId' => $resourcesByExerciseId,
+            'toolTitles' => $toolTitles,
+            'toolSettingsRoutes' => $toolSettingsRoutes,
+            'toolPracticeRoutes' => $toolPracticeRoutes,
+            'recentRatios' => $recentRatios,
             'csrfIntention' => self::CSRF_INTENTION,
+            'sessionCsrfIntention' => 'exercise_session',
         ]);
     }
 
     #[Route('/verwalten', name: 'diary_manage', methods: ['GET'])]
-    public function manage(Request $request, DiaryItemRepository $items): Response
-    {
+    public function manage(
+        Request $request,
+        ExerciseRepository $exercises,
+        ExerciseVersionRepository $versions,
+        ExerciseResourceRepository $resources,
+    ): Response {
         $visitorId = $this->requireVisitorId($request);
         $today = new \DateTimeImmutable('today');
-        $allVersions = $visitorId !== '' ? $items->forVisitor($visitorId) : [];
-        $activeItems = array_values(array_filter($allVersions, static fn (DiaryItem $i) => $i->isActiveOn($today)));
 
-        $toolTitles = array_column($this->tools->all(), 'title', 'id');
+        $active = [];
+        $archived = [];
+        foreach ($visitorId !== '' ? $exercises->forVisitor($visitorId) : [] as $exercise) {
+            $currentVersion = $versions->currentFor($exercise, $today);
+            if ($currentVersion === null) {
+                continue;
+            }
+
+            $entry = ['exercise' => $exercise, 'version' => $currentVersion, 'resources' => $resources->forExercise($exercise)];
+            if ($exercise->isActiveOn($today)) {
+                $active[] = $entry;
+            } else {
+                $archived[] = $entry;
+            }
+        }
 
         return $this->render('diary/manage.html.twig', [
-            'activeItems' => $activeItems,
+            'activeExercises' => $active,
+            'archivedExercises' => $archived,
+            'csrfIntention' => self::CSRF_INTENTION,
+        ]);
+    }
+
+    #[Route('/gruppen', name: 'diary_groups', methods: ['GET'])]
+    public function groupsManage(Request $request, ExerciseGroupRepository $groups): Response
+    {
+        $visitorId = $this->requireVisitorId($request);
+
+        return $this->render('diary/groups.html.twig', [
+            'groups' => $visitorId !== '' ? $groups->forVisitor($visitorId) : [],
+            'maxGroups' => ExerciseGroupRepository::MAX_GROUPS_PER_VISITOR,
+            'csrfIntention' => self::CSRF_INTENTION,
+        ]);
+    }
+
+    #[Route('/gruppen/hinzufuegen', name: 'diary_group_add', methods: ['POST'])]
+    public function addGroup(Request $request, ExerciseGroupRepository $groups, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $visitorId = $this->requireVisitorId($request);
+        $name = mb_substr(trim((string) $request->request->get('name')), 0, self::GROUP_NAME_MAX_LENGTH);
+
+        if ($visitorId !== '' && $name !== '') {
+            $count = $groups->countForVisitor($visitorId);
+            if ($count < ExerciseGroupRepository::MAX_GROUPS_PER_VISITOR) {
+                $em->persist(new ExerciseGroup($visitorId, $name, $count));
+                $em->flush();
+            }
+        }
+
+        return $this->redirectToRoute('diary_groups');
+    }
+
+    #[Route('/gruppen/{id}/umbenennen', name: 'diary_group_rename', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function renameGroup(int $id, Request $request, ExerciseGroupRepository $groups, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $group = $groups->findForVisitor($id, $this->requireVisitorId($request));
+        $name = mb_substr(trim((string) $request->request->get('name')), 0, self::GROUP_NAME_MAX_LENGTH);
+
+        if ($group !== null && $name !== '') {
+            $group->rename($name);
+            $em->flush();
+        }
+
+        return $this->redirectToRoute('diary_groups');
+    }
+
+    #[Route('/gruppen/{id}/verschieben', name: 'diary_group_move', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function moveGroup(int $id, Request $request, ExerciseGroupRepository $groups, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $visitorId = $this->requireVisitorId($request);
+        $group = $groups->findForVisitor($id, $visitorId);
+        $direction = (string) $request->request->get('direction');
+
+        if ($group !== null && in_array($direction, ['up', 'down'], true)) {
+            $all = $groups->forVisitor($visitorId);
+            $index = array_search($group, $all, true);
+            $swapWith = $direction === 'up' ? $index - 1 : $index + 1;
+
+            if ($index !== false && $swapWith >= 0 && $swapWith < count($all)) {
+                $a = $all[$index];
+                $b = $all[$swapWith];
+                $aSortIndex = $a->getSortIndex();
+                $a->moveTo($b->getSortIndex());
+                $b->moveTo($aSortIndex);
+                $em->flush();
+            }
+        }
+
+        return $this->redirectToRoute('diary_groups');
+    }
+
+    #[Route('/gruppen/{id}/entfernen', name: 'diary_group_remove', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function removeGroup(int $id, Request $request, ExerciseGroupRepository $groups, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $group = $groups->findForVisitor($id, $this->requireVisitorId($request));
+
+        if ($group !== null) {
+            // exercise_version.group_id is ON DELETE SET NULL - affected
+            // exercises simply become "ohne Gruppe", never deleted.
+            $em->remove($group);
+            $em->flush();
+        }
+
+        return $this->redirectToRoute('diary_groups');
+    }
+
+    #[Route('/hinzufuegen', name: 'diary_add_form', methods: ['GET'])]
+    public function addForm(): Response
+    {
+        return $this->render('diary/add.html.twig', [
             'suggestions' => $this->suggestions->all(),
-            'tools' => $this->tools->all(),
-            'toolTitles' => $toolTitles,
-            'categories' => DiaryItem::CATEGORIES,
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
     }
 
     #[Route('/hinzufuegen', name: 'diary_add', methods: ['POST'])]
-    public function add(Request $request, EntityManagerInterface $em): Response
+    public function add(Request $request, ExerciseGroupRepository $groups, EntityManagerInterface $em): Response
     {
         $this->assertValidCsrf($request);
         $visitorId = $this->requireVisitorId($request);
-        [$label, $category, $linkedTool, $targetMinutes] = $this->readItemInput($request);
-        if ($visitorId !== '' && $label !== '') {
-            $em->persist(new DiaryItem($visitorId, $label, $category, $linkedTool, $targetMinutes, new \DateTimeImmutable('today')));
-            $em->flush();
+        if ($visitorId === '') {
+            return $this->redirectToRoute('diary_add_form');
         }
 
-        return $this->redirectToRoute('diary_manage');
+        $input = $this->readExerciseInput($request, $groups, $visitorId);
+        if ($input['title'] === '') {
+            return $this->redirectToRoute('diary_add_form');
+        }
+
+        $exercise = new Exercise($visitorId);
+        $exercise->applyNote($input['note']);
+        $em->persist($exercise);
+        $em->persist(new ExerciseVersion(
+            $exercise,
+            $input['title'],
+            $input['group'],
+            $input['targetMinutes'],
+            $input['rhythm'],
+            $input['repeatCount'],
+            new \DateTimeImmutable('today'),
+        ));
+
+        foreach ($this->readResourceInput($request) as $sortIndex => $resource) {
+            $em->persist($this->buildResource($exercise, $sortIndex, $resource));
+        }
+
+        $em->flush();
+
+        // A suggestion chip already submits title+resource+minutes in one
+        // go and is usable as-is; a bare custom title still needs a
+        // resource/time/group - either way, land on the setup step next
+        // rather than back on the (now much shorter) list, so "add" always
+        // continues into "configure" instead of being a single wide form.
+        return $this->redirectToRoute('diary_setup', ['id' => $exercise->getId()]);
+    }
+
+    #[Route('/{id}/einrichten', name: 'diary_setup', methods: ['GET'], requirements: ['id' => '\d+'])]
+    public function setup(
+        int $id,
+        Request $request,
+        ExerciseRepository $exercises,
+        ExerciseVersionRepository $versions,
+        ExerciseResourceRepository $resources,
+        ExerciseGroupRepository $groups,
+    ): Response {
+        $visitorId = $this->requireVisitorId($request);
+        $exercise = $exercises->findForVisitor($id, $visitorId);
+        $currentVersion = $exercise !== null ? $versions->currentFor($exercise, new \DateTimeImmutable('today')) : null;
+        if ($exercise === null || $currentVersion === null) {
+            return $this->redirectToRoute('diary_manage');
+        }
+
+        return $this->render('diary/setup.html.twig', [
+            'exercise' => $exercise,
+            'version' => $currentVersion,
+            'resources' => $resources->forExercise($exercise),
+            'groups' => $groups->forVisitor($visitorId),
+            'tools' => $this->tools->all(),
+            'rhythms' => ExerciseVersion::RHYTHMS,
+            'csrfIntention' => self::CSRF_INTENTION,
+        ]);
     }
 
     #[Route('/{id}/bearbeiten', name: 'diary_edit', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function edit(int $id, Request $request, DiaryItemRepository $items, EntityManagerInterface $em): Response
-    {
+    public function edit(
+        int $id,
+        Request $request,
+        ExerciseRepository $exercises,
+        ExerciseVersionRepository $versions,
+        ExerciseResourceRepository $resources,
+        ExerciseGroupRepository $groups,
+        EntityManagerInterface $em,
+    ): Response {
         $this->assertValidCsrf($request);
-        $item = $items->findForVisitor($id, $this->requireVisitorId($request));
-        if ($item !== null) {
-            [$label, $category, $linkedTool, $targetMinutes] = $this->readItemInput($request);
-            if ($label !== '') {
-                $items->edit($item, $label, $category, $linkedTool, $targetMinutes, new \DateTimeImmutable('today'));
-                $em->flush();
-            }
+        $visitorId = $this->requireVisitorId($request);
+        $exercise = $exercises->findForVisitor($id, $visitorId);
+        $currentVersion = $exercise !== null ? $versions->currentFor($exercise, new \DateTimeImmutable('today')) : null;
+        if ($exercise === null || $currentVersion === null) {
+            return $this->redirectToRoute('diary_manage');
         }
+
+        $input = $this->readExerciseInput($request, $groups, $visitorId);
+        if ($input['title'] === '') {
+            return $this->redirectToRoute('diary_manage');
+        }
+
+        $exercise->applyNote($input['note']);
+        $versions->edit(
+            $currentVersion,
+            $input['title'],
+            $input['group'],
+            $input['targetMinutes'],
+            $input['rhythm'],
+            $input['repeatCount'],
+            new \DateTimeImmutable('today'),
+        );
+
+        foreach ($resources->forExercise($exercise) as $existing) {
+            $em->remove($existing);
+        }
+        foreach ($this->readResourceInput($request) as $sortIndex => $resource) {
+            $em->persist($this->buildResource($exercise, $sortIndex, $resource));
+        }
+
+        $em->flush();
+
+        $this->addFlash('success', 'diary.setup.flash.saved');
 
         return $this->redirectToRoute('diary_manage');
     }
 
-    #[Route('/{id}/entfernen', name: 'diary_remove', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function remove(int $id, Request $request, DiaryItemRepository $items, EntityManagerInterface $em): Response
+    #[Route('/{id}/archivieren', name: 'diary_archive', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function archive(int $id, Request $request, ExerciseRepository $exercises, EntityManagerInterface $em): Response
     {
         $this->assertValidCsrf($request);
-        $item = $items->findForVisitor($id, $this->requireVisitorId($request));
-        if ($item !== null) {
-            $items->remove($item, new \DateTimeImmutable('today'));
+        $exercise = $exercises->findForVisitor($id, $this->requireVisitorId($request));
+        if ($exercise !== null) {
+            $exercise->archive(new \DateTimeImmutable('today'));
             $em->flush();
         }
 
         return $this->redirectToRoute('diary_manage');
     }
 
-    #[Route('/{id}/abhaken', name: 'diary_toggle_check', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function toggleCheck(int $id, Request $request, DiaryItemRepository $items, DiaryCheckRepository $checks, EntityManagerInterface $em): Response
+    #[Route('/{id}/reaktivieren', name: 'diary_reactivate', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function reactivate(int $id, Request $request, ExerciseRepository $exercises, EntityManagerInterface $em): Response
     {
         $this->assertValidCsrf($request);
-        $today = new \DateTimeImmutable('today');
-        $item = $items->findForVisitor($id, $this->requireVisitorId($request));
-        if ($item !== null && !$item->isAutoTracked() && $item->isActiveOn($today)) {
-            $existing = $checks->findForToday($item, $today);
-            if ($existing !== null) {
-                $em->remove($existing);
-            } else {
-                $em->persist(new DiaryCheck($item, $today));
-            }
+        $exercise = $exercises->findForVisitor($id, $this->requireVisitorId($request));
+        if ($exercise !== null) {
+            $exercise->reactivate();
             $em->flush();
+        }
+
+        return $this->redirectToRoute('diary_manage');
+    }
+
+    #[Route('/{id}/loeschen', name: 'diary_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function delete(int $id, Request $request, ExerciseRepository $exercises, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $exercise = $exercises->findForVisitor($id, $this->requireVisitorId($request));
+        if ($exercise !== null) {
+            // exercise_version/exercise_resource/practice_session.exercise_id
+            // are all ON DELETE CASCADE - this removes the whole history too.
+            $em->remove($exercise);
+            $em->flush();
+        }
+
+        return $this->redirectToRoute('diary_manage');
+    }
+
+    #[Route('/{id}/abhaken', name: 'diary_mark_done', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function markDone(int $id, Request $request, ExerciseRepository $exercises, SessionRecorder $sessionRecorder): Response
+    {
+        $this->assertValidCsrf($request);
+        $visitorId = $this->requireVisitorId($request);
+        $exercise = $exercises->findForVisitor($id, $visitorId);
+        if ($exercise !== null) {
+            $session = $sessionRecorder->start($visitorId, null, exercise: $exercise);
+            $sessionRecorder->finish($session);
         }
 
         return $this->redirectToRoute('diary_index');
+    }
+
+    /**
+     * @param list<array{version: ExerciseVersion, checked: bool, practicedMinutes: ?int, runningSessionId: ?int, weeklyDone: ?int, weeklyTarget: ?int}> $rows
+     * @param ExerciseGroup[] $visitorGroups ordered by sortIndex
+     * @return list<array{group: ?ExerciseGroup, rows: array}>
+     */
+    private function groupRows(array $rows, array $visitorGroups): array
+    {
+        $byGroupId = [];
+        foreach ($rows as $row) {
+            $groupId = $row['version']->getGroup()?->getId() ?? 0;
+            $byGroupId[$groupId][] = $row;
+        }
+
+        $grouped = [];
+        foreach ($visitorGroups as $group) {
+            if (isset($byGroupId[$group->getId()])) {
+                $grouped[] = ['group' => $group, 'rows' => $byGroupId[$group->getId()]];
+            }
+        }
+        if (isset($byGroupId[0])) {
+            $grouped[] = ['group' => null, 'rows' => $byGroupId[0]];
+        }
+
+        return $grouped;
     }
 
     private function requireVisitorId(Request $request): string
@@ -177,26 +461,82 @@ final class DiaryController extends AbstractController
     }
 
     /**
-     * @return array{0: string, 1: string, 2: ?string, 3: ?int}
+     * @return array{title: string, note: ?string, group: ?ExerciseGroup, targetMinutes: ?int, rhythm: string, repeatCount: ?int}
      */
-    private function readItemInput(Request $request): array
+    private function readExerciseInput(Request $request, ExerciseGroupRepository $groups, string $visitorId): array
     {
-        $label = mb_substr(trim((string) $request->request->get('label')), 0, self::LABEL_MAX_LENGTH);
-        $category = (string) $request->request->get('category');
-        if (!in_array($category, DiaryItem::CATEGORIES, true)) {
-            $category = DiaryItem::CATEGORY_PRACTICE;
+        $title = mb_substr(trim((string) $request->request->get('title')), 0, self::TITLE_MAX_LENGTH);
+        $note = mb_substr(trim((string) $request->request->get('note')), 0, self::NOTE_MAX_LENGTH);
+
+        $groupId = (int) $request->request->get('group_id', 0);
+        $group = $groupId > 0 ? $groups->findForVisitor($groupId, $visitorId) : null;
+
+        $rhythm = (string) $request->request->get('rhythm');
+        if (!in_array($rhythm, ExerciseVersion::RHYTHMS, true)) {
+            $rhythm = ExerciseVersion::RHYTHM_NONE;
         }
-        $linkedToolInput = (string) $request->request->get('linked_tool');
-        $linkedTool = $linkedToolInput !== '' && $this->isKnownTool($linkedToolInput) ? $linkedToolInput : null;
+
         $targetMinutes = null;
-        if ($linkedTool !== null) {
-            $targetMinutes = max(1, min(self::MAX_MINUTES, (int) $request->request->get('target_minutes', 0)));
-            if ((int) $request->request->get('target_minutes', 0) <= 0) {
-                $targetMinutes = null;
+        $rawMinutes = (int) $request->request->get('target_minutes', 0);
+        if ($rawMinutes > 0) {
+            $targetMinutes = max(1, min(self::MAX_MINUTES, $rawMinutes));
+        }
+
+        $repeatCount = null;
+        if ($rhythm === ExerciseVersion::RHYTHM_WEEKLY) {
+            $rawCount = (int) $request->request->get('repeat_count', 0);
+            $repeatCount = max(1, min(self::MAX_REPEAT_COUNT, $rawCount > 0 ? $rawCount : 1));
+        }
+
+        return [
+            'title' => $title,
+            'note' => $note !== '' ? $note : null,
+            'group' => $group,
+            'targetMinutes' => $targetMinutes,
+            'rhythm' => $rhythm,
+            'repeatCount' => $repeatCount,
+        ];
+    }
+
+    /**
+     * Reads parallel resource_type[]/resource_tool_id[]/resource_url[]
+     * arrays (one entry per resource row in the form) rather than a nested
+     * resources[N][...] shape - simpler to grow/shrink client-side.
+     *
+     * @return list<array{type: string, toolId: ?string, url: ?string}>
+     */
+    private function readResourceInput(Request $request): array
+    {
+        $rows = [];
+        $types = $request->request->all('resource_type');
+        $toolIds = $request->request->all('resource_tool_id');
+        $urls = $request->request->all('resource_url');
+
+        foreach ($types as $index => $type) {
+            if ($type === ExerciseResource::TYPE_INTERNAL_TOOL) {
+                $toolId = (string) ($toolIds[$index] ?? '');
+                if ($toolId !== '' && $this->isKnownTool($toolId)) {
+                    $rows[] = ['type' => $type, 'toolId' => $toolId, 'url' => null];
+                }
+            } elseif ($type === ExerciseResource::TYPE_EXTERNAL_LINK) {
+                $url = trim((string) ($urls[$index] ?? ''));
+                if (str_starts_with($url, 'https://') && mb_strlen($url) <= self::MAX_EXTERNAL_URL_LENGTH) {
+                    $rows[] = ['type' => $type, 'toolId' => null, 'url' => $url];
+                }
             }
         }
 
-        return [$label, $category, $linkedTool, $targetMinutes];
+        return $rows;
+    }
+
+    /**
+     * @param array{type: string, toolId: ?string, url: ?string} $resource
+     */
+    private function buildResource(Exercise $exercise, int $sortIndex, array $resource): ExerciseResource
+    {
+        return $resource['type'] === ExerciseResource::TYPE_INTERNAL_TOOL
+            ? ExerciseResource::internalTool($exercise, $sortIndex, $resource['toolId'])
+            : ExerciseResource::externalLink($exercise, $sortIndex, $resource['url']);
     }
 
     private function isKnownTool(string $id): bool

@@ -18,19 +18,6 @@ class PracticeSessionRepository extends ServiceEntityRepository
         parent::__construct($registry, PracticeSession::class);
     }
 
-    public function findOrCreate(string $visitorId, string $clientSessionId, string $tool): PracticeSession
-    {
-        $existing = $this->findOneBy(['visitorId' => $visitorId, 'clientSessionId' => $clientSessionId]);
-        if ($existing !== null) {
-            return $existing;
-        }
-
-        $session = new PracticeSession($visitorId, $clientSessionId, $tool);
-        $this->getEntityManager()->persist($session);
-
-        return $session;
-    }
-
     /**
      * @return PracticeSession[] most recent first
      */
@@ -58,6 +45,21 @@ class PracticeSessionRepository extends ServiceEntityRepository
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * @return PracticeSession[] running sessions for this tool that never
+     *         received a single real interaction - safe to silently
+     *         discard, there's no browser tab left to resume them
+     */
+    public function findRunningWithoutInteraction(string $visitorId, string $tool): array
+    {
+        return $this->findBy([
+            'visitorId' => $visitorId,
+            'tool' => $tool,
+            'status' => PracticeSession::STATUS_RUNNING,
+            'hasInteraction' => false,
+        ]);
     }
 
     public function countForVisitor(string $visitorId): int

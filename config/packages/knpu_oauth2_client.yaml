@@ -1,0 +1,18 @@
+knpu_oauth2_client:
+    clients:
+        google:
+            type: google
+            client_id: '%env(OAUTH_GOOGLE_CLIENT_ID)%'
+            client_secret: '%env(OAUTH_GOOGLE_CLIENT_SECRET)%'
+            redirect_route: connect_google_check
+            redirect_params: {}
+
+        azure:
+            type: azure
+            client_id: '%env(OAUTH_AZURE_CLIENT_ID)%'
+            client_secret: '%env(OAUTH_AZURE_CLIENT_SECRET)%'
+            redirect_route: connect_azure_check
+            redirect_params: {}
+            # 'common' accepts both personal Microsoft accounts and work/school
+            # accounts from any organization - no dedicated company tenant needed.
+            tenant: common

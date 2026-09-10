@@ -53,14 +53,23 @@ practice turbo-frame needs a moment's thought about which navigations should sta
 shift runs (PHP evaluates array literal entries left-to-right) - duplicated the first draw in the scale
 generator. Do the mutation as its own statement before building the array.
 
-## Anonymous history/sync (prototype, no login yet)
+## Anonymous history/sync + optional login
 
 `VisitorCookieSubscriber` mints a long-lived anonymous `guitorial_visitor` cookie. `PracticeSession`
 entity/repo store per-round progress, upserted by `(visitorId, clientSessionId)`. The
 `practice_sync_controller.js` Stimulus controller (attached to each tool's practice turbo-frame) POSTs to
 `/api/practice-sync` on round start, every ~20s while practicing, and on completion - so a round survives
-a closed tab. `/verlauf` lists a visitor's past rounds. **Login/account migration of this history is
-explicitly future work**, not built yet.
+a closed tab. `/verlauf` lists a visitor's past rounds.
+
+Login (Google/Microsoft via `knpuniversity/oauth2-client-bundle`) is **optional** and layered on top of
+this rather than replacing it: `User` (table `app_user`) just "claims" a visitorId (see
+`AccountLinker`/`src/Security/`) - no other entity gets a `user_id` column, every existing
+`forVisitor()`-style query keeps working unchanged for logged-in users too. A brand-new account adopts
+the current browser's anonymous visitorId as-is (no data migration needed); a returning account keeps
+whatever visitorId it claimed at its first-ever login. **Known limitation, accepted on purpose:** logging
+in on a second/new browser that already has its own anonymous progress does NOT merge that progress into
+the account - only the very first login per account adopts existing data. No password login exists
+anywhere in this app (OAuth-only).
 
 ## Deployment (LAMP shared hosting, no Docker in prod)
 
@@ -88,6 +97,18 @@ Env secrets (`DATABASE_URL` etc.) live only in `.env.local` on the server (`shar
 prod, directly in the stage checkout for staging), never in git. **A literal `%` in a `.env.local` value
 must be escaped as `%%`** - Symfony's container parameter bag treats `%...%` as a parameter reference
 otherwise (bit us with a URL-encoded DB password).
+
+Login needs 4 more secrets in the same `.env.local` files: `OAUTH_GOOGLE_CLIENT_ID`,
+`OAUTH_GOOGLE_CLIENT_SECRET`, `OAUTH_AZURE_CLIENT_ID`, `OAUTH_AZURE_CLIENT_SECRET` (placeholders/empty in
+the committed `.env`). Obtained from:
+- **Google**: [console.cloud.google.com](https://console.cloud.google.com) → a project → OAuth consent
+  screen (External; testing mode is fine to start) → Credentials → OAuth client ID → Web application →
+  redirect URI `https://<host>/connect/google/check` for each environment (`stage.guitorial.com`,
+  `guitorial.com`, and `http://localhost:8080` for local dev).
+- **Microsoft**: [portal.azure.com](https://portal.azure.com) → Microsoft Entra ID → App registrations →
+  New registration → account type "Accounts in any organizational directory and personal Microsoft
+  accounts" (matches `tenant: common` in `config/packages/knpu_oauth2_client.yaml`) → redirect URI
+  `https://<host>/connect/azure/check` per environment → Certificates & secrets → new client secret.
 
 Current prod version: `v0.1.0`. No formal semantic-release cycle has run yet - tags so far were pushed
 manually.

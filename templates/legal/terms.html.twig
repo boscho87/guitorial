@@ -1,0 +1,43 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'legal.terms.title'|trans }} – Guitorial{% endblock %}
+{% block meta_description %}{{ 'legal.terms.meta_description'|trans }}{% endblock %}
+
+{% block body %}
+    <a href="{{ path('home_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{ 'nav.back_home'|trans }}
+    </a>
+
+    <h1 class="font-display mt-3 text-2xl font-semibold sm:text-3xl">{{ 'legal.terms.title'|trans }}</h1>
+
+    <section class="mt-8">
+        <h2 class="font-display text-lg font-semibold">{{ 'legal.terms.scope.title'|trans }}</h2>
+        <p class="mt-2 text-base-content/70">{{ 'legal.terms.scope.body'|trans }}</p>
+    </section>
+
+    <section class="mt-8">
+        <h2 class="font-display text-lg font-semibold">{{ 'legal.terms.usage.title'|trans }}</h2>
+        <p class="mt-2 text-base-content/70">{{ 'legal.terms.usage.body'|trans }}</p>
+    </section>
+
+    <section class="mt-8">
+        <h2 class="font-display text-lg font-semibold">{{ 'legal.terms.account.title'|trans }}</h2>
+        <p class="mt-2 text-base-content/70">{{ 'legal.terms.account.body'|trans }}</p>
+    </section>
+
+    <section class="mt-8">
+        <h2 class="font-display text-lg font-semibold">{{ 'legal.terms.conduct.title'|trans }}</h2>
+        <p class="mt-2 text-base-content/70">{{ 'legal.terms.conduct.body'|trans }}</p>
+    </section>
+
+    <section class="mt-8">
+        <h2 class="font-display text-lg font-semibold">{{ 'legal.terms.liability.title'|trans }}</h2>
+        <p class="mt-2 text-base-content/70">{{ 'legal.terms.liability.body'|trans }}</p>
+    </section>
+
+    <section class="mt-8">
+        <h2 class="font-display text-lg font-semibold">{{ 'legal.terms.changes.title'|trans }}</h2>
+        <p class="mt-2 text-base-content/70">{{ 'legal.terms.changes.body'|trans }}</p>
+    </section>
+{% endblock %}

@@ -21,4 +21,10 @@ final class LegalController extends AbstractController
     {
         return $this->render('legal/imprint.html.twig');
     }
+
+    #[Route('/nutzungsbestimmung', name: 'terms_index', methods: ['GET'])]
+    public function terms(): Response
+    {
+        return $this->render('legal/terms.html.twig');
+    }
 }

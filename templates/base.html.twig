@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Guitorial{% endblock %}</title>
-    <meta name="description" content="{% block meta_description %}Guitorial hilft dir, Musiktheorie und Gitarrenspiel gezielt zu üben – Tonarten, Akkordfunktionen, Griffbrett und mehr, mit Verlauf und Übungstagebuch.{% endblock %}">
+    <meta name="description" content="{% block meta_description %}Guitorial hilft dir, Musiktheorie und Gitarrenspiel gezielt zu üben – Tonarten, Akkordfunktionen, Griffbrett und mehr, mit Verlauf und Übetagebuch.{% endblock %}">
     <meta name="theme-color" content="#a8752e">
     <link rel="canonical" href="{{ app.request.uri }}">
     <meta property="og:type" content="website">
@@ -40,13 +40,21 @@
             <a href="{{ path('diary_index') }}" class="text-sm text-base-content/70 hover:text-primary">{{ 'nav.diary'|trans }}</a>
             <a href="{{ path('history_index') }}" class="text-sm text-base-content/70 hover:text-primary">{{ 'nav.history'|trans }}</a>
             <a href="{{ path('practice_guide_index') }}" class="text-sm text-base-content/70 hover:text-primary">{{ 'nav.practice_guide'|trans }}</a>
+            <div class="flex items-center gap-4 border-l border-primary/30 pl-4">
+                {% if app.user %}
+                    <span class="text-sm font-medium text-base-content/90" title="{{ app.user.email }}">{{ app.user.firstName }}</span>
+                    <a href="{{ path('app_logout') }}" class="text-sm text-base-content/70 hover:text-error">{{ 'nav.logout'|trans }}</a>
+                {% else %}
+                    <a href="{{ path('app_login') }}" class="text-sm text-base-content/70 hover:text-primary">{{ 'nav.login'|trans }}</a>
+                {% endif %}
+            </div>
         </div>
     </nav>
 </header>
 <main class="mx-auto w-full max-w-3xl flex-grow px-4 py-6 sm:px-6 sm:py-10">
     {% for label, messages in app.flashes %}
         {% for message in messages %}
-            <div class="alert alert-{{ label }} mb-4">{{ message }}</div>
+            <div class="alert alert-{{ label }} mb-4">{{ message|trans }}</div>
         {% endfor %}
     {% endfor %}
     {% block body %}{% endblock %}
@@ -60,7 +68,9 @@
         <nav class="flex items-center gap-3 text-xs text-footer-content/50">
             <a href="{{ path('privacy_index') }}" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">{{ 'footer.privacy'|trans }}</a>
             <a href="{{ path('imprint_index') }}" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">{{ 'footer.imprint'|trans }}</a>
+            <a href="{{ path('terms_index') }}" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">{{ 'footer.terms'|trans }}</a>
             <a href="https://github.com/boscho87/guitorial" target="_blank" rel="noopener" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">{{ 'footer.github'|trans }}</a>
+            <a href="https://github.com/boscho87/guitorial/issues/new?template=feature_request.yml" target="_blank" rel="noopener" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">{{ 'footer.feature_request'|trans }}</a>
         </nav>
     </div>
 </footer>
