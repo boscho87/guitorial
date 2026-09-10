@@ -22,9 +22,9 @@
             data-practice-sync-session-id-value="{{ sessionId }}"
     >
         {% if not finished %}
-            <div class="flex items-center justify-end gap-3 font-mono text-sm text-base-content/70">
-                <span data-controller="timer" data-timer-start-value="{{ startedAtMs }}">0:00</span>
+            <div class="flex items-center justify-between gap-3 rounded-box bg-base-200/60 px-3 py-2 font-mono text-sm text-base-content/70">
                 <span>{{ 'harmonic_function.practice.question_progress'|trans({'%current%': questionIndex, '%total%': totalQuestions}) }}</span>
+                <span data-controller="timer" data-timer-start-value="{{ startedAtMs }}">0:00</span>
             </div>
         {% endif %}
 

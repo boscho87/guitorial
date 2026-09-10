@@ -29,23 +29,23 @@
 </head>
 <body class="flex min-h-screen flex-col text-base-content">
 <header class="border-b border-base-300">
-    <nav class="mx-auto flex max-w-3xl items-center justify-between px-4 py-4 sm:px-6">
+    <nav class="mx-auto flex max-w-3xl flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-4">
         <a class="font-display flex items-center gap-2 text-lg font-semibold" href="{{ path('home_index') }}">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-primary">
                 <path d="M12 4c-4 0-7.5 3-7.5 6.8 0 4.6 3.6 8.2 7.5 11.7 3.9-3.5 7.5-7.1 7.5-11.7C19.5 7 16 4 12 4Z"/>
             </svg>
             Guitorial
         </a>
-        <div class="flex items-center gap-4">
-            <a href="{{ path('diary_index') }}" class="text-sm text-base-content/70 hover:text-primary">{{ 'nav.diary'|trans }}</a>
-            <a href="{{ path('history_index') }}" class="text-sm text-base-content/70 hover:text-primary">{{ 'nav.history'|trans }}</a>
-            <a href="{{ path('practice_guide_index') }}" class="text-sm text-base-content/70 hover:text-primary">{{ 'nav.practice_guide'|trans }}</a>
-            <div class="flex items-center gap-4 border-l border-primary/30 pl-4">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm">
+            <a href="{{ path('diary_index') }}" class="text-base-content/70 hover:text-primary">{{ 'nav.diary'|trans }}</a>
+            <a href="{{ path('history_index') }}" class="text-base-content/70 hover:text-primary">{{ 'nav.history'|trans }}</a>
+            <a href="{{ path('practice_guide_index') }}" class="text-base-content/70 hover:text-primary">{{ 'nav.practice_guide'|trans }}</a>
+            <div class="flex items-center gap-4 sm:border-l sm:border-primary/30 sm:pl-4">
                 {% if app.user %}
-                    <span class="text-sm font-medium text-base-content/90" title="{{ app.user.email }}">{{ app.user.firstName }}</span>
-                    <a href="{{ path('app_logout') }}" class="text-sm text-base-content/70 hover:text-error">{{ 'nav.logout'|trans }}</a>
+                    <span class="font-medium text-base-content/90" title="{{ app.user.email }}">{{ app.user.firstName }}</span>
+                    <a href="{{ path('app_logout') }}" class="text-base-content/70 hover:text-error">{{ 'nav.logout'|trans }}</a>
                 {% else %}
-                    <a href="{{ path('app_login') }}" class="text-sm text-base-content/70 hover:text-primary">{{ 'nav.login'|trans }}</a>
+                    <a href="{{ path('app_login') }}" class="text-base-content/70 hover:text-primary">{{ 'nav.login'|trans }}</a>
                 {% endif %}
             </div>
         </div>
