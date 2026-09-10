@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_components/icons.html.twig' as icons %}
 
 {% block title %}{{ 'diary.title'|trans }} – Guitorial{% endblock %}
 
@@ -41,67 +42,65 @@
                         {% set exercise = row.version.exercise %}
                         {% set resources = resourcesByExerciseId[exercise.id] %}
                         <li class="rounded-box border border-base-300 p-4">
-                            <div class="flex items-start gap-3">
+                            <div class="flex items-start justify-between gap-2">
+                                <p class="min-w-0 flex-1 text-sm font-medium {{ row.checked ? 'text-base-content/50 line-through' : '' }}">{{ row.version.title }}</p>
                                 {% if isToday and not row.checked %}
                                     <form method="post" action="{{ path('diary_mark_done', {id: exercise.id}) }}" class="shrink-0">
                                         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
                                         <button
                                                 type="submit"
-                                                class="mt-0.5 flex h-5 w-5 items-center justify-center rounded-full border border-base-300 text-transparent transition-colors hover:border-primary hover:bg-primary/10 hover:text-primary focus-visible:border-primary focus-visible:text-primary"
+                                                class="flex h-5 w-5 items-center justify-center rounded-full border border-base-300 text-transparent transition-colors hover:border-primary hover:bg-primary/10 hover:text-primary focus-visible:border-primary focus-visible:text-primary"
                                                 title="{{ 'diary.item.mark_done'|trans }}"
                                                 aria-label="{{ 'diary.item.mark_done'|trans }}"
                                         >&check;</button>
                                     </form>
                                 {% else %}
-                                    <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border {{ row.checked ? 'border-primary bg-primary/10 text-primary' : 'border-base-300 text-base-content/40' }}">{% if row.checked %}&check;{% endif %}</span>
+                                    <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border {{ row.checked ? 'border-primary bg-primary/10 text-primary' : 'border-base-300 text-base-content/40' }}">{% if row.checked %}&check;{% endif %}</span>
                                 {% endif %}
-                                <div class="min-w-0 flex-1">
-                                    <p class="text-sm font-medium {{ row.checked ? 'text-base-content/50 line-through' : '' }}">{{ row.version.title }}</p>
-                                    <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
-                                        <span class="badge badge-sm badge-outline">
-                                            {{ ('diary.rhythm.' ~ row.version.repeatRhythm)|trans }}
-                                            {% if row.weeklyTarget %} {{ row.weeklyDone }}/{{ row.weeklyTarget }}{% endif %}
-                                        </span>
-                                        {% if bucket.group %}<span class="badge badge-sm badge-ghost">{{ bucket.group.name }}</span>{% endif %}
-                                        {% if row.version.targetMinutes %}<span class="text-xs text-base-content/60">{{ 'diary.item.progress'|trans({'%minutes%': row.practicedMinutes, '%target%': row.version.targetMinutes}) }}</span>{% endif %}
-                                    </div>
-                                    {% if exercise.note %}
-                                        <p class="mt-1.5 text-xs text-base-content/50">{{ exercise.note|length > 80 ? exercise.note|slice(0, 80) ~ '…' : exercise.note }}</p>
-                                    {% endif %}
+                            </div>
+                            <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                                <span class="badge badge-sm badge-outline">
+                                    {{ ('diary.rhythm.' ~ row.version.repeatRhythm)|trans }}
+                                    {% if row.weeklyTarget %} {{ row.weeklyDone }}/{{ row.weeklyTarget }}{% endif %}
+                                </span>
+                                {% if bucket.group %}<span class="badge badge-sm badge-ghost">{{ bucket.group.name }}</span>{% endif %}
+                                {% if row.version.targetMinutes %}<span class="text-xs text-base-content/60">{{ 'diary.item.progress'|trans({'%minutes%': row.practicedMinutes, '%target%': row.version.targetMinutes}) }}</span>{% endif %}
+                            </div>
+                            {% if exercise.note %}
+                                <p class="mt-1.5 text-xs text-base-content/50">{{ exercise.note|length > 80 ? exercise.note|slice(0, 80) ~ '…' : exercise.note }}</p>
+                            {% endif %}
 
-                                    {% if isToday %}
-                                        <div class="mt-1.5 flex flex-wrap items-center gap-2">
-                                            {% if row.runningSessionId %}
-                                                {% if row.runningSessionTool %}
-                                                    <a href="{{ path(toolPracticeRoutes[row.runningSessionTool]) }}" data-turbo-frame="_top" class="btn btn-primary btn-xs">{{ 'diary.item.resume'|trans }}</a>
-                                                {% else %}
-                                                    <a href="{{ path('exercise_session_running', {id: row.runningSessionId}) }}" class="btn btn-primary btn-xs">{{ 'diary.item.resume'|trans }}</a>
-                                                {% endif %}
-                                            {% elseif resources is not empty %}
-                                                {% for resource in resources %}
-                                                    {% if resource.isInternalTool %}
-                                                        <a href="{{ path(toolSettingsRoutes[resource.internalToolId], {uebung: exercise.id, ressource: resource.id}) }}" data-turbo-frame="_top" class="btn btn-outline btn-xs">{{ 'diary.item.start'|trans }}: {{ toolTitles[resource.internalToolId]|trans }}</a>
-                                                    {% else %}
-                                                        <button
-                                                                type="button" class="btn btn-outline btn-xs"
-                                                                data-controller="exercise-external-start"
-                                                                data-exercise-external-start-url-value="{{ resource.externalUrl }}"
-                                                                data-exercise-external-start-start-url-value="{{ path('exercise_start_external', {id: exercise.id, resourceId: resource.id}) }}"
-                                                                data-exercise-external-start-token-value="{{ csrf_token(sessionCsrfIntention) }}"
-                                                                data-action="click->exercise-external-start#start"
-                                                        >{{ 'diary.item.start'|trans }}: {{ resource.externalProvider ?? resource.externalUrl }}</button>
-                                                    {% endif %}
-                                                {% endfor %}
+                            {% if isToday %}
+                                <div class="mt-1.5 flex flex-wrap items-center gap-2">
+                                    {% if row.runningSessionId %}
+                                        {% if row.runningSessionTool %}
+                                            <a href="{{ path(toolPracticeRoutes[row.runningSessionTool]) }}" data-turbo-frame="_top" class="btn btn-primary btn-xs">{{ icons.icon('play') }}{{ 'diary.item.resume'|trans }}</a>
+                                        {% else %}
+                                            <a href="{{ path('exercise_session_running', {id: row.runningSessionId}) }}" class="btn btn-primary btn-xs">{{ icons.icon('play') }}{{ 'diary.item.resume'|trans }}</a>
+                                        {% endif %}
+                                    {% elseif resources is not empty %}
+                                        {% for resource in resources %}
+                                            {% if resource.isInternalTool %}
+                                                <a href="{{ path(toolSettingsRoutes[resource.internalToolId], {uebung: exercise.id, ressource: resource.id}) }}" data-turbo-frame="_top" class="btn btn-outline btn-xs">{{ icons.icon('play') }}{{ 'diary.item.start'|trans }}: {{ toolTitles[resource.internalToolId]|trans }}</a>
                                             {% else %}
-                                                <form method="post" action="{{ path('exercise_start_manual', {id: exercise.id}) }}">
-                                                    <input type="hidden" name="_token" value="{{ csrf_token(sessionCsrfIntention) }}">
-                                                    <button type="submit" class="btn btn-outline btn-xs">{{ 'diary.item.start'|trans }}</button>
-                                                </form>
+                                                <button
+                                                        type="button" class="btn btn-outline btn-xs"
+                                                        data-controller="exercise-external-start"
+                                                        data-exercise-external-start-url-value="{{ resource.externalUrl }}"
+                                                        data-exercise-external-start-start-url-value="{{ path('exercise_start_external', {id: exercise.id, resourceId: resource.id}) }}"
+                                                        data-exercise-external-start-token-value="{{ csrf_token(sessionCsrfIntention) }}"
+                                                        data-action="click->exercise-external-start#start"
+                                                >{{ icons.icon('play') }}{{ 'diary.item.start'|trans }}: {{ resource.externalProvider ?? resource.externalUrl }}</button>
                                             {% endif %}
-                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <form method="post" action="{{ path('exercise_start_manual', {id: exercise.id}) }}">
+                                            <input type="hidden" name="_token" value="{{ csrf_token(sessionCsrfIntention) }}">
+                                            <button type="submit" class="btn btn-outline btn-xs">{{ icons.icon('play') }}{{ 'diary.item.start'|trans }}</button>
+                                        </form>
                                     {% endif %}
                                 </div>
-                            </div>
+                            {% endif %}
                         </li>
                     {% endfor %}
                 </ul>
