@@ -105,6 +105,7 @@ final class DiaryController extends AbstractController
         ExerciseRepository $exercises,
         ExerciseVersionRepository $versions,
         ExerciseResourceRepository $resources,
+        ExerciseGroupRepository $groups,
     ): Response {
         $visitorId = $this->requireVisitorId($request);
         $today = new \DateTimeImmutable('today');
@@ -128,6 +129,8 @@ final class DiaryController extends AbstractController
         return $this->render('diary/manage.html.twig', [
             'activeExercises' => $active,
             'archivedExercises' => $archived,
+            'groups' => $groups->forVisitor($visitorId),
+            'rhythms' => ExerciseVersion::RHYTHMS,
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
     }
@@ -340,6 +343,55 @@ final class DiaryController extends AbstractController
         $em->flush();
 
         $this->addFlash('success', 'diary.setup.flash.saved');
+
+        return $this->redirectToRoute('diary_manage');
+    }
+
+    /**
+     * Quick-edit for just rhythm/repeat-count/group straight from the manage
+     * list (dropdowns, auto-submit on change) - everything else on the
+     * version (title, target minutes) stays exactly as it was, unlike the
+     * full diary_edit form which replaces the whole version.
+     */
+    #[Route('/{id}/schnelleinstellung', name: 'diary_quick_edit', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function quickEdit(
+        int $id,
+        Request $request,
+        ExerciseRepository $exercises,
+        ExerciseVersionRepository $versions,
+        ExerciseGroupRepository $groups,
+    ): Response {
+        $this->assertValidCsrf($request);
+        $visitorId = $this->requireVisitorId($request);
+        $exercise = $exercises->findForVisitor($id, $visitorId);
+        $currentVersion = $exercise !== null ? $versions->currentFor($exercise, new \DateTimeImmutable('today')) : null;
+        if ($exercise === null || $currentVersion === null) {
+            return $this->redirectToRoute('diary_manage');
+        }
+
+        $groupId = (int) $request->request->get('group_id', 0);
+        $group = $groupId > 0 ? $groups->findForVisitor($groupId, $visitorId) : null;
+
+        $rhythm = (string) $request->request->get('rhythm', $currentVersion->getRepeatRhythm());
+        if (!in_array($rhythm, ExerciseVersion::RHYTHMS, true)) {
+            $rhythm = $currentVersion->getRepeatRhythm();
+        }
+
+        $repeatCount = null;
+        if ($rhythm === ExerciseVersion::RHYTHM_WEEKLY) {
+            $rawCount = (int) $request->request->get('repeat_count', $currentVersion->getRepeatCount() ?? 1);
+            $repeatCount = max(1, min(self::MAX_REPEAT_COUNT, $rawCount > 0 ? $rawCount : 1));
+        }
+
+        $versions->edit(
+            $currentVersion,
+            $currentVersion->getTitle(),
+            $group,
+            $currentVersion->getTargetMinutes(),
+            $rhythm,
+            $repeatCount,
+            new \DateTimeImmutable('today'),
+        );
 
         return $this->redirectToRoute('diary_manage');
     }

@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_components/icons.html.twig' as icons %}
 
 {% block title %}{{ 'diary.manage.title'|trans }} – Guitorial{% endblock %}
 
@@ -25,26 +26,23 @@
         {% if activeExercises is empty %}
             <p class="mt-4 text-sm text-base-content/60">{{ 'diary.empty'|trans }}</p>
         {% else %}
-            <ul class="mt-4 space-y-2">
+            <ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {% for entry in activeExercises %}
                     <li class="rounded-box border border-base-300 p-4">
-                        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                            <div>
-                                <p class="text-sm font-medium">{{ entry.version.title }}</p>
-                                <p class="mt-0.5 text-xs text-base-content/60">
-                                    {{ entry.version.group ? entry.version.group.name : 'diary.form.no_group'|trans }}
-                                    &middot; {{ ('diary.rhythm.' ~ entry.version.repeatRhythm)|trans }}
-                                    {% if entry.version.repeatRhythm == 'pro_woche' %}({{ entry.version.repeatCount }}x){% endif %}
-                                    {% if entry.version.targetMinutes %} &middot; {{ entry.version.targetMinutes }} Min.{% endif %}
-                                </p>
-                                {% if entry.exercise.note %}<p class="mt-1 text-xs text-base-content/50">{{ entry.exercise.note }}</p>{% endif %}
-                            </div>
-                            <div class="flex flex-wrap gap-1 sm:shrink-0">
-                                <a href="{{ path('history_exercise_detail', {id: entry.exercise.id}) }}" class="btn btn-ghost btn-xs">{{ 'history.title'|trans }}</a>
-                                <a href="{{ path('diary_setup', {id: entry.exercise.id}) }}" class="btn btn-ghost btn-xs">{{ 'diary.item.edit'|trans }}</a>
+                        <div class="flex items-start justify-between gap-2">
+                            <p class="min-w-0 flex-1 text-sm font-medium">{{ entry.version.title }}</p>
+                            <div class="flex shrink-0 gap-0.5">
+                                <a href="{{ path('history_exercise_detail', {id: entry.exercise.id}) }}" class="btn btn-ghost btn-xs btn-square" title="{{ 'history.title'|trans }}" aria-label="{{ 'history.title'|trans }}">
+                                    {{ icons.icon('history') }}
+                                </a>
+                                <a href="{{ path('diary_setup', {id: entry.exercise.id}) }}" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}">
+                                    {{ icons.icon('edit') }}
+                                </a>
                                 <form method="post" action="{{ path('diary_archive', {id: entry.exercise.id}) }}">
                                     <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                                    <button type="submit" class="btn btn-ghost btn-xs">{{ 'diary.item.archive'|trans }}</button>
+                                    <button type="submit" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.item.archive'|trans }}" aria-label="{{ 'diary.item.archive'|trans }}">
+                                        {{ icons.icon('archive') }}
+                                    </button>
                                 </form>
                                 <form
                                         method="post" action="{{ path('diary_delete', {id: entry.exercise.id}) }}"
@@ -52,10 +50,37 @@
                                         data-action="submit->confirm-submit#submit"
                                 >
                                     <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                                    <button type="submit" class="btn btn-ghost btn-xs text-error">{{ 'diary.item.delete'|trans }}</button>
+                                    <button type="submit" class="btn btn-ghost btn-xs btn-square text-error" title="{{ 'diary.item.delete'|trans }}" aria-label="{{ 'diary.item.delete'|trans }}">
+                                        {{ icons.icon('trash') }}
+                                    </button>
                                 </form>
                             </div>
                         </div>
+
+                        <form
+                                method="post" action="{{ path('diary_quick_edit', {id: entry.exercise.id}) }}"
+                                data-controller="auto-submit" class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1"
+                        >
+                            <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                            <select name="group_id" class="select select-xs select-bordered" data-action="change->auto-submit#submit">
+                                <option value="0" {{ entry.version.group ? '' : 'selected' }}>{{ 'diary.form.no_group'|trans }}</option>
+                                {% for group in groups %}
+                                    <option value="{{ group.id }}" {{ entry.version.group and entry.version.group.id == group.id ? 'selected' : '' }}>{{ group.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <select name="rhythm" class="select select-xs select-bordered" data-action="change->auto-submit#submit">
+                                {% for r in rhythms %}
+                                    <option value="{{ r }}" {{ entry.version.repeatRhythm == r ? 'selected' : '' }}>{{ ('diary.rhythm.' ~ r)|trans }}</option>
+                                {% endfor %}
+                            </select>
+                            {% if entry.version.repeatRhythm == 'pro_woche' %}
+                                <span class="text-xs text-base-content/60">({{ entry.version.repeatCount }}x)</span>
+                            {% endif %}
+                            {% if entry.version.targetMinutes %}
+                                <span class="text-xs text-base-content/60">&middot; {{ entry.version.targetMinutes }} Min.</span>
+                            {% endif %}
+                        </form>
+                        {% if entry.exercise.note %}<p class="mt-2 text-xs text-base-content/50">{{ entry.exercise.note }}</p>{% endif %}
                     </li>
                 {% endfor %}
             </ul>
@@ -65,14 +90,16 @@
     {% if archivedExercises is not empty %}
         <section class="mt-10">
             <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.archive.title'|trans }}</h2>
-            <ul class="mt-4 space-y-2">
+            <ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {% for entry in archivedExercises %}
-                    <li class="flex flex-col gap-3 rounded-box border border-base-300 p-4 opacity-70 sm:flex-row sm:items-center sm:justify-between">
-                        <p class="text-sm font-medium">{{ entry.version.title }}</p>
-                        <div class="flex flex-wrap gap-1 sm:shrink-0">
+                    <li class="flex items-center justify-between gap-2 rounded-box border border-base-300 p-4 opacity-70">
+                        <p class="min-w-0 flex-1 text-sm font-medium">{{ entry.version.title }}</p>
+                        <div class="flex shrink-0 gap-0.5">
                             <form method="post" action="{{ path('diary_reactivate', {id: entry.exercise.id}) }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                                <button type="submit" class="btn btn-ghost btn-xs">{{ 'diary.archive.reactivate'|trans }}</button>
+                                <button type="submit" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.archive.reactivate'|trans }}" aria-label="{{ 'diary.archive.reactivate'|trans }}">
+                                    {{ icons.icon('reactivate') }}
+                                </button>
                             </form>
                             <form
                                     method="post" action="{{ path('diary_delete', {id: entry.exercise.id}) }}"
@@ -80,7 +107,9 @@
                                     data-action="submit->confirm-submit#submit"
                             >
                                 <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                                <button type="submit" class="btn btn-ghost btn-xs text-error">{{ 'diary.item.delete'|trans }}</button>
+                                <button type="submit" class="btn btn-ghost btn-xs btn-square text-error" title="{{ 'diary.item.delete'|trans }}" aria-label="{{ 'diary.item.delete'|trans }}">
+                                    {{ icons.icon('trash') }}
+                                </button>
                             </form>
                         </div>
                     </li>
