@@ -17,6 +17,13 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * Read (or minted) as early as possible so every controller can rely on
  * the "visitorId" request attribute being set; re-issued on the response
  * only when it didn't already exist, so the id never changes.
+ *
+ * This class only ever deals with the raw/minted cookie value - it has no
+ * opinion on auth state. VisitorIdentityListener runs afterward (on
+ * kernel.controller, once the security context is actually available) and
+ * may overwrite the "visitorId" attribute this sets, e.g. blanking it when
+ * the cookie is claimed by an account the current request isn't
+ * authenticated as.
  */
 final class VisitorCookieSubscriber implements EventSubscriberInterface
 {
