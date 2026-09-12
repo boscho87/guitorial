@@ -27,6 +27,26 @@
             <path d="M3 4v5h5"/>
         {% elseif name == 'play' %}
             <path d="M7 4.5v15l13-7.5Z" fill="currentColor" stroke="none"/>
+        {% elseif name == 'key' %}
+            <circle cx="7" cy="15" r="4"/>
+            <path d="M10 12l10-10"/>
+            <path d="M17 5l2 2"/>
+            <path d="M14 8l2 2"/>
+        {% elseif name == 'capo' %}
+            <rect x="4" y="10" width="16" height="4" rx="2"/>
+            <path d="M4 10V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3"/>
+        {% elseif name == 'steps' %}
+            <path d="M4 20v-4h4v-4h4v-4h4v-4h4"/>
+        {% elseif name == 'fretboard-grid' %}
+            <path d="M4 4v16M9 4v16M14 4v16M19 4v16"/>
+            <path d="M4 8h16M4 13h16M4 18h16"/>
+        {% elseif name == 'dice' %}
+            <rect x="4" y="4" width="16" height="16" rx="3"/>
+            <circle cx="9" cy="9" r="1" fill="currentColor" stroke="none"/>
+            <circle cx="15" cy="9" r="1" fill="currentColor" stroke="none"/>
+            <circle cx="9" cy="15" r="1" fill="currentColor" stroke="none"/>
+            <circle cx="15" cy="15" r="1" fill="currentColor" stroke="none"/>
+            <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>
         {% endif %}
     </svg>
 {% endmacro %}

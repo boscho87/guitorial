@@ -10,6 +10,16 @@ home:
   title: Training
   subtitle: "Musiktheorie und Gitarrenspiel gezielt üben"
   cta: Üben
+  hero_cta: "Jetzt üben"
+  hero_secondary_cta: "Wie übe ich richtig?"
+  how_it_works:
+    title: "So funktioniert's"
+    step_practice_title: "Üben"
+    step_practice_text: "Ein Tool wählen, ein paar Fragen beantworten - direkt im Browser, ohne Anmeldung."
+    step_diary_title: "Tagebuch führen"
+    step_diary_text: "Übungen mit Rhythmus und Tagesziel eintragen, damit dranbleiben leichter fällt."
+    step_history_title: "Verlauf sehen"
+    step_history_text: "Fortschritt über die Zeit nachvollziehen und sehen, was noch wackelt."
 
 nav:
   back_home: Zurück
