@@ -25,14 +25,21 @@
         {% if not finished %}
             <div class="rounded-box bg-base-200/60 px-3 py-2">
                 {% if timeProgress %}
-                    <progress
-                            class="progress progress-primary h-1.5 w-full"
-                            value="{{ timeProgress.todayMinutes }}" max="{{ timeProgress.targetMinutes }}"
-                            aria-label="{{ 'practice_progress.time_progress'|trans({'%minutes%': timeProgress.todayMinutes, '%target%': timeProgress.targetMinutes}) }}"
-                    ></progress>
-                    <div class="mt-2 flex items-center justify-between gap-3 font-mono text-sm text-base-content/70">
-                        <span>{{ 'practice_progress.time_progress'|trans({'%minutes%': timeProgress.todayMinutes, '%target%': timeProgress.targetMinutes}) }}</span>
-                        <span data-controller="timer" data-timer-start-value="{{ startedAtMs }}">0:00</span>
+                    <div
+                            data-controller="timer" data-timer-start-value="{{ startedAtMs }}"
+                            data-timer-progress-base-seconds-value="{{ timeProgress.baseSeconds }}"
+                            data-timer-progress-label-template-value="{{ 'practice_progress.time_progress'|trans({'%minutes%': '{m}', '%target%': timeProgress.targetMinutes}) }}"
+                    >
+                        <progress
+                                class="progress progress-primary h-1.5 w-full"
+                                data-timer-target="progress"
+                                value="{{ timeProgress.baseSeconds }}" max="{{ timeProgress.targetMinutes * 60 }}"
+                                aria-label="{{ 'practice_progress.time_progress'|trans({'%minutes%': timeProgress.todayMinutes, '%target%': timeProgress.targetMinutes}) }}"
+                        ></progress>
+                        <div class="mt-2 flex items-center justify-between gap-3 font-mono text-sm text-base-content/70">
+                            <span data-timer-target="progressLabel">{{ 'practice_progress.time_progress'|trans({'%minutes%': timeProgress.todayMinutes, '%target%': timeProgress.targetMinutes}) }}</span>
+                            <span data-timer-target="clock">0:00</span>
+                        </div>
                     </div>
                 {% else %}
                     <progress

@@ -23,7 +23,7 @@ final class ExerciseTargetProgressTest extends TestCase
 
         $result = ExerciseTargetProgress::calculate(30, [], null, $exercise);
 
-        self::assertSame(['todayMinutes' => 0, 'targetMinutes' => 30], $result);
+        self::assertSame(['baseSeconds' => 0, 'todayMinutes' => 0, 'targetMinutes' => 30], $result);
     }
 
     public function testSumsFinishedSessionsForToday(): void
@@ -41,6 +41,25 @@ final class ExerciseTargetProgressTest extends TestCase
         $result = ExerciseTargetProgress::calculate(30, [$first, $second], null, $exercise);
 
         self::assertSame(17, $result['todayMinutes']);
+        self::assertSame(17 * 60, $result['baseSeconds']);
+    }
+
+    public function testBaseSecondsExcludesTheLiveRoundSoTheBrowserCanTickItSeparately(): void
+    {
+        $exercise = new Exercise('visitor-1');
+
+        $finished = new PracticeSession('visitor-1', 'client-1', 'griffbrett', $exercise);
+        $finished->backdateStart(12);
+        $finished->finish();
+
+        $running = new PracticeSession('visitor-1', 'client-2', 'griffbrett', $exercise);
+        $running->backdateStart(3);
+        $now = $running->getStartedAt()->getTimestamp() + 3 * 60;
+
+        $result = ExerciseTargetProgress::calculate(30, [$finished], $running, $exercise, $now);
+
+        self::assertSame(12 * 60, $result['baseSeconds']);
+        self::assertSame(15, $result['todayMinutes']);
     }
 
     public function testAddsStillRunningSessionsElapsedTimeForTheSameExercise(): void

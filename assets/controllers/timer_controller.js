@@ -7,9 +7,19 @@ import { Controller } from '@hotwired/stimulus';
  * synthesized tone, not a shipped audio file) - used by the exercise
  * running page to signal a target time was reached without forcing an
  * auto-completion.
+ *
+ * Optionally also ticks a diary daily-target <progress> bar + its text
+ * label live, second by second, instead of only moving once per question
+ * answered (a server round-trip) or jumping in whole-minute steps -
+ * progressBaseSecondsValue is today's already-finished minutes (in
+ * seconds, from the server), and this adds the round's own live elapsed
+ * time on top every tick. Only wired up where a `progress`/`progressLabel`
+ * target is actually present - every other usage of this controller is
+ * unaffected.
  */
 export default class extends Controller {
-    static values = { start: Number, targetSeconds: Number };
+    static targets = ['clock', 'progress', 'progressLabel'];
+    static values = { start: Number, targetSeconds: Number, progressBaseSeconds: Number, progressLabelTemplate: String };
 
     connect() {
         this.beeped = false;
@@ -25,7 +35,16 @@ export default class extends Controller {
         const elapsed = Math.max(0, Math.floor((Date.now() - this.startValue) / 1000));
         const minutes = Math.floor(elapsed / 60);
         const seconds = elapsed % 60;
-        this.element.textContent = `${minutes}:${String(seconds).padStart(2, '0')}`;
+        const clock = this.hasClockTarget ? this.clockTarget : this.element;
+        clock.textContent = `${minutes}:${String(seconds).padStart(2, '0')}`;
+
+        if (this.hasProgressTarget && this.hasProgressBaseSecondsValue) {
+            const totalSeconds = this.progressBaseSecondsValue + elapsed;
+            this.progressTarget.value = totalSeconds;
+            if (this.hasProgressLabelTarget && this.hasProgressLabelTemplateValue) {
+                this.progressLabelTarget.textContent = this.progressLabelTemplateValue.replace('{m}', Math.floor(totalSeconds / 60));
+            }
+        }
 
         if (this.hasTargetSecondsValue && !this.beeped && elapsed >= this.targetSecondsValue) {
             this.beeped = true;

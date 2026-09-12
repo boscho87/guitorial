@@ -26,7 +26,7 @@ final class ExerciseTargetProgress
     }
 
     /**
-     * @return array{todayMinutes: int, targetMinutes: int}|null
+     * @return array{baseSeconds: int, todayMinutes: int, targetMinutes: int}|null
      */
     public function forExercise(Exercise $exercise, ?PracticeSession $runningSession = null): ?array
     {
@@ -46,8 +46,14 @@ final class ExerciseTargetProgress
      * without a database: sums already-finished sessions' durations, plus
      * the still-running one's elapsed time if it's for the same exercise.
      *
+     * baseSeconds (finished sessions only, seconds) is exposed separately
+     * from todayMinutes (rounded, includes the live round) so the browser
+     * can tick the progress bar every second - baseSeconds + however many
+     * seconds have elapsed client-side since the round started - instead of
+     * only moving once per question answered / jumping in whole minutes.
+     *
      * @param PracticeSession[] $finishedSessionsToday
-     * @return array{todayMinutes: int, targetMinutes: int}
+     * @return array{baseSeconds: int, todayMinutes: int, targetMinutes: int}
      */
     public static function calculate(
         int $targetMinutes,
@@ -56,19 +62,24 @@ final class ExerciseTargetProgress
         Exercise $exercise,
         ?int $nowTimestamp = null,
     ): array {
-        $minutes = 0.0;
+        $baseSeconds = 0;
         foreach ($finishedSessionsToday as $session) {
-            $minutes += ($session->getFinishedAt()->getTimestamp() - $session->getStartedAt()->getTimestamp()) / 60;
+            $baseSeconds += $session->getFinishedAt()->getTimestamp() - $session->getStartedAt()->getTimestamp();
         }
 
+        $liveSeconds = 0;
         if (
             $runningSession !== null
             && $runningSession->isRunning()
             && $runningSession->getExercise() === $exercise
         ) {
-            $minutes += (($nowTimestamp ?? time()) - $runningSession->getStartedAt()->getTimestamp()) / 60;
+            $liveSeconds = max(0, ($nowTimestamp ?? time()) - $runningSession->getStartedAt()->getTimestamp());
         }
 
-        return ['todayMinutes' => (int) round($minutes), 'targetMinutes' => $targetMinutes];
+        return [
+            'baseSeconds' => $baseSeconds,
+            'todayMinutes' => (int) round(($baseSeconds + $liveSeconds) / 60),
+            'targetMinutes' => $targetMinutes,
+        ];
     }
 }
