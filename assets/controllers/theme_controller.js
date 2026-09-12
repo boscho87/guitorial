@@ -5,7 +5,7 @@ const STORAGE_KEY = 'guitorial_theme';
 const THEME_COLORS = {
     'guitorial-light': '#f5f3ed',
     'guitorial-dark': '#1c211e',
-    'guitorial-slate': '#eef1f4',
+    'guitorial-slate': '#d3dbe2',
     'guitorial-contrast': '#000000',
 };
 

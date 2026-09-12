@@ -78,10 +78,10 @@
   name: "guitorial-slate";
   color-scheme: light;
 
-  --color-base-100: #eef1f4;
-  --color-base-200: #e1e6ea;
-  --color-base-300: #ccd4da;
-  --color-base-content: #232b33;
+  --color-base-100: #d3dbe2;
+  --color-base-200: #c1ccd5;
+  --color-base-300: #a7b5c1;
+  --color-base-content: #1c232b;
 
   --color-primary: #3f6690;
   --color-primary-content: #eef4f9;
@@ -116,7 +116,9 @@
 
   --color-base-100: #000000;
   --color-base-200: #0d0d0d;
-  --color-base-300: #262626;
+  /* Bewusst hell statt dunkelgrau - dient als sichtbare Karten-/Dropdown-
+     Outline (border-base-300) und braucht starken Kontrast zu #000000. */
+  --color-base-300: #999999;
   --color-base-content: #ffffff;
 
   --color-primary: #ffd400;
