@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Domain\Quiz\AnswerOptionPicker;
 use App\Domain\Quiz\WeightedQuestionPicker;
 use App\Domain\Session\ExercisePlanLink;
+use App\Domain\Session\ExerciseTargetProgress;
 use App\Domain\Session\SessionRecorder;
 use App\Domain\Session\ToolConfigSnapshot;
 use App\Domain\Theory\MusicKey;
@@ -41,6 +42,8 @@ final class KeyRecognitionController extends AbstractController
         private readonly QuizAttemptRepository $attempts,
         private readonly SessionRecorder $sessionRecorder,
         private readonly ExercisePlanLink $planLink,
+        private readonly PracticeSessionRepository $sessions,
+        private readonly ExerciseTargetProgress $targetProgress,
     ) {
     }
 
@@ -105,7 +108,7 @@ final class KeyRecognitionController extends AbstractController
      * step, so practicing stays a single tap per question.
      */
     #[Route('/antwort', name: 'key_recognition_answer', methods: ['POST'])]
-    public function answer(Request $request, PracticeSessionRepository $sessions): Response
+    public function answer(Request $request): Response
     {
         $this->assertValidCsrf($request);
 
@@ -115,7 +118,7 @@ final class KeyRecognitionController extends AbstractController
             return $this->redirectToRoute('key_recognition_settings');
         }
 
-        $practiceSession = $sessions->find($round['practiceSessionId']);
+        $practiceSession = $this->sessions->find($round['practiceSessionId']);
         if ($practiceSession !== null) {
             $this->sessionRecorder->markInteraction($practiceSession);
         }
@@ -299,8 +302,14 @@ final class KeyRecognitionController extends AbstractController
             ? AnswerOptionPicker::pick($round['pairs'], $correctPairId)
             : [];
 
+        $practiceSession = $this->sessions->find($round['practiceSessionId']);
+        $timeProgress = $practiceSession?->getExercise() !== null
+            ? $this->targetProgress->forExercise($practiceSession->getExercise(), $practiceSession)
+            : null;
+
         return [
             'sessionId' => $round['practiceSessionId'],
+            'timeProgress' => $timeProgress,
             'answerOptions' => array_map(
                 fn (string $id): array => ['id' => $id, 'label' => $this->pairLabel($id)],
                 $optionIds,

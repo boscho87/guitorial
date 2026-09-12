@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Entity\Exercise;
 use App\Entity\PracticeSession;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -70,5 +71,25 @@ class PracticeSessionRepository extends ServiceEntityRepository
             ->setParameter('visitorId', $visitorId)
             ->getQuery()
             ->getSingleScalarResult();
+    }
+
+    /**
+     * @return PracticeSession[] finished sessions for exactly this exercise, on exactly this date
+     */
+    public function finishedForExerciseOnDate(Exercise $exercise, \DateTimeImmutable $date): array
+    {
+        $start = $date->setTime(0, 0);
+        $end = $start->modify('+1 day');
+
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.exercise = :exercise')
+            ->andWhere('s.status = :status')
+            ->andWhere('s.finishedAt >= :start AND s.finishedAt < :end')
+            ->setParameter('exercise', $exercise)
+            ->setParameter('status', PracticeSession::STATUS_FINISHED)
+            ->setParameter('start', $start)
+            ->setParameter('end', $end)
+            ->getQuery()
+            ->getResult();
     }
 }

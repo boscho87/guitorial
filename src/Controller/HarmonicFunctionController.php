@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Domain\Quiz\WeightedQuestionPicker;
 use App\Domain\Session\ExercisePlanLink;
+use App\Domain\Session\ExerciseTargetProgress;
 use App\Domain\Session\SessionRecorder;
 use App\Domain\Session\ToolConfigSnapshot;
 use App\Domain\Theory\MusicKey;
@@ -39,6 +40,8 @@ final class HarmonicFunctionController extends AbstractController
         private readonly QuizAttemptRepository $attempts,
         private readonly SessionRecorder $sessionRecorder,
         private readonly ExercisePlanLink $planLink,
+        private readonly PracticeSessionRepository $sessions,
+        private readonly ExerciseTargetProgress $targetProgress,
     ) {
     }
 
@@ -105,7 +108,7 @@ final class HarmonicFunctionController extends AbstractController
      * the summary) in the same response, result shown as a toast.
      */
     #[Route('/antwort', name: 'harmonic_function_answer', methods: ['POST'])]
-    public function answer(Request $request, PracticeSessionRepository $sessions): Response
+    public function answer(Request $request): Response
     {
         $this->assertValidCsrf($request);
 
@@ -115,7 +118,7 @@ final class HarmonicFunctionController extends AbstractController
             return $this->redirectToRoute('harmonic_function_settings');
         }
 
-        $practiceSession = $sessions->find($round['practiceSessionId']);
+        $practiceSession = $this->sessions->find($round['practiceSessionId']);
         if ($practiceSession !== null) {
             $this->sessionRecorder->markInteraction($practiceSession);
         }
@@ -297,8 +300,14 @@ final class HarmonicFunctionController extends AbstractController
             $romanOptions = array_column(MusicKey::get($current['keyId'])->diatonicChords(), 'roman');
         }
 
+        $practiceSession = $this->sessions->find($round['practiceSessionId']);
+        $timeProgress = $practiceSession?->getExercise() !== null
+            ? $this->targetProgress->forExercise($practiceSession->getExercise(), $practiceSession)
+            : null;
+
         return [
             'sessionId' => $round['practiceSessionId'],
+            'timeProgress' => $timeProgress,
             'allKeys' => MusicKey::guitarPool(),
             'activeKeys' => $round['keys'],
             'activeItemTypes' => $round['itemTypes'],

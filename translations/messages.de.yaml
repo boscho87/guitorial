@@ -29,6 +29,9 @@ nav:
     slate: "Azur"
     contrast: "Kontrastreich"
 
+practice_progress:
+  time_progress: "%minutes% von %target% Min."
+
 practice_toast:
   chosen: Gewählt
   correct: Richtig

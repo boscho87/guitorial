@@ -24,15 +24,27 @@
     >
         {% if not finished %}
             <div class="rounded-box bg-base-200/60 px-3 py-2">
-                <progress
-                        class="progress progress-primary h-1.5 w-full"
-                        value="{{ questionIndex }}" max="{{ totalQuestions }}"
-                        aria-label="{{ 'capo_trainer.practice.question_progress'|trans({'%current%': questionIndex, '%total%': totalQuestions}) }}"
-                ></progress>
-                <div class="mt-2 flex items-center justify-between gap-3 font-mono text-sm text-base-content/70">
-                    <span>{{ 'capo_trainer.practice.question_progress'|trans({'%current%': questionIndex, '%total%': totalQuestions}) }}</span>
-                    <span data-controller="timer" data-timer-start-value="{{ startedAtMs }}">0:00</span>
-                </div>
+                {% if timeProgress %}
+                    <progress
+                            class="progress progress-primary h-1.5 w-full"
+                            value="{{ timeProgress.todayMinutes }}" max="{{ timeProgress.targetMinutes }}"
+                            aria-label="{{ 'practice_progress.time_progress'|trans({'%minutes%': timeProgress.todayMinutes, '%target%': timeProgress.targetMinutes}) }}"
+                    ></progress>
+                    <div class="mt-2 flex items-center justify-between gap-3 font-mono text-sm text-base-content/70">
+                        <span>{{ 'practice_progress.time_progress'|trans({'%minutes%': timeProgress.todayMinutes, '%target%': timeProgress.targetMinutes}) }}</span>
+                        <span data-controller="timer" data-timer-start-value="{{ startedAtMs }}">0:00</span>
+                    </div>
+                {% else %}
+                    <progress
+                            class="progress progress-primary h-1.5 w-full"
+                            value="{{ questionIndex }}" max="{{ totalQuestions }}"
+                            aria-label="{{ 'capo_trainer.practice.question_progress'|trans({'%current%': questionIndex, '%total%': totalQuestions}) }}"
+                    ></progress>
+                    <div class="mt-2 flex items-center justify-between gap-3 font-mono text-sm text-base-content/70">
+                        <span>{{ 'capo_trainer.practice.question_progress'|trans({'%current%': questionIndex, '%total%': totalQuestions}) }}</span>
+                        <span data-controller="timer" data-timer-start-value="{{ startedAtMs }}">0:00</span>
+                    </div>
+                {% endif %}
             </div>
         {% endif %}
 
