@@ -32,6 +32,13 @@ security:
                 # parameter, so without this flag no REMEMBERME cookie was ever issued and
                 # every login rode on the bare PHP session only.
                 always_remember_me: true
+                # User is OAuth-only and deliberately has no password property
+                # (doesn't implement PasswordAuthenticatedUserInterface) - the
+                # default remember-me signature tries to read "password" to
+                # detect credential changes, which crashes
+                # ("Can't get a way to read the property 'password'") for this
+                # entity. email is stable and always present instead.
+                signature_properties: ['email']
 
     # Every route stays publicly reachable, logged in or not - login only
     # ever changes what $this->getUser() returns, never what's accessible.
