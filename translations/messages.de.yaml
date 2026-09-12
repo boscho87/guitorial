@@ -22,6 +22,12 @@ nav:
   logged_in_as: "Angemeldet als %email%"
   menu_open: "Menü öffnen"
   menu_close: "Menü schliessen"
+  theme_switch: "Theme wechseln"
+  theme:
+    light: "Hell"
+    dark: "Dunkel"
+    slate: "Hell (Blaugrau)"
+    contrast: "Kontrastreich"
 
 practice_toast:
   chosen: Gewählt

@@ -3,7 +3,7 @@
 @source "../../assets/**/*.js";
 
 @plugin "daisyui" {
-  themes: guitorial-light --default, guitorial-dark --prefersdark;
+  themes: guitorial-light --default, guitorial-dark --prefersdark, guitorial-slate, guitorial-contrast;
 }
 
 @plugin "daisyui/theme" {
@@ -72,6 +72,77 @@
   --radius-field: 0.65rem;
   --radius-box: 1rem;
   --border: 1.5px;
+}
+
+@plugin "daisyui/theme" {
+  name: "guitorial-slate";
+  color-scheme: light;
+
+  --color-base-100: #eef1f4;
+  --color-base-200: #e1e6ea;
+  --color-base-300: #ccd4da;
+  --color-base-content: #232b33;
+
+  --color-primary: #3f6690;
+  --color-primary-content: #eef4f9;
+  --color-secondary: #3f7d74;
+  --color-secondary-content: #eaf5f3;
+  --color-accent: #7a5a80;
+  --color-accent-content: #f6eef7;
+  --color-neutral: #232b33;
+  --color-neutral-content: #eef1f4;
+
+  --color-info: #3f7d74;
+  --color-info-content: #eaf5f3;
+  --color-success: #3f7d4f;
+  --color-success-content: #eef6ef;
+  /* Bewusst NICHT = primary (das wäre hier blau) - Warnungen sollen
+     themeübergreifend als Gold/Amber erkennbar bleiben, wie in den anderen
+     3 Themes. */
+  --color-warning: #a8752e;
+  --color-warning-content: #fdf6ea;
+  --color-error: #b5533d;
+  --color-error-content: #fbeae6;
+
+  --radius-selector: 0.65rem;
+  --radius-field: 0.65rem;
+  --radius-box: 1rem;
+  --border: 1.5px;
+}
+
+@plugin "daisyui/theme" {
+  name: "guitorial-contrast";
+  color-scheme: dark;
+
+  --color-base-100: #000000;
+  --color-base-200: #0d0d0d;
+  --color-base-300: #262626;
+  --color-base-content: #ffffff;
+
+  --color-primary: #ffd400;
+  --color-primary-content: #000000;
+  --color-secondary: #33ccff;
+  --color-secondary-content: #000000;
+  --color-accent: #ff9100;
+  --color-accent-content: #000000;
+  --color-neutral: #ffffff;
+  --color-neutral-content: #000000;
+
+  --color-info: #33ccff;
+  --color-info-content: #000000;
+  --color-success: #00e676;
+  --color-success-content: #000000;
+  --color-warning: #ffd400;
+  --color-warning-content: #000000;
+  --color-error: #ff5252;
+  --color-error-content: #000000;
+
+  --radius-selector: 0.65rem;
+  --radius-field: 0.65rem;
+  --radius-box: 1rem;
+  /* Dickere Border als die anderen 3 Themes - bessere Sichtbarkeit von
+     Eingabefeldern/Buttons, gängige A11y-Verbesserung. */
+  --border: 2px;
 }
 
 @theme {
