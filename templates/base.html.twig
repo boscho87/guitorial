@@ -28,20 +28,20 @@
     {% endblock %}
 </head>
 <body class="flex min-h-screen flex-col text-base-content">
-<header class="border-b border-base-300">
-    <nav class="mx-auto flex max-w-3xl flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6 sm:py-4">
+<header class="relative border-b border-base-300" data-controller="nav-menu">
+    <div class="mx-auto flex max-w-3xl items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-4">
         <a class="font-display flex items-center gap-2 text-lg font-semibold" href="{{ path(app.user ? 'diary_index' : 'home_index') }}">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-primary">
                 <path d="M12 4c-4 0-7.5 3-7.5 6.8 0 4.6 3.6 8.2 7.5 11.7 3.9-3.5 7.5-7.1 7.5-11.7C19.5 7 16 4 12 4Z"/>
             </svg>
             Guitorial
         </a>
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm">
+        <nav class="hidden items-center gap-x-4 gap-y-1.5 text-sm sm:flex">
             <a href="{{ path('home_index') }}" class="text-base-content/70 hover:text-primary">{{ 'nav.training'|trans }}</a>
             <a href="{{ path('diary_index') }}" class="text-base-content/70 hover:text-primary">{{ 'nav.diary'|trans }}</a>
             <a href="{{ path('history_index') }}" class="text-base-content/70 hover:text-primary">{{ 'nav.history'|trans }}</a>
             <a href="{{ path('practice_guide_index') }}" class="text-base-content/70 hover:text-primary">{{ 'nav.practice_guide'|trans }}</a>
-            <div class="flex items-center gap-4 sm:border-l sm:border-primary/30 sm:pl-4">
+            <div class="flex items-center gap-4 border-l border-primary/30 pl-4">
                 {% if app.user %}
                     <span class="inline-flex items-center gap-1.5 font-medium text-base-content/90" title="{{ 'nav.logged_in_as'|trans({'%email%': app.user.email}) }}">
                         <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-success"></span>
@@ -55,8 +55,48 @@
                     </a>
                 {% endif %}
             </div>
+        </nav>
+        <button
+                type="button" class="-mr-2 inline-flex items-center justify-center rounded-box p-2 text-base-content/70 hover:bg-base-200 sm:hidden"
+                data-action="nav-menu#toggle" data-nav-menu-target="button"
+                aria-expanded="false" aria-controls="mobile-nav-panel" aria-label="{{ 'nav.menu_open'|trans }}"
+        >
+            <svg data-nav-menu-target="openIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+            <svg data-nav-menu-target="closeIcon" class="hidden" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+    </div>
+    <div
+            id="mobile-nav-panel" data-nav-menu-target="panel"
+            class="fixed inset-0 z-50 hidden flex-col bg-base-100 sm:hidden"
+            data-action="keydown.esc->nav-menu#close"
+    >
+        <div class="flex items-center justify-between border-b border-base-300 px-4 py-3">
+            <span class="font-display text-lg font-semibold">Guitorial</span>
+            <button type="button" class="-mr-2 inline-flex items-center justify-center rounded-box p-2 text-base-content/70 hover:bg-base-200" data-action="nav-menu#close" aria-label="{{ 'nav.menu_close'|trans }}">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
         </div>
-    </nav>
+        <nav class="flex flex-1 flex-col gap-1 overflow-y-auto p-3 text-base">
+            <a href="{{ path('home_index') }}" class="rounded-box px-4 py-3 text-base-content/80 hover:bg-base-200 active:bg-base-200">{{ 'nav.training'|trans }}</a>
+            <a href="{{ path('diary_index') }}" class="rounded-box px-4 py-3 text-base-content/80 hover:bg-base-200 active:bg-base-200">{{ 'nav.diary'|trans }}</a>
+            <a href="{{ path('history_index') }}" class="rounded-box px-4 py-3 text-base-content/80 hover:bg-base-200 active:bg-base-200">{{ 'nav.history'|trans }}</a>
+            <a href="{{ path('practice_guide_index') }}" class="rounded-box px-4 py-3 text-base-content/80 hover:bg-base-200 active:bg-base-200">{{ 'nav.practice_guide'|trans }}</a>
+            <div class="mt-2 border-t border-base-300 pt-2">
+                {% if app.user %}
+                    <span class="flex items-center gap-1.5 px-4 py-2 font-medium text-base-content/90">
+                        <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-success"></span>
+                        {{ app.user.firstName }}
+                    </span>
+                    <a href="{{ path('app_logout') }}" class="block rounded-box px-4 py-3 text-error hover:bg-base-200 active:bg-base-200">{{ 'nav.logout'|trans }}</a>
+                {% else %}
+                    <a href="{{ path('app_login') }}" class="flex items-center gap-1.5 rounded-box px-4 py-3 text-base-content/80 hover:bg-base-200 active:bg-base-200">
+                        <span class="h-1.5 w-1.5 shrink-0 rounded-full bg-base-content/25"></span>
+                        {{ 'nav.login'|trans }}
+                    </a>
+                {% endif %}
+            </div>
+        </nav>
+    </div>
 </header>
 <main class="mx-auto w-full max-w-3xl flex-grow px-4 py-6 sm:px-6 sm:py-10">
     {% for label, messages in app.flashes %}
@@ -66,13 +106,14 @@
     {% endfor %}
     {% block body %}{% endblock %}
 </main>
+{% if hide_footer is not defined or not hide_footer %}
 <footer class="mt-auto border-t border-primary/20 bg-footer text-footer-content">
-    <div class="mx-auto flex max-w-3xl flex-col items-center gap-2 px-4 py-6 text-center sm:px-6">
-        <p class="font-display text-sm font-medium">Guitorial <span class="text-footer-content/40">&ndash;</span> {{ 'app.tagline'|trans }}</p>
+    <div class="mx-auto flex max-w-3xl flex-col items-center gap-2 px-4 py-5 text-center sm:px-6">
         <p class="text-xs text-footer-content/50">
-            &copy; {{ "now"|date("Y") }} itscoding / <a href="mailto:simon.d.mueller@itscoding.ch" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">boscho87</a>
+            <span class="font-display font-medium text-footer-content/70">Guitorial</span> &ndash; {{ 'app.tagline'|trans }}
+            &middot; &copy; {{ "now"|date("Y") }} <a href="mailto:simon.d.mueller@itscoding.ch" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">boscho87</a>
         </p>
-        <nav class="flex flex-col items-center gap-2 text-xs text-footer-content/50 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-3">
+        <nav class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs text-footer-content/50">
             <a href="{{ path('privacy_index') }}" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">{{ 'footer.privacy'|trans }}</a>
             <a href="{{ path('imprint_index') }}" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">{{ 'footer.imprint'|trans }}</a>
             <a href="{{ path('terms_index') }}" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">{{ 'footer.terms'|trans }}</a>
@@ -81,5 +122,6 @@
         </nav>
     </div>
 </footer>
+{% endif %}
 </body>
 </html>

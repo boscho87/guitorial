@@ -20,6 +20,8 @@ nav:
   login: Anmelden
   logout: Abmelden
   logged_in_as: "Angemeldet als %email%"
+  menu_open: "Menü öffnen"
+  menu_close: "Menü schliessen"
 
 practice_toast:
   chosen: Gewählt
