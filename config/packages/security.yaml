@@ -25,6 +25,13 @@ security:
                 secret: '%kernel.secret%'
                 lifetime: 7776000 # 90 days - login is optional but should feel persistent once chosen
                 path: /
+                # Required for OAuth logins specifically: CheckRememberMeConditionsListener
+                # only enables the RememberMeBadge (set unconditionally in
+                # AbstractOAuthAuthenticator) if this is true or a _remember_me request
+                # parameter is present - the OAuth callback redirect never carries that
+                # parameter, so without this flag no REMEMBERME cookie was ever issued and
+                # every login rode on the bare PHP session only.
+                always_remember_me: true
 
     # Every route stays publicly reachable, logged in or not - login only
     # ever changes what $this->getUser() returns, never what's accessible.
