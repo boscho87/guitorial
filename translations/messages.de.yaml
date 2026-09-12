@@ -12,6 +12,14 @@ home:
   cta: Üben
   hero_cta: "Jetzt üben"
   hero_secondary_cta: "Wie übe ich richtig?"
+  hero_login_hint: "Auf einem anderen Gerät weitermachen?"
+  tools_title: "Alle Tools"
+  feature_tools_title: "5 fokussierte Tools"
+  feature_tools_text: "Kein Schnickschnack - ein Tool pro Fertigkeit."
+  feature_no_account_title: "Kein Konto nötig"
+  feature_no_account_text: "Sofort loslegen, dein Fortschritt bleibt trotzdem gespeichert."
+  feature_diary_title: "Dranbleiben leicht gemacht"
+  feature_diary_text: "Tagebuch mit Tagesziel, Rhythmus und Verlauf."
   how_it_works:
     title: "So funktioniert's"
     step_practice_title: "Üben"
