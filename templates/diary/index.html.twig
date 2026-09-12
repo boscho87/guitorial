@@ -20,14 +20,16 @@
     </div>
 
     <div class="mt-6 flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-2">
-        <a href="{{ path('diary_index', {datum: previousDate|date('Y-m-d')}) }}" class="btn btn-ghost btn-xs" aria-label="{{ 'diary.pager.previous'|trans }}">&larr;</a>
-        <p class="font-mono text-sm font-medium">
-            {{ isToday ? 'diary.pager.today'|trans : viewDate|date('d.m.Y') }}
-        </p>
-        {% if nextDate %}
-            <a href="{{ path('diary_index', {datum: nextDate|date('Y-m-d')}) }}" class="btn btn-ghost btn-xs" aria-label="{{ 'diary.pager.next'|trans }}">&rarr;</a>
+        <a href="{{ path('diary_index', {datum: previousDate|date('Y-m-d')}) }}" class="btn btn-ghost btn-sm" aria-label="{{ 'diary.pager.previous'|trans }}">&larr;</a>
+        {% if isToday %}
+            <p class="font-mono text-sm font-medium">{{ 'diary.pager.today'|trans }}</p>
         {% else %}
-            <span class="btn btn-ghost btn-xs invisible" aria-hidden="true">&rarr;</span>
+            <a href="{{ path('diary_index') }}" class="font-mono text-sm font-medium underline decoration-base-content/30 underline-offset-2 hover:text-primary" title="{{ 'diary.pager.today'|trans }}">{{ viewDate|date('d.m.Y') }}</a>
+        {% endif %}
+        {% if nextDate %}
+            <a href="{{ path('diary_index', {datum: nextDate|date('Y-m-d')}) }}" class="btn btn-ghost btn-sm" aria-label="{{ 'diary.pager.next'|trans }}">&rarr;</a>
+        {% else %}
+            <span class="btn btn-ghost btn-sm invisible" aria-hidden="true">&rarr;</span>
         {% endif %}
     </div>
 
@@ -41,24 +43,24 @@
                     {% for row in bucket.rows %}
                         {% set exercise = row.version.exercise %}
                         {% set resources = resourcesByExerciseId[exercise.id] %}
-                        <li class="rounded-box border border-base-300 p-4">
+                        <li class="relative rounded-box border border-base-300 p-4">
                             <div class="flex items-start gap-2">
                                 {% if isToday and row.runningSessionId %}
                                     {% if row.runningSessionTool %}
-                                        <a href="{{ path(toolPracticeRoutes[row.runningSessionTool]) }}" data-turbo-frame="_top" class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer" title="{{ 'diary.item.resume'|trans }}" aria-label="{{ 'diary.item.resume'|trans }}">{{ icons.icon('play') }}</a>
+                                        <a href="{{ path(toolPracticeRoutes[row.runningSessionTool]) }}" data-turbo-frame="_top" class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer after:absolute after:inset-0 after:content-['']" title="{{ 'diary.item.resume'|trans }}" aria-label="{{ 'diary.item.resume'|trans }}">{{ icons.icon('play') }}</a>
                                     {% else %}
-                                        <a href="{{ path('exercise_session_running', {id: row.runningSessionId}) }}" class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer" title="{{ 'diary.item.resume'|trans }}" aria-label="{{ 'diary.item.resume'|trans }}">{{ icons.icon('play') }}</a>
+                                        <a href="{{ path('exercise_session_running', {id: row.runningSessionId}) }}" class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer after:absolute after:inset-0 after:content-['']" title="{{ 'diary.item.resume'|trans }}" aria-label="{{ 'diary.item.resume'|trans }}">{{ icons.icon('play') }}</a>
                                     {% endif %}
                                 {% elseif isToday and resources is empty %}
                                     <form method="post" action="{{ path('exercise_start_manual', {id: exercise.id}) }}" class="shrink-0">
                                         <input type="hidden" name="_token" value="{{ csrf_token(sessionCsrfIntention) }}">
-                                        <button type="submit" class="flex h-5 w-5 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer" title="{{ 'diary.item.start'|trans }}" aria-label="{{ 'diary.item.start'|trans }}">{{ icons.icon('play') }}</button>
+                                        <button type="submit" class="flex h-5 w-5 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer after:absolute after:inset-0 after:content-['']" title="{{ 'diary.item.start'|trans }}" aria-label="{{ 'diary.item.start'|trans }}">{{ icons.icon('play') }}</button>
                                     </form>
                                 {% elseif isToday and resources|length == 1 and resources[0].isInternalTool %}
-                                    <a href="{{ path(toolSettingsRoutes[resources[0].internalToolId], {uebung: exercise.id, ressource: resources[0].id}) }}" data-turbo-frame="_top" class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer" title="{{ 'diary.item.start'|trans }}: {{ toolTitles[resources[0].internalToolId]|trans }}" aria-label="{{ 'diary.item.start'|trans }}: {{ toolTitles[resources[0].internalToolId]|trans }}">{{ icons.icon('play') }}</a>
+                                    <a href="{{ path(toolSettingsRoutes[resources[0].internalToolId], {uebung: exercise.id, ressource: resources[0].id}) }}" data-turbo-frame="_top" class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer after:absolute after:inset-0 after:content-['']" title="{{ 'diary.item.start'|trans }}: {{ toolTitles[resources[0].internalToolId]|trans }}" aria-label="{{ 'diary.item.start'|trans }}: {{ toolTitles[resources[0].internalToolId]|trans }}">{{ icons.icon('play') }}</a>
                                 {% elseif isToday and resources|length == 1 %}
                                     <button
-                                            type="button" class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer"
+                                            type="button" class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer after:absolute after:inset-0 after:content-['']"
                                             data-controller="exercise-external-start"
                                             data-exercise-external-start-url-value="{{ resources[0].externalUrl }}"
                                             data-exercise-external-start-start-url-value="{{ path('exercise_start_external', {id: exercise.id, resourceId: resources[0].id}) }}"
@@ -70,7 +72,7 @@
                                 {% endif %}
                                 <p class="min-w-0 flex-1 text-sm font-medium {{ row.checked ? 'text-base-content/50 line-through' : '' }}">{{ row.version.title }}</p>
                                 {% if isToday and not row.checked %}
-                                    <form method="post" action="{{ path('diary_mark_done', {id: exercise.id}) }}" class="shrink-0">
+                                    <form method="post" action="{{ path('diary_mark_done', {id: exercise.id}) }}" class="relative z-10 shrink-0">
                                         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
                                         <button
                                                 type="submit"
@@ -80,7 +82,7 @@
                                         >&check;</button>
                                     </form>
                                 {% else %}
-                                    <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border {{ row.checked ? 'border-primary bg-primary/10 text-primary' : 'border-base-300 text-base-content/40' }}">{% if row.checked %}&check;{% endif %}</span>
+                                    <span class="relative z-10 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border {{ row.checked ? 'border-primary bg-primary/10 text-primary' : 'border-base-300 text-base-content/40' }}">{% if row.checked %}&check;{% endif %}</span>
                                 {% endif %}
                             </div>
                             <div class="mt-3 flex flex-wrap items-center gap-1.5">
@@ -89,8 +91,13 @@
                                     {% if row.weeklyTarget %} {{ row.weeklyDone }}/{{ row.weeklyTarget }}{% endif %}
                                 </span>
                                 {% if bucket.group %}<span class="badge badge-sm badge-ghost">{{ bucket.group.name }}</span>{% endif %}
-                                {% if row.version.targetMinutes %}<span class="text-xs text-base-content/60">{{ 'diary.item.progress'|trans({'%minutes%': row.practicedMinutes, '%target%': row.version.targetMinutes}) }}</span>{% endif %}
                             </div>
+                            {% if row.version.targetMinutes %}
+                                <div class="mt-1.5">
+                                    <progress class="progress progress-primary h-1 w-full" value="{{ row.practicedMinutes }}" max="{{ row.version.targetMinutes }}"></progress>
+                                    <span class="text-xs text-base-content/60">{{ 'diary.item.progress'|trans({'%minutes%': row.practicedMinutes, '%target%': row.version.targetMinutes}) }}</span>
+                                </div>
+                            {% endif %}
                             {% if exercise.note %}
                                 <p class="mt-1.5 text-xs text-base-content/50">{{ exercise.note|length > 80 ? exercise.note|slice(0, 80) ~ '…' : exercise.note }}</p>
                             {% endif %}
