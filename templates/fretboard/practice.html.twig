@@ -76,13 +76,13 @@
         {% else %}
             <section class="mt-16 animate-[question-in_0.25s_ease-out] text-center sm:mt-24">
                 {% if mode == 'note' %}
-                    <p class="text-xs uppercase tracking-widest text-base-content/70">{{ 'fretboard.practice.mode_note_hint'|trans({'%string%': stringLabel, '%fret%': fret}) }}</p>
+                    <p class="text-xl font-medium sm:text-2xl">{{ 'fretboard.practice.mode_note_hint'|trans({'%string%': stringLabel, '%fret%': fret}) }}</p>
                     <p class="mt-3 text-sm text-base-content/70">{{ 'fretboard.practice.mode_note_prompt'|trans }}</p>
                 {% elseif mode == 'string' %}
-                    <p class="text-xs uppercase tracking-widest text-base-content/70">{{ 'fretboard.practice.mode_string_hint'|trans({'%fret%': fret, '%note%': note}) }}</p>
+                    <p class="text-xl font-medium sm:text-2xl">{{ 'fretboard.practice.mode_string_hint'|trans({'%fret%': fret, '%note%': note}) }}</p>
                     <p class="mt-3 text-sm text-base-content/70">{{ 'fretboard.practice.mode_string_prompt'|trans }}</p>
                 {% else %}
-                    <p class="text-xs uppercase tracking-widest text-base-content/70">{{ 'fretboard.practice.mode_fret_hint'|trans({'%string%': stringLabel, '%note%': note}) }}</p>
+                    <p class="text-xl font-medium sm:text-2xl">{{ 'fretboard.practice.mode_fret_hint'|trans({'%string%': stringLabel, '%note%': note}) }}</p>
                     <p class="mt-3 text-sm text-base-content/70">{{ 'fretboard.practice.mode_fret_prompt'|trans }}</p>
                 {% endif %}
 
