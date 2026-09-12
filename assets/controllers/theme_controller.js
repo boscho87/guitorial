@@ -5,7 +5,7 @@ const STORAGE_KEY = 'guitorial_theme';
 const THEME_COLORS = {
     'guitorial-light': '#f5f3ed',
     'guitorial-dark': '#1c211e',
-    'guitorial-slate': '#d3dbe2',
+    'guitorial-slate': '#a8bcd0',
     'guitorial-contrast': '#000000',
 };
 
@@ -37,7 +37,8 @@ export default class extends Controller {
 
     highlight(theme) {
         this.optionTargets.forEach((el) => {
-            el.classList.toggle('menu-active', el.dataset.themeName === theme);
+            el.classList.toggle('text-primary', el.dataset.themeName === theme);
+            el.classList.toggle('font-semibold', el.dataset.themeName === theme);
         });
     }
 }

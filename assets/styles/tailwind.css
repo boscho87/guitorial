@@ -78,13 +78,13 @@
   name: "guitorial-slate";
   color-scheme: light;
 
-  --color-base-100: #d3dbe2;
-  --color-base-200: #c1ccd5;
-  --color-base-300: #a7b5c1;
-  --color-base-content: #1c232b;
+  --color-base-100: #a8bcd0;
+  --color-base-200: #93aac1;
+  --color-base-300: #7791ab;
+  --color-base-content: #121c26;
 
-  --color-primary: #3f6690;
-  --color-primary-content: #eef4f9;
+  --color-primary: #1f4f78;
+  --color-primary-content: #eef5fb;
   --color-secondary: #3f7d74;
   --color-secondary-content: #eaf5f3;
   --color-accent: #7a5a80;
@@ -192,6 +192,7 @@
       var(--color-base-100);
     background-attachment: fixed;
     min-height: 100vh;
+    overflow-x: hidden;
   }
 
   h1, h2, h3, .font-display {
@@ -224,8 +225,9 @@
   }
 
   .answer-btn {
-    @apply flex items-center justify-center whitespace-nowrap rounded-md px-4 py-3 font-mono text-base font-medium text-base-content/80 transition-colors;
+    @apply flex items-center justify-center rounded-md px-4 py-3 font-mono text-base font-medium text-base-content/80 transition-colors sm:whitespace-nowrap;
     min-width: var(--answer-min-w, 6rem);
+    max-width: 100%;
   }
 
   .answer-btn:hover {
