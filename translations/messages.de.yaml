@@ -353,6 +353,8 @@ security:
     privacy_hint: "Es werden nur E-Mail-Adresse, Vor- und Nachname gespeichert. Details siehe Datenschutzerklärung."
     failed: "Anmeldung fehlgeschlagen. Bitte versuch es erneut."
     no_email: "Der gewählte Anbieter hat keine E-Mail-Adresse geliefert – Anmeldung nicht möglich."
+  logout:
+    flash: "Du wurdest abgemeldet."
 
 legal:
   privacy:
