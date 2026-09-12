@@ -1,6 +1,11 @@
 app:
   tagline: "Tonarten und Akkorde üben"
 
+error:
+  title: "Etwas ist schiefgelaufen"
+  message: "Da ist leider ein Fehler passiert. Versuch es nochmal, oder komm später wieder vorbei."
+  back_home: "Zurück zur Startseite"
+
 home:
   title: Training
   subtitle: "Musiktheorie und Gitarrenspiel gezielt üben – ein Tool pro Fertigkeit."
