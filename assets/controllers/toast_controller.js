@@ -6,7 +6,7 @@ import { Controller } from '@hotwired/stimulus';
  * feedback blocking it (especially on small screens).
  */
 export default class extends Controller {
-    static values = { dismissAfter: { type: Number, default: 2500 } };
+    static values = { dismissAfter: { type: Number, default: 4000 } };
 
     connect() {
         this.timeout = setTimeout(() => {
