@@ -23,16 +23,23 @@
             data-practice-sync-session-id-value="{{ sessionId }}"
     >
         {% if not finished %}
-            <div class="flex items-center justify-between gap-3 rounded-box bg-base-200/60 px-3 py-2 font-mono text-sm text-base-content/70">
-                <span>{{ 'key_recognition.practice.question_progress'|trans({'%current%': questionIndex, '%total%': totalQuestions}) }}</span>
-                <span data-controller="timer" data-timer-start-value="{{ startedAtMs }}">0:00</span>
+            <div class="rounded-box bg-base-200/60 px-3 py-2">
+                <progress
+                        class="progress progress-primary h-1.5 w-full"
+                        value="{{ questionIndex }}" max="{{ totalQuestions }}"
+                        aria-label="{{ 'key_recognition.practice.question_progress'|trans({'%current%': questionIndex, '%total%': totalQuestions}) }}"
+                ></progress>
+                <div class="mt-2 flex items-center justify-between gap-3 font-mono text-sm text-base-content/70">
+                    <span>{{ 'key_recognition.practice.question_progress'|trans({'%current%': questionIndex, '%total%': totalQuestions}) }}</span>
+                    <span data-controller="timer" data-timer-start-value="{{ startedAtMs }}">0:00</span>
+                </div>
             </div>
         {% endif %}
 
         {{ include('practice/_toast.html.twig', {toast: toast}) }}
 
         {% if finished %}
-            <section class="mt-16 text-center sm:mt-24">
+            <section class="mt-16 animate-[question-in_0.25s_ease-out] text-center sm:mt-24">
                 <h2 class="text-xs uppercase tracking-widest text-base-content/70">{{ 'key_recognition.summary.title'|trans }}</h2>
                 <p class="mt-4 font-mono text-5xl font-semibold text-primary sm:text-6xl">
                     {{ 'key_recognition.summary.result'|trans({'%correct%': correctCount, '%total%': totalQuestions}) }}
@@ -55,13 +62,13 @@
                 </div>
             </section>
         {% else %}
-            <section class="mt-16 text-center sm:mt-24">
+            <section class="mt-16 animate-[question-in_0.25s_ease-out] text-center sm:mt-24">
                 <p class="text-xs uppercase tracking-widest text-base-content/70">{{ 'key_recognition.practice.prompt'|trans }}</p>
                 <p class="mt-4 font-mono text-4xl font-semibold sm:text-5xl">{{ progression|join(' – ') }}</p>
 
                 <form method="post" action="{{ path('key_recognition_answer') }}" class="mt-12">
                     <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                    <div class="flex flex-wrap justify-center gap-1 sm:gap-2" data-controller="quiz">
+                    <div class="flex flex-wrap justify-center gap-1 sm:gap-2" data-controller="quiz" style="--answer-min-w: 12rem">
                         {% for option in answerOptions %}
                             <button
                                     type="submit" name="guess" value="{{ option.id }}"

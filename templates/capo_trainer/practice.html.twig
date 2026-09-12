@@ -23,16 +23,23 @@
             data-practice-sync-session-id-value="{{ sessionId }}"
     >
         {% if not finished %}
-            <div class="flex items-center justify-between gap-3 rounded-box bg-base-200/60 px-3 py-2 font-mono text-sm text-base-content/70">
-                <span>{{ 'capo_trainer.practice.question_progress'|trans({'%current%': questionIndex, '%total%': totalQuestions}) }}</span>
-                <span data-controller="timer" data-timer-start-value="{{ startedAtMs }}">0:00</span>
+            <div class="rounded-box bg-base-200/60 px-3 py-2">
+                <progress
+                        class="progress progress-primary h-1.5 w-full"
+                        value="{{ questionIndex }}" max="{{ totalQuestions }}"
+                        aria-label="{{ 'capo_trainer.practice.question_progress'|trans({'%current%': questionIndex, '%total%': totalQuestions}) }}"
+                ></progress>
+                <div class="mt-2 flex items-center justify-between gap-3 font-mono text-sm text-base-content/70">
+                    <span>{{ 'capo_trainer.practice.question_progress'|trans({'%current%': questionIndex, '%total%': totalQuestions}) }}</span>
+                    <span data-controller="timer" data-timer-start-value="{{ startedAtMs }}">0:00</span>
+                </div>
             </div>
         {% endif %}
 
         {{ include('practice/_toast.html.twig', {toast: toast}) }}
 
         {% if finished %}
-            <section class="mt-16 text-center sm:mt-24">
+            <section class="mt-16 animate-[question-in_0.25s_ease-out] text-center sm:mt-24">
                 <h2 class="text-xs uppercase tracking-widest text-base-content/70">{{ 'capo_trainer.summary.title'|trans }}</h2>
                 <p class="mt-4 font-mono text-5xl font-semibold text-primary sm:text-6xl">
                     {{ 'capo_trainer.summary.result'|trans({'%correct%': correctCount, '%total%': totalQuestions}) }}
@@ -55,7 +62,7 @@
                 </div>
             </section>
         {% else %}
-            <section class="mt-16 text-center sm:mt-24">
+            <section class="mt-16 animate-[question-in_0.25s_ease-out] text-center sm:mt-24">
                 {% if mode == '1' %}
                     <p class="text-xs uppercase tracking-widest text-base-content/70">{{ 'capo_trainer.practice.mode_1_hint'|trans({'%fret%': fret, '%shape%': shapeId}) }}</p>
                     <p class="mt-3 text-sm text-base-content/70">{{ 'capo_trainer.practice.mode_1_prompt'|trans }}</p>
