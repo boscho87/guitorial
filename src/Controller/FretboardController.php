@@ -21,6 +21,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * "Which note is on string X at fret Y" and its two inverses - any subset
@@ -118,7 +119,7 @@ final class FretboardController extends AbstractController
      * the summary) in the same response, result shown as a toast.
      */
     #[Route('/antwort', name: 'fretboard_answer', methods: ['POST'])]
-    public function answer(Request $request): Response
+    public function answer(Request $request, TranslatorInterface $translator): Response
     {
         $this->assertValidCsrf($request);
 
@@ -146,12 +147,14 @@ final class FretboardController extends AbstractController
             }
             $toast = [
                 'correct' => $isCorrect,
-                'guessLabel' => $current['mode'] === 'string' && $guess !== '' && array_key_exists($guess, GuitarString::all())
-                    ? GuitarString::get($guess)->label()
-                    : $guess,
+                'guessLabel' => match (true) {
+                    $current['mode'] === 'string' && $guess !== '' && array_key_exists($guess, GuitarString::all()) => GuitarString::get($guess)->label(),
+                    $current['mode'] === 'fret' => $translator->trans('fretboard.practice.fret_answer', ['%fret%' => $guess]),
+                    default => $guess,
+                },
                 'answerLabel' => match ($current['mode']) {
                     'string' => GuitarString::get($current['stringNumber'])->label(),
-                    'fret' => (string) $current['fret'],
+                    'fret' => $translator->trans('fretboard.practice.fret_answer', ['%fret%' => $current['fret']]),
                     default => $current['note'],
                 },
             ];

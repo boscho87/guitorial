@@ -148,6 +148,7 @@ capo_trainer:
     mode_2_prompt: "Welches Griffbild spielst du?"
     mode_3_hint: "Du greifst %shape%, willst aber %sounding% hören."
     mode_3_prompt: "Auf welchen Bund kommt der Kapo?"
+    fret_answer: "%fret%. Bund"
   summary:
     title: "Runde beendet"
     result: "%correct% von %total% richtig"
@@ -177,6 +178,7 @@ fretboard:
     mode_string_prompt: "Welche Saite ist das?"
     mode_fret_hint: "Saite %string%, Ton %note%."
     mode_fret_prompt: "Welcher Bund ist das?"
+    fret_answer: "%fret%. Bund"
   summary:
     title: "Runde beendet"
     result: "%correct% von %total% richtig"

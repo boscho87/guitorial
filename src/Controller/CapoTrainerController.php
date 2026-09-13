@@ -22,6 +22,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Grading always recomputes the sounding chord from the guess rather than
@@ -116,7 +117,7 @@ final class CapoTrainerController extends AbstractController
      * the summary) in the same response, result shown as a toast.
      */
     #[Route('/antwort', name: 'capo_trainer_answer', methods: ['POST'])]
-    public function answer(Request $request): Response
+    public function answer(Request $request, TranslatorInterface $translator): Response
     {
         $this->assertValidCsrf($request);
 
@@ -144,11 +145,13 @@ final class CapoTrainerController extends AbstractController
             }
             $toast = [
                 'correct' => $isCorrect,
-                'guessLabel' => $guess,
+                'guessLabel' => $current['mode'] === '3'
+                    ? $translator->trans('capo_trainer.practice.fret_answer', ['%fret%' => $guess])
+                    : $guess,
                 'answerLabel' => match ($current['mode']) {
                     '1' => $current['sounding'],
                     '2' => $current['shapeId'],
-                    default => (string) $current['fret'],
+                    default => $translator->trans('capo_trainer.practice.fret_answer', ['%fret%' => $current['fret']]),
                 },
             ];
         }
