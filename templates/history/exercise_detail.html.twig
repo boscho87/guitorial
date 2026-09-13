@@ -41,6 +41,11 @@
                                 {% endif %}
                             </td>
                         </tr>
+                        {% if session.note %}
+                            <tr>
+                                <td colspan="3" class="pt-0 text-xs text-base-content/50">{{ session.note }}</td>
+                            </tr>
+                        {% endif %}
                     {% endfor %}
                 </tbody>
             </table>

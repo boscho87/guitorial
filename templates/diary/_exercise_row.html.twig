@@ -39,7 +39,7 @@
         {% endif %}
         <p class="min-w-0 flex-1 text-sm font-medium {{ row.checked ? 'text-base-content/50 line-through' : '' }}">{{ version.title }}</p>
         {% if isToday and not row.checked %}
-            <form method="post" action="{{ path('diary_mark_done', {id: exercise.id}) }}" class="relative z-10 shrink-0">
+            <form id="mark-done-{{ exercise.id }}" method="post" action="{{ path('diary_mark_done', {id: exercise.id}) }}" class="relative z-10 shrink-0">
                 <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
                 <button
                         type="submit"
@@ -67,6 +67,13 @@
     {% endif %}
     {% if exercise.note %}
         <p class="mt-1.5 text-xs text-base-content/50">{{ exercise.note|length > 80 ? exercise.note|slice(0, 80) ~ '…' : exercise.note }}</p>
+    {% endif %}
+
+    {% if isToday and not row.checked %}
+        <details class="mt-1.5">
+            <summary class="cursor-pointer text-xs text-primary hover:underline">{{ 'diary.item.add_note'|trans }}</summary>
+            <textarea form="mark-done-{{ exercise.id }}" name="note" rows="2" maxlength="2000" class="textarea textarea-bordered textarea-xs mt-1.5 w-full" placeholder="{{ 'diary.item.note_placeholder'|trans }}"></textarea>
+        </details>
     {% endif %}
 
     {% if isToday and not row.runningSessionId and resources|length > 1 %}

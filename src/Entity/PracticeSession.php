@@ -109,6 +109,15 @@ class PracticeSession
     #[ORM\Column(nullable: true)]
     private ?int $timeBonusPoints = null;
 
+    /**
+     * Free-text note about this one Durchführung - distinct from
+     * Exercise::$note (the durable, never-forked note about the exercise
+     * itself). Set once at finish() time, same as learningState/points;
+     * never retroactively edited.
+     */
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $note = null;
+
     public function __construct(
         string $visitorId,
         string $clientSessionId,
@@ -227,6 +236,11 @@ class PracticeSession
         return $this->timeBonusPoints;
     }
 
+    public function getNote(): ?string
+    {
+        return $this->note;
+    }
+
     /**
      * Marks the point a round stopped being "just configured" and became
      * something the visitor actually did - see each controller's own
@@ -239,13 +253,14 @@ class PracticeSession
         $this->hasInteraction = true;
     }
 
-    public function finish(?string $learningState = null, ?int $points = null, ?int $timeBonusPoints = null): void
+    public function finish(?string $learningState = null, ?int $points = null, ?int $timeBonusPoints = null, ?string $note = null): void
     {
         $this->finishedAt = new \DateTimeImmutable();
         $this->status = self::STATUS_FINISHED;
         $this->learningState = $learningState;
         $this->points = $points;
         $this->timeBonusPoints = $timeBonusPoints;
+        $this->note = $note;
     }
 
     /**

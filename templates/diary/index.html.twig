@@ -47,7 +47,7 @@
     {% else %}
         {% for bucket in grouped %}
             <section class="mt-8">
-                <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ bucket.group ? bucket.group.name : 'diary.form.no_group'|trans }}</h2>
+                <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ bucket.group.name }}</h2>
                 <ul class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
                     {% for row in bucket.rows %}
                         {% set exercise = row.version.exercise %}
@@ -61,7 +61,7 @@
                             toolPracticeRoutes: toolPracticeRoutes,
                             sessionCsrfIntention: sessionCsrfIntention,
                             csrfIntention: csrfIntention,
-                            groupName: bucket.group ? bucket.group.name : null,
+                            groupName: bucket.group.name,
                             isToday: isToday,
                         }) }}
                     {% endfor %}

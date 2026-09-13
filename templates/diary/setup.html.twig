@@ -15,12 +15,12 @@
         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
 
         <div>
-            <label class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.title'|trans }}</label>
+            <label class="block text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.title'|trans }}</label>
             <input type="text" name="title" value="{{ version.title }}" maxlength="120" required class="input input-bordered mt-2 w-full">
         </div>
 
         <div>
-            <label class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.resources'|trans }}</label>
+            <label class="block text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.resources'|trans }}</label>
             <p class="mt-1 text-xs text-base-content/50">{{ 'diary.setup.section.resources_hint'|trans }}</p>
             <div class="mt-3 space-y-2" data-exercise-form-target="resourceList">
                 {% for resource in resources %}
@@ -56,13 +56,13 @@
         </div>
 
         <div>
-            <label for="target_minutes" class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.target_minutes'|trans }}</label>
+            <label for="target_minutes" class="block text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.target_minutes'|trans }}</label>
             <p class="mt-1 text-xs text-base-content/50">{{ 'diary.setup.section.target_minutes_hint'|trans }}</p>
             <input type="number" id="target_minutes" name="target_minutes" min="1" max="180" value="{{ version.targetMinutes }}" class="input input-sm input-bordered mt-2 w-28" placeholder="{{ 'diary.form.minutes_placeholder'|trans }}">
         </div>
 
         <div>
-            <label class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.rhythm'|trans }}</label>
+            <label class="block text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.rhythm'|trans }}</label>
             <p class="mt-1 text-xs text-base-content/50">{{ 'diary.setup.section.rhythm_hint'|trans }}</p>
             <div class="mt-2 flex flex-wrap items-center gap-2">
                 <select name="rhythm" class="select select-sm select-bordered" data-exercise-form-target="rhythmSelect" data-action="change->exercise-form#syncRepeatVisibility">
@@ -75,9 +75,8 @@
         </div>
 
         <div>
-            <label for="group_id" class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.group'|trans }}</label>
+            <label for="group_id" class="block text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.group'|trans }}</label>
             <select id="group_id" name="group_id" class="select select-sm select-bordered mt-2">
-                <option value="0">{{ 'diary.form.no_group'|trans }}</option>
                 {% for group in groups %}
                     <option value="{{ group.id }}" {{ version.group and version.group.id == group.id ? 'selected' : '' }}>{{ group.name }}</option>
                 {% endfor %}
@@ -85,7 +84,7 @@
         </div>
 
         <div>
-            <label for="note" class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.note'|trans }}</label>
+            <label for="note" class="block text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.setup.section.note'|trans }}</label>
             <textarea id="note" name="note" rows="3" maxlength="2000" class="textarea textarea-bordered mt-2 w-full" placeholder="{{ 'diary.form.note_placeholder'|trans }}">{{ exercise.note }}</textarea>
         </div>
 

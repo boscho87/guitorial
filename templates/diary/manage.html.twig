@@ -63,7 +63,6 @@
                         >
                             <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
                             <select name="group_id" class="select select-xs select-bordered" data-action="change->auto-submit#submit">
-                                <option value="0" {{ entry.version.group ? '' : 'selected' }}>{{ 'diary.form.no_group'|trans }}</option>
                                 {% for group in groups %}
                                     <option value="{{ group.id }}" {{ entry.version.group and entry.version.group.id == group.id ? 'selected' : '' }}>{{ group.name }}</option>
                                 {% endfor %}

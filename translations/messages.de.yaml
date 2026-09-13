@@ -9,8 +9,8 @@ error:
 home:
   meta_description: "Guitorial: Musiktheorie und Griffbrett für Gitarre (und Bass) gezielt trainieren - Tonarten, Akkordfunktionen, Skalen. Ohne Konto starten."
   cta: Üben
-  hero_title: "Musiktheorie, die beim Spielen sitzt"
-  hero_subtitle: "Trainiere Tonarten, Akkordfunktionen und dein Griffbrett-Wissen - kurz und regelmässig."
+  hero_title: "Gitarre üben, mit System"
+  hero_subtitle: "Theorie-Tools, eigene Übungen und dein Fortschritt an einem Ort - kurz und regelmässig üben."
   hero_cta: "Jetzt üben"
   hero_secondary_cta: "Wie übe ich richtig?"
   benefits_title: Nutzen
@@ -333,6 +333,8 @@ diary:
     start: Start
     resume: Fortsetzen
     mark_done: "Als erledigt markieren"
+    add_note: "+ Notiz hinzufügen"
+    note_placeholder: "Wie lief's? (optional)…"
     edit: Bearbeiten
     archive: Archivieren
     delete: Löschen
@@ -424,6 +426,8 @@ exercise_session:
   reopen_resource: "Ressource erneut öffnen"
   finish:
     title: "Wie lief's?"
+    note_label: "Notiz (optional)"
+    note_placeholder: "Was ist dir aufgefallen?…"
     submit: "Ohne Bewertung abschliessen"
   learning_state:
     schwierig: "Noch schwierig"

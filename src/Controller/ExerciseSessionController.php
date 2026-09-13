@@ -30,6 +30,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ExerciseSessionController extends AbstractController
 {
     private const CSRF_INTENTION = 'exercise_session';
+    private const NOTE_MAX_LENGTH = 2000;
 
     public function __construct(
         private readonly SessionRecorder $sessionRecorder,
@@ -107,7 +108,12 @@ final class ExerciseSessionController extends AbstractController
         }
 
         $learningState = (string) $request->request->get('learning_state');
-        $this->sessionRecorder->finish($session, in_array($learningState, PracticeSession::LEARNING_STATES, true) ? $learningState : null);
+        $note = mb_substr(trim((string) $request->request->get('note')), 0, self::NOTE_MAX_LENGTH);
+        $this->sessionRecorder->finish(
+            $session,
+            in_array($learningState, PracticeSession::LEARNING_STATES, true) ? $learningState : null,
+            note: $note !== '' ? $note : null,
+        );
 
         $this->addFlash('success', 'exercise_session.flash.finished');
 

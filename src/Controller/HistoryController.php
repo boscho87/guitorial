@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Domain\Diary\ExerciseGroupProvisioner;
 use App\Domain\History\HistoryGroupStatsBuilder;
 use App\Domain\History\HistoryStatsBuilder;
 use App\Domain\Quiz\ToolRegistry;
@@ -32,6 +33,7 @@ final class HistoryController extends AbstractController
         private readonly ToolRegistry $tools,
         private readonly HistoryStatsBuilder $statsBuilder,
         private readonly HistoryGroupStatsBuilder $groupStatsBuilder,
+        private readonly ExerciseGroupProvisioner $groupProvisioner,
     ) {
     }
 
@@ -153,9 +155,11 @@ final class HistoryController extends AbstractController
             $title = $practiceSession->getTool();
         }
 
+        $group = $this->groupProvisioner->systemGroupFor($visitorId, isToolLinked: true);
+
         $exercise = new Exercise($visitorId);
         $em->persist($exercise);
-        $em->persist(new ExerciseVersion($exercise, $title, null, null, ExerciseVersion::RHYTHM_NONE, null, new \DateTimeImmutable('today')));
+        $em->persist(new ExerciseVersion($exercise, $title, $group, null, ExerciseVersion::RHYTHM_NONE, null, new \DateTimeImmutable('today')));
         $em->persist(ExerciseResource::internalTool($exercise, 0, $practiceSession->getTool(), $practiceSession->getConfigSnapshot()));
         $em->flush();
 

@@ -31,18 +31,18 @@
 
     <div class="mt-8">
         <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'exercise_session.finish.title'|trans }}</h2>
-        <div class="mt-3 grid grid-cols-3 gap-2">
-            {% for state in learningStates %}
-                <form method="post" action="{{ path('exercise_session_finish', {id: session.id}) }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                    <input type="hidden" name="learning_state" value="{{ state }}">
-                    <button type="submit" class="btn btn-outline btn-sm w-full">{{ ('exercise_session.learning_state.' ~ state)|trans }}</button>
-                </form>
-            {% endfor %}
-        </div>
         <form method="post" action="{{ path('exercise_session_finish', {id: session.id}) }}" class="mt-3">
             <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-            <button type="submit" class="btn btn-primary btn-block">{{ 'exercise_session.finish.submit'|trans }}</button>
+            <div class="grid grid-cols-3 gap-2">
+                {% for state in learningStates %}
+                    <button type="submit" name="learning_state" value="{{ state }}" class="btn btn-outline btn-sm w-full">{{ ('exercise_session.learning_state.' ~ state)|trans }}</button>
+                {% endfor %}
+            </div>
+            <label class="mt-4 block">
+                <span class="block text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'exercise_session.finish.note_label'|trans }}</span>
+                <textarea name="note" rows="2" maxlength="2000" class="textarea textarea-bordered mt-2 w-full" placeholder="{{ 'exercise_session.finish.note_placeholder'|trans }}"></textarea>
+            </label>
+            <button type="submit" class="btn btn-primary btn-block mt-3">{{ 'exercise_session.finish.submit'|trans }}</button>
         </form>
     </div>
 

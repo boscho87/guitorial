@@ -47,14 +47,14 @@ final class SessionRecorder
      * that long would. creditMinutes null (no target) just needs to exist
      * at all, so an instant 0-minute session is fine as-is.
      */
-    public function completeManually(string $visitorId, Exercise $exercise, ?int $creditMinutes): PracticeSession
+    public function completeManually(string $visitorId, Exercise $exercise, ?int $creditMinutes, ?string $note = null): PracticeSession
     {
         $session = new PracticeSession($visitorId, $this->generateClientSessionId(), null, $exercise);
         if ($creditMinutes !== null && $creditMinutes > 0) {
             $session->backdateStart($creditMinutes);
         }
         $this->em->persist($session);
-        $session->finish();
+        $session->finish(note: $note);
         $this->em->flush();
 
         return $session;
@@ -72,9 +72,9 @@ final class SessionRecorder
         $this->em->flush();
     }
 
-    public function finish(PracticeSession $session, ?string $learningState = null, ?int $points = null, ?int $timeBonusPoints = null): void
+    public function finish(PracticeSession $session, ?string $learningState = null, ?int $points = null, ?int $timeBonusPoints = null, ?string $note = null): void
     {
-        $session->finish($learningState, $points, $timeBonusPoints);
+        $session->finish($learningState, $points, $timeBonusPoints, $note);
         $this->em->flush();
     }
 

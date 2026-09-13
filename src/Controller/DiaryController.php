@@ -6,6 +6,8 @@ namespace App\Controller;
 
 use App\Domain\Diary\DiarySuggestions;
 use App\Domain\Diary\ExerciseDayViewBuilder;
+use App\Domain\Diary\ExerciseGroupProvisioner;
+use App\Domain\Diary\NoteLinkExtractor;
 use App\Domain\History\HistoryStatsBuilder;
 use App\Domain\Quiz\ToolRegistry;
 use App\Domain\Session\SessionRecorder;
@@ -48,6 +50,7 @@ final class DiaryController extends AbstractController
         private readonly DiarySuggestions $suggestions,
         private readonly ExerciseDayViewBuilder $dayViewBuilder,
         private readonly HistoryStatsBuilder $statsBuilder,
+        private readonly ExerciseGroupProvisioner $groupProvisioner,
     ) {
     }
 
@@ -158,9 +161,9 @@ final class DiaryController extends AbstractController
         $name = mb_substr(trim((string) $request->request->get('name')), 0, self::GROUP_NAME_MAX_LENGTH);
 
         if ($visitorId !== '' && $name !== '') {
-            $count = $groups->countForVisitor($visitorId);
-            if ($count < ExerciseGroupRepository::MAX_GROUPS_PER_VISITOR) {
-                $em->persist(new ExerciseGroup($visitorId, $name, $count));
+            $customCount = $groups->countCustomForVisitor($visitorId);
+            if ($customCount < ExerciseGroupRepository::MAX_GROUPS_PER_VISITOR) {
+                $em->persist(new ExerciseGroup($visitorId, $name, $groups->countForVisitor($visitorId)));
                 $em->flush();
             }
         }
@@ -210,15 +213,37 @@ final class DiaryController extends AbstractController
     }
 
     #[Route('/gruppen/{id}/entfernen', name: 'diary_group_remove', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function removeGroup(int $id, Request $request, ExerciseGroupRepository $groups, EntityManagerInterface $em): Response
-    {
+    public function removeGroup(
+        int $id,
+        Request $request,
+        ExerciseGroupRepository $groups,
+        ExerciseVersionRepository $versions,
+        ExerciseResourceRepository $resources,
+        EntityManagerInterface $em,
+    ): Response {
         $this->assertValidCsrf($request);
-        $group = $groups->findForVisitor($id, $this->requireVisitorId($request));
+        $visitorId = $this->requireVisitorId($request);
+        $group = $groups->findForVisitor($id, $visitorId);
 
         if ($group !== null) {
-            // exercise_version.group_id is ON DELETE SET NULL - affected
-            // exercises simply become "ohne Gruppe", never deleted.
+            // "Keine Gruppe" isn't a state an exercise can fall back to, so
+            // every exercise currently in this group gets reassigned to its
+            // Theorie/Praxis system group instead - never left dangling.
+            $affected = $versions->forGroup($group);
+            $isToolLinked = array_map(
+                fn (ExerciseVersion $v): bool => $this->hasInternalToolResource($resources->forExercise($v->getExercise())),
+                $affected,
+            );
+
+            // Remove (and flush) first so the fallback lookup below can never
+            // resolve back to the very group being deleted - relevant when
+            // deleting a system group itself, which just gets recreated.
             $em->remove($group);
+            $em->flush();
+
+            foreach ($affected as $index => $version) {
+                $version->reassignGroup($this->groupProvisioner->systemGroupFor($visitorId, $isToolLinked[$index]));
+            }
             $em->flush();
         }
 
@@ -248,20 +273,24 @@ final class DiaryController extends AbstractController
             return $this->redirectToRoute('diary_add_form');
         }
 
+        $resourceInputs = $this->readResourceInput($request);
+        $resourceInputs = array_merge($resourceInputs, $this->extraResourcesFromNote($input['note'], $resourceInputs));
+        $group = $input['group'] ?? $this->groupProvisioner->systemGroupFor($visitorId, $this->hasInternalToolInput($resourceInputs));
+
         $exercise = new Exercise($visitorId);
         $exercise->applyNote($input['note']);
         $em->persist($exercise);
         $em->persist(new ExerciseVersion(
             $exercise,
             $input['title'],
-            $input['group'],
+            $group,
             $input['targetMinutes'],
             $input['rhythm'],
             $input['repeatCount'],
             new \DateTimeImmutable('today'),
         ));
 
-        foreach ($this->readResourceInput($request) as $sortIndex => $resource) {
+        foreach ($resourceInputs as $sortIndex => $resource) {
             $em->persist($this->buildResource($exercise, $sortIndex, $resource));
         }
 
@@ -325,11 +354,15 @@ final class DiaryController extends AbstractController
             return $this->redirectToRoute('diary_manage');
         }
 
+        $resourceInputs = $this->readResourceInput($request);
+        $resourceInputs = array_merge($resourceInputs, $this->extraResourcesFromNote($input['note'], $resourceInputs));
+        $group = $input['group'] ?? $this->groupProvisioner->systemGroupFor($visitorId, $this->hasInternalToolInput($resourceInputs));
+
         $exercise->applyNote($input['note']);
         $versions->edit(
             $currentVersion,
             $input['title'],
-            $input['group'],
+            $group,
             $input['targetMinutes'],
             $input['rhythm'],
             $input['repeatCount'],
@@ -339,7 +372,7 @@ final class DiaryController extends AbstractController
         foreach ($resources->forExercise($exercise) as $existing) {
             $em->remove($existing);
         }
-        foreach ($this->readResourceInput($request) as $sortIndex => $resource) {
+        foreach ($resourceInputs as $sortIndex => $resource) {
             $em->persist($this->buildResource($exercise, $sortIndex, $resource));
         }
 
@@ -373,7 +406,7 @@ final class DiaryController extends AbstractController
         }
 
         $groupId = (int) $request->request->get('group_id', 0);
-        $group = $groupId > 0 ? $groups->findForVisitor($groupId, $visitorId) : null;
+        $group = ($groupId > 0 ? $groups->findForVisitor($groupId, $visitorId) : null) ?? $currentVersion->getGroup();
 
         $rhythm = (string) $request->request->get('rhythm', $currentVersion->getRepeatRhythm());
         if (!in_array($rhythm, ExerciseVersion::RHYTHMS, true)) {
@@ -453,7 +486,8 @@ final class DiaryController extends AbstractController
         $exercise = $exercises->findForVisitor($id, $visitorId);
         if ($exercise !== null) {
             $version = $versions->currentFor($exercise, new \DateTimeImmutable('today'));
-            $sessionRecorder->completeManually($visitorId, $exercise, $version?->getTargetMinutes());
+            $note = mb_substr(trim((string) $request->request->get('note')), 0, self::NOTE_MAX_LENGTH);
+            $sessionRecorder->completeManually($visitorId, $exercise, $version?->getTargetMinutes(), $note !== '' ? $note : null);
         }
 
         return $this->redirectToRoute('diary_index');
@@ -462,27 +496,81 @@ final class DiaryController extends AbstractController
     /**
      * @param list<array{version: ExerciseVersion, checked: bool, practicedMinutes: ?int, runningSessionId: ?int, weeklyDone: ?int, weeklyTarget: ?int}> $rows
      * @param ExerciseGroup[] $visitorGroups ordered by sortIndex
-     * @return list<array{group: ?ExerciseGroup, rows: array}>
+     * @return list<array{group: ExerciseGroup, rows: array}>
      */
     private function groupRows(array $rows, array $visitorGroups): array
     {
         $byGroupId = [];
         foreach ($rows as $row) {
-            $groupId = $row['version']->getGroup()?->getId() ?? 0;
-            $byGroupId[$groupId][] = $row;
+            $groupId = $row['version']->getGroup()?->getId();
+            if ($groupId !== null) {
+                $byGroupId[$groupId][] = $row;
+            }
         }
 
         $grouped = [];
         foreach ($visitorGroups as $group) {
             if (isset($byGroupId[$group->getId()])) {
-                $grouped[] = ['group' => $group, 'rows' => $byGroupId[$group->getId()]];
+                // Still-open exercises first, already-checked ones sink to
+                // the bottom of their group - a done item mixed in with the
+                // rest just adds visual noise to "what's left today".
+                $groupRows = $byGroupId[$group->getId()];
+                usort($groupRows, static fn (array $a, array $b): int => $a['checked'] <=> $b['checked']);
+                $grouped[] = ['group' => $group, 'rows' => $groupRows];
             }
-        }
-        if (isset($byGroupId[0])) {
-            $grouped[] = ['group' => null, 'rows' => $byGroupId[0]];
         }
 
         return $grouped;
+    }
+
+    /**
+     * A link pasted into the note is enough on its own - it doesn't also
+     * need to be manually re-entered as a resource. Skips any URL already
+     * present among the explicitly submitted resources.
+     *
+     * @param list<array{type: string, toolId: ?string, url: ?string}> $existing
+     * @return list<array{type: string, toolId: ?string, url: ?string}>
+     */
+    private function extraResourcesFromNote(?string $note, array $existing): array
+    {
+        $existingUrls = array_column($existing, 'url');
+
+        $extra = [];
+        foreach (NoteLinkExtractor::extract($note) as $url) {
+            if (mb_strlen($url) <= self::MAX_EXTERNAL_URL_LENGTH && !in_array($url, $existingUrls, true)) {
+                $extra[] = ['type' => ExerciseResource::TYPE_EXTERNAL_LINK, 'toolId' => null, 'url' => $url];
+            }
+        }
+
+        return $extra;
+    }
+
+    /**
+     * @param list<array{type: string, toolId: ?string, url: ?string}> $resourceInputs
+     */
+    private function hasInternalToolInput(array $resourceInputs): bool
+    {
+        foreach ($resourceInputs as $resource) {
+            if ($resource['type'] === ExerciseResource::TYPE_INTERNAL_TOOL) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param ExerciseResource[] $resources
+     */
+    private function hasInternalToolResource(array $resources): bool
+    {
+        foreach ($resources as $resource) {
+            if ($resource->isInternalTool()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function requireVisitorId(Request $request): string

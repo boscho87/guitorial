@@ -34,7 +34,7 @@ class ExerciseVersion
     #[ORM\JoinColumn(name: 'exercise_id', nullable: false, onDelete: 'CASCADE')]
     private Exercise $exercise;
 
-    #[ORM\ManyToOne(targetEntity: ExerciseGroup::class)]
+    #[ORM\ManyToOne(targetEntity: ExerciseGroup::class, cascade: ['persist'])]
     #[ORM\JoinColumn(name: 'group_id', nullable: true, onDelete: 'SET NULL')]
     private ?ExerciseGroup $group = null;
 
@@ -149,5 +149,15 @@ class ExerciseVersion
         $this->targetMinutes = $targetMinutes;
         $this->repeatRhythm = $repeatRhythm;
         $this->repeatCount = $repeatCount;
+    }
+
+    /**
+     * Unlike applyEdit(), deliberately touches every version (not just
+     * today's) - used when the group itself is being deleted, the same
+     * blunt, all-versions-at-once cascade a group deletion has always been.
+     */
+    public function reassignGroup(ExerciseGroup $group): void
+    {
+        $this->group = $group;
     }
 }

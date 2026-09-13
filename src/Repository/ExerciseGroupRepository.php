@@ -33,8 +33,22 @@ class ExerciseGroupRepository extends ServiceEntityRepository
         return $this->count(['visitorId' => $visitorId]);
     }
 
+    /**
+     * Only custom (non-system) groups count against MAX_GROUPS_PER_VISITOR -
+     * the two auto-provisioned Theorie/Praxis groups don't take up a slot.
+     */
+    public function countCustomForVisitor(string $visitorId): int
+    {
+        return $this->count(['visitorId' => $visitorId, 'kind' => null]);
+    }
+
     public function findForVisitor(int $id, string $visitorId): ?ExerciseGroup
     {
         return $this->findOneBy(['id' => $id, 'visitorId' => $visitorId]);
+    }
+
+    public function findByKind(string $visitorId, string $kind): ?ExerciseGroup
+    {
+        return $this->findOneBy(['visitorId' => $visitorId, 'kind' => $kind]);
     }
 }

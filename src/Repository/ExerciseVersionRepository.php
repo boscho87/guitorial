@@ -72,4 +72,15 @@ class ExerciseVersionRepository extends ServiceEntityRepository
 
         return null;
     }
+
+    /**
+     * @return ExerciseVersion[] every version (past and present) currently
+     *         pointing at this group - used when the group is about to be
+     *         deleted and its exercises need reassigning first, since "keine
+     *         Gruppe" is not a state an exercise can fall back to.
+     */
+    public function forGroup(ExerciseGroup $group): array
+    {
+        return $this->findBy(['group' => $group]);
+    }
 }

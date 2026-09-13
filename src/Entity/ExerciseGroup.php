@@ -9,17 +9,25 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * A user-named bucket for grouping exercises (e.g. "Repertoire", "Gehör") -
- * replaces the old fixed Theorie/Praxis split. No parent reference by
- * design: nesting isn't just disallowed by validation, the schema itself
- * has nowhere to put it. Capped at 6 per visitor - enforced in
- * ExerciseGroupRepository before persist(), not a DB constraint (MySQL
- * can't declaratively express "max 6 rows per visitor_id").
+ * A user-named bucket for grouping exercises (e.g. "Repertoire", "Gehör").
+ * No parent reference by design: nesting isn't just disallowed by
+ * validation, the schema itself has nowhere to put it. Custom groups are
+ * capped at 6 per visitor - enforced in ExerciseGroupRepository before
+ * persist(), not a DB constraint (MySQL can't declaratively express "max 6
+ * rows per visitor_id").
+ *
+ * Every visitor also gets two SYSTEM groups, "Theorie" and "Praxis",
+ * identified by `kind` (not by name, which stays renamable) - see
+ * ExerciseGroupProvisioner. They exist so "keine Gruppe" is not a state an
+ * exercise can be in at all, and don't count against the custom-group cap.
  */
 #[ORM\Entity(repositoryClass: ExerciseGroupRepository::class)]
 #[ORM\Index(columns: ['visitor_id'])]
 class ExerciseGroup
 {
+    public const KIND_THEORY = 'theorie';
+    public const KIND_PRACTICE = 'praxis';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -34,14 +42,18 @@ class ExerciseGroup
     #[ORM\Column]
     private int $sortIndex;
 
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $kind;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
 
-    public function __construct(string $visitorId, string $name, int $sortIndex)
+    public function __construct(string $visitorId, string $name, int $sortIndex, ?string $kind = null)
     {
         $this->visitorId = $visitorId;
         $this->name = $name;
         $this->sortIndex = $sortIndex;
+        $this->kind = $kind;
         $this->createdAt = new \DateTimeImmutable();
     }
 
@@ -63,6 +75,16 @@ class ExerciseGroup
     public function getSortIndex(): int
     {
         return $this->sortIndex;
+    }
+
+    public function getKind(): ?string
+    {
+        return $this->kind;
+    }
+
+    public function isSystem(): bool
+    {
+        return $this->kind !== null;
     }
 
     public function getCreatedAt(): \DateTimeImmutable
