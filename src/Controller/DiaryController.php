@@ -40,7 +40,7 @@ final class DiaryController extends AbstractController
     private const RECENT_DAYS = 7;
     private const TITLE_MAX_LENGTH = 120;
     private const NOTE_MAX_LENGTH = 2000;
-    private const GROUP_NAME_MAX_LENGTH = 40;
+    private const GROUP_NAME_MAX_LENGTH = 24;
     private const MAX_MINUTES = 180;
     private const MAX_REPEAT_COUNT = 14;
     private const MAX_EXTERNAL_URL_LENGTH = 2048;
@@ -148,7 +148,11 @@ final class DiaryController extends AbstractController
 
         return $this->render('diary/groups.html.twig', [
             'groups' => $visitorId !== '' ? $groups->forVisitor($visitorId) : [],
+            // The two system groups (Theorie/Praxis) don't count against the
+            // cap - only custom groups do, same rule addGroup() enforces.
+            'customGroupCount' => $visitorId !== '' ? $groups->countCustomForVisitor($visitorId) : 0,
             'maxGroups' => ExerciseGroupRepository::MAX_GROUPS_PER_VISITOR,
+            'groupNameMaxLength' => self::GROUP_NAME_MAX_LENGTH,
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
     }

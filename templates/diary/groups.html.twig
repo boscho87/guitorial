@@ -16,7 +16,7 @@
             <li class="flex flex-wrap items-center gap-2 rounded-box border border-base-300 p-3">
                 <form method="post" action="{{ path('diary_group_rename', {id: group.id}) }}" class="flex flex-1 items-center gap-2">
                     <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                    <input type="text" name="name" value="{{ group.name }}" maxlength="40" class="input input-sm input-bordered flex-1">
+                    <input type="text" name="name" value="{{ group.name }}" maxlength="{{ groupNameMaxLength }}" class="input input-sm input-bordered flex-1">
                     <button type="submit" class="btn btn-ghost btn-xs">{{ 'diary.form.save'|trans }}</button>
                 </form>
                 <form method="post" action="{{ path('diary_group_move', {id: group.id}) }}">
@@ -43,10 +43,10 @@
         {% endfor %}
     </ul>
 
-    {% if groups|length < maxGroups %}
+    {% if customGroupCount < maxGroups %}
         <form method="post" action="{{ path('diary_group_add') }}" class="mt-4 flex items-center gap-2">
             <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-            <input type="text" name="name" maxlength="40" required class="input input-sm input-bordered" placeholder="{{ 'diary.groups.add_placeholder'|trans }}">
+            <input type="text" name="name" maxlength="{{ groupNameMaxLength }}" required class="input input-sm input-bordered" placeholder="{{ 'diary.groups.add_placeholder'|trans }}">
             <button type="submit" class="btn btn-primary btn-sm">{{ 'diary.groups.add_submit'|trans }}</button>
         </form>
     {% else %}
