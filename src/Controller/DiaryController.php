@@ -317,7 +317,7 @@ final class DiaryController extends AbstractController
         $exercise = $exercises->findForVisitor($id, $visitorId);
         $currentVersion = $exercise !== null ? $versions->currentFor($exercise, new \DateTimeImmutable('today')) : null;
         if ($exercise === null || $currentVersion === null) {
-            return $this->redirectToRoute('diary_manage');
+            return $this->redirectToRoute('diary_index');
         }
 
         return $this->render('diary/setup.html.twig', [
@@ -346,12 +346,12 @@ final class DiaryController extends AbstractController
         $exercise = $exercises->findForVisitor($id, $visitorId);
         $currentVersion = $exercise !== null ? $versions->currentFor($exercise, new \DateTimeImmutable('today')) : null;
         if ($exercise === null || $currentVersion === null) {
-            return $this->redirectToRoute('diary_manage');
+            return $this->redirectToRoute('diary_index');
         }
 
         $input = $this->readExerciseInput($request, $groups, $visitorId);
         if ($input['title'] === '') {
-            return $this->redirectToRoute('diary_manage');
+            return $this->redirectToRoute('diary_index');
         }
 
         $resourceInputs = $this->readResourceInput($request);
@@ -380,7 +380,7 @@ final class DiaryController extends AbstractController
 
         $this->addFlash('success', 'diary.setup.flash.saved');
 
-        return $this->redirectToRoute('diary_manage');
+        return $this->redirectToRoute('diary_index');
     }
 
     /**

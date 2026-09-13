@@ -95,4 +95,10 @@
             {% endfor %}
         </div>
     {% endif %}
+
+    <div class="mt-2 flex justify-end">
+        <a href="{{ path('diary_setup', {id: exercise.id}) }}" class="btn btn-ghost btn-xs gap-1 text-base-content/60" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}: {{ version.title }}">
+            {{ icons.icon('edit') }}{{ 'diary.item.edit'|trans }}
+        </a>
+    </div>
 </li>
