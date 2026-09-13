@@ -1,0 +1,4 @@
+Contact: mailto:simon.d.mueller@itscoding.ch
+Expires: 2027-09-13T00:00:00.000Z
+Canonical: https://guitorial.com/.well-known/security.txt
+Preferred-Languages: de, en
