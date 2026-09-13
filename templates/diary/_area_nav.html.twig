@@ -1,5 +1,7 @@
-{# Expects `active`: 'today'|'routines'|'history'|'progress' #}
-<div role="tablist" class="tabs tabs-boxed mt-4 mb-6 inline-flex">
+{# Expects `active`: 'today'|'routines'|'history'|'progress'; optional `bare`:
+   true skips this partial's own margins when the caller places it inside its
+   own spaced wrapper (e.g. alongside the streak badge on the Heute page). #}
+<div role="tablist" class="tabs tabs-boxed inline-flex {{ bare is defined and bare ? '' : 'mt-4 mb-6' }}">
     <a href="{{ path('diary_index') }}" role="tab" class="tab {{ active == 'today' ? 'tab-active' : '' }}" {% if active == 'today' %}aria-current="page"{% endif %}>{{ 'diary.area_nav.today'|trans }}</a>
     <a href="{{ path('routine_index') }}" role="tab" class="tab {{ active == 'routines' ? 'tab-active' : '' }}" {% if active == 'routines' %}aria-current="page"{% endif %}>{{ 'diary.area_nav.routines'|trans }}</a>
     <a href="{{ path('history_index') }}" role="tab" class="tab {{ active == 'history' ? 'tab-active' : '' }}" {% if active == 'history' %}aria-current="page"{% endif %}>{{ 'diary.area_nav.history'|trans }}</a>

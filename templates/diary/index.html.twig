@@ -19,13 +19,14 @@
         <a href="{{ path('diary_manage') }}" class="btn btn-outline btn-sm shrink-0">{{ 'diary.manage_link'|trans }}</a>
     </div>
 
-    {% if currentStreak > 0 %}
-        <a href="{{ path('progress_index') }}" class="badge badge-outline badge-lg mt-4 gap-1.5 hover:border-primary hover:text-primary">
-            🔥 {{ (currentStreak == 1 ? 'history.stats.streak_value_one' : 'history.stats.streak_value_other')|trans({'%days%': currentStreak}) }}
-        </a>
-    {% endif %}
-
-    {{ include('diary/_area_nav.html.twig', {active: 'today'}) }}
+    <div class="mt-4 mb-6 flex flex-wrap items-center justify-between gap-3">
+        {{ include('diary/_area_nav.html.twig', {active: 'today', bare: true}) }}
+        {% if currentStreak > 0 %}
+            <a href="{{ path('progress_index') }}" class="badge badge-outline badge-lg gap-1.5 hover:border-primary hover:text-primary">
+                🔥 {{ (currentStreak == 1 ? 'history.stats.streak_value_one' : 'history.stats.streak_value_other')|trans({'%days%': currentStreak}) }}
+            </a>
+        {% endif %}
+    </div>
 
     <div class="flex items-center justify-between gap-3 rounded-box border border-base-300 bg-base-200/40 px-4 py-2">
         <a href="{{ path('diary_index', {datum: previousDate|date('Y-m-d')}) }}" class="btn btn-ghost btn-sm" aria-label="{{ 'diary.pager.previous'|trans }}">&larr;</a>
