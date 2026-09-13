@@ -13,7 +13,6 @@ use App\Repository\ExerciseResourceRepository;
 use App\Repository\ExerciseVersionRepository;
 use App\Repository\PracticeSessionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -21,10 +20,13 @@ use Symfony\Component\Routing\Attribute\Route;
 /**
  * Starts and runs a plan exercise's session outside the 5 graded tools: a
  * manual exercise (no resource, just a timer) or an external resource (an
- * outside URL, opened in a new tab while this tab keeps a real, wall-clock
- * timer running). Internal-tool exercises skip this entirely - "Start"
- * links straight to that tool's own settings page with ?uebung=&ressource=,
- * see ExercisePlanLink; the resulting PracticeSession is created there.
+ * outside URL). Starting either just moves straight to the running/timer
+ * page - an external resource is never opened automatically, only via the
+ * explicit "Ressource öffnen" link there, so starting never surprises the
+ * visitor with an extra tab they didn't ask for. Internal-tool exercises
+ * skip this entirely - "Start" links straight to that tool's own settings
+ * page with ?uebung=&ressource=, see ExercisePlanLink; the resulting
+ * PracticeSession is created there.
  */
 #[Route('/tagebuch')]
 final class ExerciseSessionController extends AbstractController
@@ -56,24 +58,22 @@ final class ExerciseSessionController extends AbstractController
     }
 
     #[Route('/uebung/{id}/ressource/{resourceId}/starten', name: 'exercise_start_external', methods: ['POST'], requirements: ['id' => '\d+', 'resourceId' => '\d+'])]
-    public function startExternal(int $id, int $resourceId, Request $request): JsonResponse
+    public function startExternal(int $id, int $resourceId, Request $request): Response
     {
         $this->assertValidCsrf($request);
         $exercise = $this->exercises->findForVisitor($id, $this->requireVisitorId($request));
         if ($exercise === null) {
-            return $this->json(['error' => 'not found'], 404);
+            return $this->redirectToRoute('diary_index');
         }
 
         $resource = $this->findResource($exercise, $resourceId);
         if ($resource === null || $resource->isInternalTool()) {
-            return $this->json(['error' => 'not found'], 404);
+            return $this->redirectToRoute('diary_index');
         }
 
         $session = $this->sessionRecorder->start($this->requireVisitorId($request), null, exercise: $exercise, resource: $resource);
 
-        return $this->json([
-            'runningUrl' => $this->generateUrl('exercise_session_running', ['id' => $session->getId()]),
-        ]);
+        return $this->redirectToRoute('exercise_session_running', ['id' => $session->getId()]);
     }
 
     #[Route('/sitzung/{id}', name: 'exercise_session_running', methods: ['GET'], requirements: ['id' => '\d+'])]

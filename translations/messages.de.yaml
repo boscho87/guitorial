@@ -429,7 +429,7 @@ exercise_session:
   title: Übungssitzung
   untitled: Übung
   target: "Ziel: %minutes% Min."
-  reopen_resource: "Ressource erneut öffnen"
+  reopen_resource: "Ressource öffnen"
   finish:
     title: "Wie lief's?"
     note_label: "Notiz (optional)"
