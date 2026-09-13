@@ -60,7 +60,7 @@
             </span>
             {% if groupName %}<span class="badge badge-sm badge-ghost">{{ groupName }}</span>{% endif %}
         </div>
-        <a href="{{ path('diary_setup', {id: exercise.id}) }}" class="btn btn-ghost btn-xs btn-square text-base-content/60 shrink-0" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}: {{ version.title }}">
+        <a href="{{ path('diary_setup', {id: exercise.id}) }}" class="btn btn-ghost btn-xs btn-square relative z-10 shrink-0 text-base-content/60" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}: {{ version.title }}">
             {{ icons.icon('edit') }}
         </a>
     </div>
