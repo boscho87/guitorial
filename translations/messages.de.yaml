@@ -7,27 +7,42 @@ error:
   back_home: "Zurück zur Startseite"
 
 home:
-  title: Training
-  subtitle: "Musiktheorie und Gitarrenspiel gezielt üben"
+  meta_description: "Guitorial: Musiktheorie und Griffbrett für Gitarre (und Bass) gezielt trainieren - Tonarten, Akkordfunktionen, Skalen. Ohne Konto starten."
   cta: Üben
+  hero_title: "Musiktheorie, die beim Spielen sitzt"
+  hero_subtitle: "Trainiere Tonarten, Akkordfunktionen und dein Griffbrett-Wissen - kurz und regelmässig."
   hero_cta: "Jetzt üben"
   hero_secondary_cta: "Wie übe ich richtig?"
-  hero_login_hint: "Auf einem anderen Gerät weitermachen?"
-  tools_title: "Alle Tools"
-  feature_tools_title: "5 fokussierte Tools"
-  feature_tools_text: "Kein Schnickschnack - ein Tool pro Fertigkeit."
-  feature_no_account_title: "Kein Konto nötig"
-  feature_no_account_text: "Sofort loslegen, dein Fortschritt bleibt trotzdem gespeichert."
-  feature_diary_title: "Dranbleiben leicht gemacht"
-  feature_diary_text: "Tagebuch mit Tagesziel, Rhythmus und Verlauf."
-  how_it_works:
-    title: "So funktioniert's"
-    step_practice_title: "Üben"
-    step_practice_text: "Ein Tool wählen, ein paar Fragen beantworten - direkt im Browser, ohne Anmeldung."
-    step_diary_title: "Tagebuch führen"
-    step_diary_text: "Übungen mit Rhythmus und Tagesziel eintragen, damit dranbleiben leichter fällt."
-    step_history_title: "Verlauf sehen"
-    step_history_text: "Fortschritt über die Zeit nachvollziehen und sehen, was noch wackelt."
+  benefits_title: Nutzen
+  benefit_recall_title: "Theorie schneller abrufen"
+  benefit_recall_text: "Tonarten und Funktionen nicht nur verstehen, sondern beim Spielen sofort erkennen."
+  benefit_fretboard_title: "Griffbrett sicherer kennen"
+  benefit_fretboard_text: "Töne, Saiten und Bünde auswendig, nicht nur die ersten paar Lagen."
+  benefit_weak_spots_title: "Gezielt an Schwächen arbeiten"
+  benefit_weak_spots_text: "Die Tools merken sich, was du oft falsch beantwortest, und fragen das häufiger ab."
+  benefit_consistency_title: "Regelmässig dranbleiben"
+  benefit_consistency_text: "Kurze Runden statt langer Sessions - das Tagebuch hilft, den Rhythmus zu halten."
+  benefit_progress_title: "Fortschritt sehen"
+  benefit_progress_text: "Serie, Bestleistungen und Verlauf zeigen, dass sich das Üben lohnt."
+  trainer_title: Trainer
+  trainer_bass_hint: "Tonart erkennen, Funktion bestimmen und der Skalen-Generator sind reine Musiktheorie - funktionieren genauso am Bass."
+  diary_title: Übungstagebuch
+  diary_text: "Im Tagebuch landet beides: Runden aus den Trainern und alles, was du sonst übst - ein Stück, Akkordwechsel, Timing mit dem Metronom. Rhythmus und Tagesziel pro Übung, damit du siehst, was ansteht."
+  diary_examples: "Zum Beispiel: Pentatonik, ein Song, Alternate Picking, Akkordwechsel, Metronom-Timing"
+  diary_cta: "Zum Tagebuch"
+  progress_title: Fortschritt
+  progress_text: "Ein paar Beispiele, wie sich das im Alltag zeigt:"
+  progress_example_streak: "7 Tage in Folge geübt"
+  progress_example_record: "Neue Bestleistung"
+  progress_example_week: "4 von 5 Übungstagen diese Woche"
+  storage_text: "Ohne Konto starten. Mit Login (Google oder Microsoft) bleibt dein Fortschritt auch auf einem neuen Gerät erhalten."
+
+training:
+  title: Training
+  meta_description: "Alle Guitorial-Trainer: Tonart erkennen, Kapo-Trainer, Funktion bestimmen, Griffbrett und Skalen-Generator."
+  intro: "Wähle ein Tool und leg los."
+  streak_one: "%days% Tag in Folge geübt"
+  streak_other: "%days% Tage in Folge geübt"
 
 nav:
   back_home: Zurück
@@ -249,7 +264,7 @@ history:
 
 diary:
   title: Übetagebuch
-  meta_description: "Dein persönlicher Übe-Plan bei Guitorial: Übungen anlegen, Fortschritt festhalten und den Überblick behalten – mit oder ohne Konto."
+  meta_description: "Dein persönlicher Übe-Plan bei Guitorial, mit oder ohne Konto."
   intro: "Dein täglicher Übungsplan. Änderungen an einer Übung wirken erst ab heute, vergangene Tage bleiben unverändert."
   empty: "Noch keine Übungen im Plan."
   empty_past: "An diesem Tag gab es noch keine Übungen im Plan."

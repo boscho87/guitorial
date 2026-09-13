@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+{% import '_components/icons.html.twig' as icons %}
+
+{% block title %}Guitorial – {{ 'training.title'|trans }}{% endblock %}
+
+{% block meta_description %}{{ 'training.meta_description'|trans }}{% endblock %}
+
+{% block body %}
+    {% set toolIcons = {
+        'tonart-erkennen': 'key',
+        'kapo-trainer': 'capo',
+        'funktion-bestimmen': 'steps',
+        'griffbrett': 'fretboard-grid',
+        'skalen-generator': 'dice',
+    } %}
+
+    <h1 class="font-display text-2xl font-semibold sm:text-3xl">{{ 'training.title'|trans }}</h1>
+    <p class="mt-2 text-base-content/70">{{ 'training.intro'|trans }}</p>
+
+    {% if streak > 0 %}
+        <p class="mt-4 inline-flex items-center gap-2 rounded-full border border-base-300 bg-base-200/60 px-3 py-1 text-xs text-base-content/70">
+            <span class="h-1.5 w-1.5 rounded-full bg-success"></span>
+            {{ (streak == 1 ? 'training.streak_one' : 'training.streak_other')|trans({'%days%': streak}) }}
+        </p>
+    {% endif %}
+
+    <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2" data-controller="nav-shortcuts">
+        {% for tool in tools %}
+            <a
+                    href="{{ path(tool.route) }}"
+                    class="group relative flex flex-col justify-between rounded-box border border-base-300 bg-base-200/60 p-5 transition-all hover:-translate-y-0.5 hover:border-primary hover:shadow-lg sm:p-6"
+                    data-nav-shortcuts-target="link"
+            >
+                {% if loop.index <= 10 %}
+                    <span class="absolute right-4 top-4 hidden font-mono text-xs text-base-content/35 sm:inline">{{ loop.index == 10 ? 0 : loop.index }}</span>
+                {% endif %}
+                <div>
+                    <span class="inline-flex h-9 w-9 items-center justify-center rounded-box bg-primary/10 text-primary">
+                        {{ icons.icon(toolIcons[tool.id]) }}
+                    </span>
+                    <h2 class="font-display mt-3 text-xl font-semibold">{{ tool.title|trans }}</h2>
+                    <p class="mt-2 text-sm text-base-content/70">{{ tool.description|trans }}</p>
+                </div>
+                <span class="mt-5 inline-flex items-center gap-1 text-sm font-medium text-primary">
+                    {{ 'home.cta'|trans }}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="transition-transform group-hover:translate-x-1">
+                        <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </span>
+            </a>
+        {% endfor %}
+    </div>
+{% endblock %}

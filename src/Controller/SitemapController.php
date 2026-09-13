@@ -18,6 +18,7 @@ final class SitemapController extends AbstractController
 {
     private const URLS = [
         ['route' => 'home_index', 'changefreq' => 'weekly', 'priority' => '1.0'],
+        ['route' => 'training_index', 'changefreq' => 'weekly', 'priority' => '0.8'],
         ['route' => 'key_recognition_settings', 'changefreq' => 'monthly', 'priority' => '0.8'],
         ['route' => 'capo_trainer_settings', 'changefreq' => 'monthly', 'priority' => '0.8'],
         ['route' => 'harmonic_function_settings', 'changefreq' => 'monthly', 'priority' => '0.8'],
