@@ -83,7 +83,7 @@
         {% else %}
             <section class="mt-16 animate-[question-in_0.25s_ease-out] text-center sm:mt-24">
                 <p class="text-xs uppercase tracking-widest text-base-content/70">{{ 'key_recognition.practice.prompt'|trans }}</p>
-                <p class="mt-4 font-mono text-5xl font-semibold sm:text-6xl">{{ progression|join(' – ') }}</p>
+                <p class="mt-4 font-mono text-3xl font-semibold sm:text-5xl md:text-6xl">{{ progression|join(' – ') }}</p>
 
                 <form method="post" action="{{ path('key_recognition_answer') }}" class="mt-12">
                     <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
