@@ -10,121 +10,139 @@ use PHPUnit\Framework\TestCase;
 
 final class PersonalRecordsTest extends TestCase
 {
-    public function testFirstEverRoundGetsNoRecordFlags(): void
+    // --- calculatePoints() ---------------------------------------------
+
+    public function testImperfectRoundGetsOnlyBasePointsNoBonus(): void
     {
-        $current = $this->finishedSession('client-1', 8, 10, 4);
+        $current = new PracticeSession('visitor-1', 'client-1', 'tonart-erkennen');
+        $current->backdateStart(5);
 
-        $result = PersonalRecords::calculate([$current], $current, 8, 10);
+        $result = PersonalRecords::calculatePoints([], $current, correctCount: 8, totalQuestions: 10, nowTimestamp: time());
 
-        self::assertFalse($result['isNewScoreRecord']);
-        self::assertFalse($result['isNewSpeedRecord']);
-        self::assertSame(8, $result['bestCorrect']);
-        self::assertSame(10, $result['bestTotal']);
+        self::assertSame(80, $result['points']);
+        self::assertSame(0, $result['timeBonusPoints']);
     }
 
-    public function testStrictlyBetterScoreIsFlaggedAndUpdatesTheBest(): void
+    public function testPerfectRoundWithNoPriorSameCountRoundGetsNoBonus(): void
     {
-        $previous = $this->finishedSession('client-1', 6, 10, 4);
-        $current = $this->finishedSession('client-2', 9, 10, 4);
+        $current = new PracticeSession('visitor-1', 'client-1', 'tonart-erkennen');
+        $current->backdateStart(5);
+        $now = $current->getStartedAt()->getTimestamp() + 5 * 60;
 
-        $result = PersonalRecords::calculate([$previous, $current], $current, 9, 10);
+        $result = PersonalRecords::calculatePoints([], $current, correctCount: 10, totalQuestions: 10, nowTimestamp: $now);
 
-        self::assertTrue($result['isNewScoreRecord']);
-        self::assertSame(9, $result['bestCorrect']);
-        self::assertSame(10, $result['bestTotal']);
+        self::assertSame(100, $result['points']);
+        self::assertSame(0, $result['timeBonusPoints']);
     }
 
-    public function testExactTieIsNotFlaggedAsANewRecord(): void
+    public function testPerfectRoundFasterThanPriorFastestSameCountEarnsABonus(): void
     {
-        $previous = $this->finishedSession('client-1', 8, 10, 4);
-        $current = $this->finishedSession('client-2', 8, 10, 4);
+        $prior = $this->historicalSession('client-1', totalQuestions: 10, durationMinutes: 5);
 
-        $result = PersonalRecords::calculate([$previous, $current], $current, 8, 10);
+        $current = new PracticeSession('visitor-1', 'client-2', 'tonart-erkennen');
+        $current->backdateStart(3);
+        $now = $current->getStartedAt()->getTimestamp() + 3 * 60;
 
-        self::assertFalse($result['isNewScoreRecord']);
-        self::assertSame(8, $result['bestCorrect']);
-        self::assertSame(10, $result['bestTotal']);
+        $result = PersonalRecords::calculatePoints([$prior], $current, correctCount: 10, totalQuestions: 10, nowTimestamp: $now);
+
+        // Prior: 5 min (300s). Current: 3 min (180s). Bonus = 300 - 180 = 120s.
+        self::assertSame(100 + 120, $result['points']);
+        self::assertSame(120, $result['timeBonusPoints']);
     }
 
-    public function testWorseRoundKeepsThePreviousBestAndIsNotFlagged(): void
+    public function testPerfectRoundSlowerThanPriorFastestGetsNoBonusNeverNegative(): void
     {
-        $previous = $this->finishedSession('client-1', 9, 10, 4);
-        $current = $this->finishedSession('client-2', 5, 10, 4);
+        $prior = $this->historicalSession('client-1', totalQuestions: 10, durationMinutes: 3);
 
-        $result = PersonalRecords::calculate([$previous, $current], $current, 5, 10);
+        $current = new PracticeSession('visitor-1', 'client-2', 'tonart-erkennen');
+        $current->backdateStart(5);
+        $now = $current->getStartedAt()->getTimestamp() + 5 * 60;
 
-        self::assertFalse($result['isNewScoreRecord']);
-        self::assertSame(9, $result['bestCorrect']);
-        self::assertSame(10, $result['bestTotal']);
+        $result = PersonalRecords::calculatePoints([$prior], $current, correctCount: 10, totalQuestions: 10, nowTimestamp: $now);
+
+        self::assertSame(100, $result['points']);
+        self::assertSame(0, $result['timeBonusPoints']);
     }
 
-    public function testSpeedComparisonIgnoresSessionsWithADifferentQuestionCount(): void
+    public function testBonusBaselineIgnoresSessionsWithADifferentQuestionCount(): void
     {
-        $fastButDifferentCount = $this->finishedSession('client-1', 3, 3, 1);
-        $current = $this->finishedSession('client-2', 8, 10, 6);
+        $differentCount = $this->historicalSession('client-1', totalQuestions: 5, durationMinutes: 1);
 
-        $result = PersonalRecords::calculate([$fastButDifferentCount, $current], $current, 8, 10);
+        $current = new PracticeSession('visitor-1', 'client-2', 'tonart-erkennen');
+        $current->backdateStart(3);
+        $now = $current->getStartedAt()->getTimestamp() + 3 * 60;
 
-        // No prior round with totalQuestions = 10 to compare against - not
-        // flagged (nothing was actually beaten), same as a true first round.
-        self::assertFalse($result['isNewSpeedRecord']);
-        self::assertSame(6 * 60, $result['fastestSeconds']);
-        self::assertSame(10, $result['fastestQuestionCount']);
+        $result = PersonalRecords::calculatePoints([$differentCount], $current, correctCount: 10, totalQuestions: 10, nowTimestamp: $now);
+
+        self::assertSame(0, $result['timeBonusPoints']);
     }
 
-    public function testFasterRoundWithTheSameQuestionCountIsFlaggedAndUpdatesTheBest(): void
+    // --- summarize() -----------------------------------------------------
+
+    public function testUngradedRoundWithNoStoredPointsSummarizesToNull(): void
     {
-        $previous = $this->finishedSession('client-1', 8, 10, 6);
-        $current = $this->finishedSession('client-2', 8, 10, 3);
+        $current = new PracticeSession('visitor-1', 'client-1', 'tonart-erkennen');
 
-        $result = PersonalRecords::calculate([$previous, $current], $current, 8, 10);
-
-        self::assertTrue($result['isNewSpeedRecord']);
-        self::assertSame(3 * 60, $result['fastestSeconds']);
+        self::assertNull(PersonalRecords::summarize([], $current));
     }
 
-    public function testSlowerRoundKeepsThePreviousFastestAndIsNotFlagged(): void
+    public function testFirstGradedRoundIsItsOwnBestAndNotFlaggedAsNewRecord(): void
     {
-        $previous = $this->finishedSession('client-1', 8, 10, 3);
-        $current = $this->finishedSession('client-2', 8, 10, 6);
+        $current = $this->finishedWithPoints('client-1', 80);
 
-        $result = PersonalRecords::calculate([$previous, $current], $current, 8, 10);
+        $result = PersonalRecords::summarize([$current], $current);
 
-        self::assertFalse($result['isNewSpeedRecord']);
-        self::assertSame(3 * 60, $result['fastestSeconds']);
+        self::assertSame(80, $result['points']);
+        self::assertSame(80, $result['bestPoints']);
+        self::assertFalse($result['isNewRecord']);
     }
 
-    public function testCrossMultiplicationRanksHigherAccuracyAtFewerQuestionsAboveLowerAccuracyAtMore(): void
+    public function testStrictlyMorePointsThanPriorBestIsFlaggedAsANewRecord(): void
     {
-        // 8/10 = 80%, 24/30 = 80% exactly - but a real, non-tied comparison:
-        // 8/10 (80%) should beat 21/30 (70%).
-        $longerButLessAccurate = $this->finishedSession('client-1', 21, 30, 10);
-        $current = $this->finishedSession('client-2', 8, 10, 4);
+        $previous = $this->finishedWithPoints('client-1', 80);
+        $current = $this->finishedWithPoints('client-2', 120);
 
-        $result = PersonalRecords::calculate([$longerButLessAccurate, $current], $current, 8, 10);
+        $result = PersonalRecords::summarize([$previous, $current], $current);
 
-        self::assertTrue($result['isNewScoreRecord']);
-        self::assertSame(8, $result['bestCorrect']);
-        self::assertSame(10, $result['bestTotal']);
+        self::assertTrue($result['isNewRecord']);
+        self::assertSame(120, $result['bestPoints']);
     }
 
-    public function testCrossMultiplicationRanksAPerfectLongerRoundAboveAPerfectShorterOne(): void
+    public function testFewerPointsThanPriorBestKeepsThatBestAndIsNotFlagged(): void
     {
-        $shortPerfect = $this->finishedSession('client-1', 3, 3, 1);
-        $current = $this->finishedSession('client-2', 10, 10, 4);
+        $previous = $this->finishedWithPoints('client-1', 120);
+        $current = $this->finishedWithPoints('client-2', 80);
 
-        $result = PersonalRecords::calculate([$shortPerfect, $current], $current, 10, 10);
+        $result = PersonalRecords::summarize([$previous, $current], $current);
 
-        self::assertTrue($result['isNewScoreRecord']);
-        self::assertSame(10, $result['bestCorrect']);
-        self::assertSame(10, $result['bestTotal']);
+        self::assertFalse($result['isNewRecord']);
+        self::assertSame(120, $result['bestPoints']);
     }
 
-    private function finishedSession(string $clientSessionId, int $correct, int $total, int $durationMinutes): PracticeSession
+    public function testExactTieWithPriorBestIsNotFlaggedAsANewRecord(): void
+    {
+        $previous = $this->finishedWithPoints('client-1', 100);
+        $current = $this->finishedWithPoints('client-2', 100);
+
+        $result = PersonalRecords::summarize([$previous, $current], $current);
+
+        self::assertFalse($result['isNewRecord']);
+        self::assertSame(100, $result['bestPoints']);
+    }
+
+    private function historicalSession(string $clientSessionId, int $totalQuestions, int $durationMinutes): PracticeSession
     {
         $session = new PracticeSession('visitor-1', $clientSessionId, 'tonart-erkennen');
         $session->backdateStart($durationMinutes);
-        $session->applySync($total, $total, $correct, true);
+        $session->applySync($totalQuestions, $totalQuestions, $totalQuestions, true);
+
+        return $session;
+    }
+
+    private function finishedWithPoints(string $clientSessionId, int $points): PracticeSession
+    {
+        $session = new PracticeSession('visitor-1', $clientSessionId, 'tonart-erkennen');
+        $session->finish(points: $points, timeBonusPoints: 0);
 
         return $session;
     }

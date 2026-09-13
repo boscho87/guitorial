@@ -72,9 +72,9 @@ final class SessionRecorder
         $this->em->flush();
     }
 
-    public function finish(PracticeSession $session, ?string $learningState = null): void
+    public function finish(PracticeSession $session, ?string $learningState = null, ?int $points = null, ?int $timeBonusPoints = null): void
     {
-        $session->finish($learningState);
+        $session->finish($learningState, $points, $timeBonusPoints);
         $this->em->flush();
     }
 

@@ -8,118 +8,119 @@ use App\Entity\PracticeSession;
 use App\Repository\PracticeSessionRepository;
 
 /**
- * A visitor's personal best score and fastest time for one tool, and
- * whether the round just finished set a new one.
+ * Points-based personal record for one tool: 10 points per correct answer,
+ * plus a time bonus on a perfect round (every question correct) that beats
+ * the visitor's own prior fastest round with the same question count -
+ * bonus = however many seconds faster, capped at 0 (never negative). A
+ * points value already fairly balances accuracy and length on its own (a
+ * perfect 30/30 outscores a perfect 3/3 without needing a separate
+ * tie-break rule), which is why this replaced the earlier two-metric
+ * (best-ratio + fastest-same-count-time) design.
  *
- * Score is ranked by (correctCount/totalQuestions, totalQuestions), both
- * maximized, compared via cross-multiplication rather than as a float ratio
- * - a perfect 30/30 beats a perfect 3/3, but a higher accuracy at fewer
- * questions still beats a lower accuracy at more.
+ * The bonus deliberately compares against the visitor's own history, not
+ * an invented target time per question - there's no universal "correct"
+ * pace across tools/visitors, but "faster than your own best" always
+ * means something. A perfect round with no prior same-count round to beat
+ * gets no bonus (nothing to beat yet), same spirit as the previous
+ * "first round never flagged as a new record" rule.
  *
- * Speed is only compared among rounds with the SAME totalQuestions as the
- * one just finished, not a per-question average - question count is a
- * deliberate setting, not an incidental value, so "fastest round with N
- * questions" is a clearer, less arbitrary comparison than inventing a
- * normalization.
- *
- * A round is only flagged as a new record when it's strictly better than
- * every other finished round for that tool - so a visitor's very first
- * round never gets flagged (nothing to beat yet), and an exact tie never
- * re-announces an already-held record.
+ * Two responsibilities, used at two different points in a round's life:
+ * - pointsForFinishedRound()/calculatePoints(): called once, right before
+ *   the round is marked finished, to compute the value that gets STORED
+ *   on the PracticeSession (PracticeSession.points has no other source of
+ *   truth - it's fixed at finish time, not recomputed later, since
+ *   "prior fastest at the time" would otherwise silently drift as more
+ *   history accumulates).
+ * - forTool()/summarize(): called on every render of a finished round's
+ *   summary screen, to compare that already-stored points value against
+ *   the visitor's other stored results for the same tool.
  */
 final class PersonalRecords
 {
+    private const POINTS_PER_CORRECT = 10;
+
     public function __construct(private readonly PracticeSessionRepository $sessions)
     {
     }
 
     /**
-     * $currentCorrect/$currentTotal are passed explicitly rather than read
-     * off $current->getCorrectCount()/getTotalQuestions() - those entity
-     * fields are only ever updated by the async practice-sync heartbeat
-     * (applySync(), fired client-side from the browser), which hasn't
-     * landed yet on the very first render of a just-finished round (the
-     * response to answer() itself). The session-stored round array's own
-     * counters are already correct at that point - use those instead.
-     *
-     * @return array{bestCorrect: int, bestTotal: int, isNewScoreRecord: bool, fastestSeconds: int|null, fastestQuestionCount: int, isNewSpeedRecord: bool}
+     * @return array{points: int, timeBonusPoints: int}
      */
-    public function forTool(string $visitorId, string $tool, PracticeSession $current, int $currentCorrect, int $currentTotal): array
+    public function pointsForFinishedRound(string $visitorId, string $tool, PracticeSession $current, int $correctCount, int $totalQuestions, ?int $nowTimestamp = null): array
     {
-        return self::calculate($this->sessions->finishedForTool($visitorId, $tool), $current, $currentCorrect, $currentTotal);
+        return self::calculatePoints($this->sessions->finishedForTool($visitorId, $tool), $current, $correctCount, $totalQuestions, $nowTimestamp ?? time());
     }
 
     /**
      * @param PracticeSession[] $finishedSessions
-     * @return array{bestCorrect: int, bestTotal: int, isNewScoreRecord: bool, fastestSeconds: int|null, fastestQuestionCount: int, isNewSpeedRecord: bool}
+     * @return array{points: int, timeBonusPoints: int}
      */
-    public static function calculate(array $finishedSessions, PracticeSession $current, int $currentCorrect, int $currentTotal): array
+    public static function calculatePoints(array $finishedSessions, PracticeSession $current, int $correctCount, int $totalQuestions, int $nowTimestamp): array
     {
-        $currentSeconds = $current->getFinishedAt() !== null
-            ? $current->getFinishedAt()->getTimestamp() - $current->getStartedAt()->getTimestamp()
-            : null;
+        $base = self::POINTS_PER_CORRECT * $correctCount;
+        $isPerfect = $totalQuestions > 0 && $correctCount === $totalQuestions;
+        if (!$isPerfect) {
+            return ['points' => $base, 'timeBonusPoints' => 0];
+        }
 
-        // Tracked separately from the current round so a tie (or a round
-        // with nothing comparable in its history, e.g. the first-ever round
-        // at a given question count) never gets flagged as "new" just
-        // because nothing beat it - only a round strictly better than what
-        // came before earns the flag.
-        $priorBestCorrect = null;
-        $priorBestTotal = null;
+        $currentSeconds = $nowTimestamp - $current->getStartedAt()->getTimestamp();
+
         $priorFastestSeconds = null;
-
         foreach ($finishedSessions as $session) {
             if ($session === $current) {
                 continue;
             }
-
-            $correct = $session->getCorrectCount() ?? 0;
-            $total = $session->getTotalQuestions() ?? 0;
-            if ($total > 0 && ($priorBestCorrect === null || self::isBetterScore($correct, $total, $priorBestCorrect, $priorBestTotal))) {
-                $priorBestCorrect = $correct;
-                $priorBestTotal = $total;
+            if (($session->getTotalQuestions() ?? 0) !== $totalQuestions || $session->getFinishedAt() === null) {
+                continue;
             }
-
-            if ($total === $currentTotal && $session->getFinishedAt() !== null) {
-                $seconds = $session->getFinishedAt()->getTimestamp() - $session->getStartedAt()->getTimestamp();
-                if ($priorFastestSeconds === null || $seconds < $priorFastestSeconds) {
-                    $priorFastestSeconds = $seconds;
-                }
+            $seconds = $session->getFinishedAt()->getTimestamp() - $session->getStartedAt()->getTimestamp();
+            if ($priorFastestSeconds === null || $seconds < $priorFastestSeconds) {
+                $priorFastestSeconds = $seconds;
             }
         }
 
-        $isNewScoreRecord = $priorBestCorrect !== null
-            && self::isBetterScore($currentCorrect, $currentTotal, $priorBestCorrect, $priorBestTotal);
-        [$bestCorrect, $bestTotal] = $priorBestCorrect === null || $isNewScoreRecord
-            ? [$currentCorrect, $currentTotal]
-            : [$priorBestCorrect, $priorBestTotal];
+        $bonus = $priorFastestSeconds !== null ? max(0, $priorFastestSeconds - $currentSeconds) : 0;
 
-        $isNewSpeedRecord = $priorFastestSeconds !== null && $currentSeconds !== null && $currentSeconds < $priorFastestSeconds;
-        $fastestSeconds = match (true) {
-            $currentSeconds === null => $priorFastestSeconds,
-            $priorFastestSeconds === null => $currentSeconds,
-            default => min($currentSeconds, $priorFastestSeconds),
-        };
-
-        return [
-            'bestCorrect' => $bestCorrect,
-            'bestTotal' => $bestTotal,
-            'isNewScoreRecord' => $isNewScoreRecord,
-            'fastestSeconds' => $fastestSeconds,
-            'fastestQuestionCount' => $currentTotal,
-            'isNewSpeedRecord' => $isNewSpeedRecord,
-        ];
+        return ['points' => $base + $bonus, 'timeBonusPoints' => $bonus];
     }
 
     /**
-     * Lexicographic: accuracy ratio first (via cross-multiplication, no
-     * floats), total question count as the tiebreak - a perfect 30/30
-     * outranks a perfect 3/3 even though both are a 100% ratio.
+     * @return array{points: int, timeBonusPoints: int, bestPoints: int, isNewRecord: bool}|null null if this round was never graded (points was never stored)
      */
-    private static function isBetterScore(int $correctA, int $totalA, int $correctB, int $totalB): bool
+    public function forTool(string $visitorId, string $tool, PracticeSession $current): ?array
     {
-        $ratioComparison = $correctA * $totalB <=> $correctB * $totalA;
+        return self::summarize($this->sessions->finishedForTool($visitorId, $tool), $current);
+    }
 
-        return $ratioComparison > 0 || ($ratioComparison === 0 && $totalA > $totalB);
+    /**
+     * @param PracticeSession[] $finishedSessions
+     * @return array{points: int, timeBonusPoints: int, bestPoints: int, isNewRecord: bool}|null
+     */
+    public static function summarize(array $finishedSessions, PracticeSession $current): ?array
+    {
+        $currentPoints = $current->getPoints();
+        if ($currentPoints === null) {
+            return null;
+        }
+
+        $priorBest = null;
+        foreach ($finishedSessions as $session) {
+            if ($session === $current) {
+                continue;
+            }
+            $points = $session->getPoints();
+            if ($points !== null && ($priorBest === null || $points > $priorBest)) {
+                $priorBest = $points;
+            }
+        }
+
+        $isNewRecord = $priorBest !== null && $currentPoints > $priorBest;
+
+        return [
+            'points' => $currentPoints,
+            'timeBonusPoints' => $current->getTimeBonusPoints() ?? 0,
+            'bestPoints' => $priorBest === null || $currentPoints > $priorBest ? $currentPoints : $priorBest,
+            'isNewRecord' => $isNewRecord,
+        ];
     }
 }

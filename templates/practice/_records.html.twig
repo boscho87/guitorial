@@ -1,13 +1,14 @@
-{# Expects `records`: {bestCorrect, bestTotal, isNewScoreRecord, fastestSeconds, fastestQuestionCount, fastestTimeLabel, isNewSpeedRecord}|null #}
+{# Expects `records`: {points, timeBonusPoints, bestPoints, isNewRecord}|null #}
 {% if records %}
-    <p class="mt-2 font-mono text-xs text-base-content/60">
-        {{ 'practice_records.best_score'|trans({'%correct%': records.bestCorrect, '%total%': records.bestTotal}) }}
-        {% if records.isNewScoreRecord %} – {{ 'practice_records.new_score_record'|trans }}{% endif %}
+    <p class="mt-2 font-mono text-sm text-base-content/70">
+        {{ 'practice_records.points'|trans({'%points%': records.points}) }}
+        {% if records.timeBonusPoints > 0 %}
+            <span class="text-base-content/50">({{ 'practice_records.time_bonus'|trans({'%bonus%': records.timeBonusPoints}) }})</span>
+        {% endif %}
     </p>
-    {% if records.fastestTimeLabel %}
-        <p class="mt-1 font-mono text-xs text-base-content/60">
-            {{ 'practice_records.best_time'|trans({'%total%': records.fastestQuestionCount, '%time%': records.fastestTimeLabel}) }}
-            {% if records.isNewSpeedRecord %} – {{ 'practice_records.new_time_record'|trans }}{% endif %}
-        </p>
+    {% if records.isNewRecord %}
+        <p class="mt-1 text-xs font-semibold text-primary">{{ 'practice_records.new_record'|trans }}</p>
+    {% else %}
+        <p class="mt-1 text-xs text-base-content/50">{{ 'practice_records.best'|trans({'%points%': records.bestPoints}) }}</p>
     {% endif %}
 {% endif %}

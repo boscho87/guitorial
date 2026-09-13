@@ -161,7 +161,15 @@ final class CapoTrainerController extends AbstractController
             $round['current'] = null;
             $session->set(self::SESSION_ROUND, $round);
             if ($practiceSession !== null) {
-                $this->sessionRecorder->finish($practiceSession);
+                $visitorId = $request->attributes->get('visitorId');
+                $points = $this->personalRecords->pointsForFinishedRound(
+                    is_string($visitorId) ? $visitorId : '',
+                    self::TOOL,
+                    $practiceSession,
+                    $round['correctCount'],
+                    $round['totalQuestions'],
+                );
+                $this->sessionRecorder->finish($practiceSession, points: $points['points'], timeBonusPoints: $points['timeBonusPoints']);
             }
         } else {
             $round['questionIndex']++;
@@ -362,10 +370,7 @@ final class CapoTrainerController extends AbstractController
         $records = null;
         if ($round['finished'] && $practiceSession !== null) {
             $visitorId = $request->attributes->get('visitorId');
-            $result = $this->personalRecords->forTool(is_string($visitorId) ? $visitorId : '', self::TOOL, $practiceSession, $round['correctCount'], $round['totalQuestions']);
-            $records = $result + [
-                'fastestTimeLabel' => $result['fastestSeconds'] !== null ? $this->formatElapsed((float) $result['fastestSeconds']) : null,
-            ];
+            $records = $this->personalRecords->forTool(is_string($visitorId) ? $visitorId : '', self::TOOL, $practiceSession);
         }
 
         return [

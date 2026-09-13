@@ -96,6 +96,19 @@ class PracticeSession
     #[ORM\Column]
     private bool $hasInteraction = false;
 
+    /**
+     * Points-based personal record for this round (10 per correct answer,
+     * plus timeBonusPoints below on a perfect round). Null for anything
+     * that predates this feature or was never graded (skalen-generator,
+     * diary manual completions) - excluded from record comparisons rather
+     * than treated as zero.
+     */
+    #[ORM\Column(nullable: true)]
+    private ?int $points = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $timeBonusPoints = null;
+
     public function __construct(
         string $visitorId,
         string $clientSessionId,
@@ -204,6 +217,16 @@ class PracticeSession
         return $this->hasInteraction;
     }
 
+    public function getPoints(): ?int
+    {
+        return $this->points;
+    }
+
+    public function getTimeBonusPoints(): ?int
+    {
+        return $this->timeBonusPoints;
+    }
+
     /**
      * Marks the point a round stopped being "just configured" and became
      * something the visitor actually did - see each controller's own
@@ -216,11 +239,13 @@ class PracticeSession
         $this->hasInteraction = true;
     }
 
-    public function finish(?string $learningState = null): void
+    public function finish(?string $learningState = null, ?int $points = null, ?int $timeBonusPoints = null): void
     {
         $this->finishedAt = new \DateTimeImmutable();
         $this->status = self::STATUS_FINISHED;
         $this->learningState = $learningState;
+        $this->points = $points;
+        $this->timeBonusPoints = $timeBonusPoints;
     }
 
     /**

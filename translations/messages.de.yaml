@@ -66,10 +66,10 @@ practice_progress:
   time_progress: "%minutes% von %target% Min."
 
 practice_records:
-  best_score: "Bestleistung bisher: %correct% von %total% richtig"
-  new_score_record: "neue Bestleistung"
-  best_time: "Schnellste Runde mit %total% Fragen: %time%"
-  new_time_record: "neue Bestzeit"
+  points: "%points% Punkte"
+  time_bonus: "+%bonus% Zeitbonus"
+  new_record: "Neuer Rekord"
+  best: "Bisherige Bestleistung: %points% Punkte"
 
 practice_toast:
   chosen: Gewählt
