@@ -27,13 +27,13 @@
                 {% if timeProgress %}
                     <div
                             data-controller="timer" data-timer-start-value="{{ startedAtMs }}"
-                            data-timer-progress-base-seconds-value="{{ timeProgress.baseSeconds }}"
+                            data-timer-progress-start-seconds-value="{{ timeProgress.todaySeconds }}"
                             data-timer-progress-label-template-value="{{ 'practice_progress.time_progress'|trans({'%minutes%': '{m}', '%target%': timeProgress.targetMinutes}) }}"
                     >
                         <progress
                                 class="progress progress-primary h-1.5 w-full"
                                 data-timer-target="progress"
-                                value="{{ timeProgress.baseSeconds }}" max="{{ timeProgress.targetMinutes * 60 }}"
+                                value="{{ timeProgress.todaySeconds }}" max="{{ timeProgress.targetMinutes * 60 }}"
                                 aria-label="{{ 'practice_progress.time_progress'|trans({'%minutes%': timeProgress.todayMinutes, '%target%': timeProgress.targetMinutes}) }}"
                         ></progress>
                         <div class="mt-2 flex items-center justify-between gap-3 font-mono text-sm text-base-content/70">

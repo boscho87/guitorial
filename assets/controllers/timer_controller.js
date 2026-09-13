@@ -10,19 +10,25 @@ import { Controller } from '@hotwired/stimulus';
  *
  * Optionally also ticks a diary daily-target <progress> bar + its text
  * label live, second by second, instead of only moving once per question
- * answered (a server round-trip) or jumping in whole-minute steps -
- * progressBaseSecondsValue is today's already-finished minutes (in
- * seconds, from the server), and this adds the round's own live elapsed
- * time on top every tick. Only wired up where a `progress`/`progressLabel`
+ * answered (a server round-trip) or jumping in whole-minute steps.
+ * progressStartSecondsValue is the server's already-capped "today, toward
+ * the target" total as of this page load (see ExerciseTargetProgress -
+ * capped at the round's last practice-sync heartbeat, not wall-clock time,
+ * so an abandoned round doesn't look like it kept running). This only adds
+ * time spent on THIS page view on top (measured from connect(), not from
+ * the round's original start) - deliberately NOT the same elapsed value as
+ * the round clock above, which intentionally does count time since the
+ * round's original start. Only wired up where a `progress`/`progressLabel`
  * target is actually present - every other usage of this controller is
  * unaffected.
  */
 export default class extends Controller {
     static targets = ['clock', 'progress', 'progressLabel'];
-    static values = { start: Number, targetSeconds: Number, progressBaseSeconds: Number, progressLabelTemplate: String };
+    static values = { start: Number, targetSeconds: Number, progressStartSeconds: Number, progressLabelTemplate: String };
 
     connect() {
         this.beeped = false;
+        this.connectedAtMs = Date.now();
         this.tick();
         this.interval = setInterval(() => this.tick(), 1000);
     }
@@ -38,8 +44,9 @@ export default class extends Controller {
         const clock = this.hasClockTarget ? this.clockTarget : this.element;
         clock.textContent = `${minutes}:${String(seconds).padStart(2, '0')}`;
 
-        if (this.hasProgressTarget && this.hasProgressBaseSecondsValue) {
-            const totalSeconds = this.progressBaseSecondsValue + elapsed;
+        if (this.hasProgressTarget && this.hasProgressStartSecondsValue) {
+            const sinceThisPageview = Math.max(0, Math.floor((Date.now() - this.connectedAtMs) / 1000));
+            const totalSeconds = this.progressStartSecondsValue + sinceThisPageview;
             this.progressTarget.value = totalSeconds;
             if (this.hasProgressLabelTarget && this.hasProgressLabelTemplateValue) {
                 this.progressLabelTarget.textContent = this.progressLabelTemplateValue.replace('{m}', Math.floor(totalSeconds / 60));

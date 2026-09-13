@@ -26,7 +26,7 @@ final class ExerciseTargetProgress
     }
 
     /**
-     * @return array{baseSeconds: int, todayMinutes: int, targetMinutes: int}|null
+     * @return array{todaySeconds: int, todayMinutes: int, targetMinutes: int}|null
      */
     public function forExercise(Exercise $exercise, ?PracticeSession $runningSession = null): ?array
     {
@@ -46,14 +46,23 @@ final class ExerciseTargetProgress
      * without a database: sums already-finished sessions' durations, plus
      * the still-running one's elapsed time if it's for the same exercise.
      *
-     * baseSeconds (finished sessions only, seconds) is exposed separately
-     * from todayMinutes (rounded, includes the live round) so the browser
-     * can tick the progress bar every second - baseSeconds + however many
-     * seconds have elapsed client-side since the round started - instead of
-     * only moving once per question answered / jumping in whole minutes.
+     * The running session's contribution is capped at its own updatedAt,
+     * not wall-clock "now" - updatedAt only advances via the practice-sync
+     * heartbeat (~every 20s) that runs while the practice turbo-frame is
+     * actually connected, and stops the moment the visitor navigates away
+     * (Stimulus disconnect() clears its interval). Using raw "now" instead
+     * would keep counting a round as "practiced" for however many real
+     * hours it sat abandoned before being resumed or discarded - exactly
+     * the bug reported: the exercise looked like it kept running after
+     * switching away to another screen.
+     *
+     * todaySeconds is exposed (exact, already capped) so the browser can
+     * tick the progress bar live for time spent on THIS page view, seeded
+     * from this value at connect - instead of only moving once per question
+     * answered, or extrapolating from the round's original start time.
      *
      * @param PracticeSession[] $finishedSessionsToday
-     * @return array{baseSeconds: int, todayMinutes: int, targetMinutes: int}
+     * @return array{todaySeconds: int, todayMinutes: int, targetMinutes: int}
      */
     public static function calculate(
         int $targetMinutes,
@@ -62,9 +71,9 @@ final class ExerciseTargetProgress
         Exercise $exercise,
         ?int $nowTimestamp = null,
     ): array {
-        $baseSeconds = 0;
+        $finishedSeconds = 0;
         foreach ($finishedSessionsToday as $session) {
-            $baseSeconds += $session->getFinishedAt()->getTimestamp() - $session->getStartedAt()->getTimestamp();
+            $finishedSeconds += $session->getFinishedAt()->getTimestamp() - $session->getStartedAt()->getTimestamp();
         }
 
         $liveSeconds = 0;
@@ -73,12 +82,15 @@ final class ExerciseTargetProgress
             && $runningSession->isRunning()
             && $runningSession->getExercise() === $exercise
         ) {
-            $liveSeconds = max(0, ($nowTimestamp ?? time()) - $runningSession->getStartedAt()->getTimestamp());
+            $lastHeartbeat = min($nowTimestamp ?? time(), $runningSession->getUpdatedAt()->getTimestamp());
+            $liveSeconds = max(0, $lastHeartbeat - $runningSession->getStartedAt()->getTimestamp());
         }
 
+        $todaySeconds = $finishedSeconds + $liveSeconds;
+
         return [
-            'baseSeconds' => $baseSeconds,
-            'todayMinutes' => (int) round(($baseSeconds + $liveSeconds) / 60),
+            'todaySeconds' => $todaySeconds,
+            'todayMinutes' => (int) round($todaySeconds / 60),
             'targetMinutes' => $targetMinutes,
         ];
     }
