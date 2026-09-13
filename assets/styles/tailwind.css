@@ -161,6 +161,20 @@
   --color-footer-content: #fdf6ea;
 }
 
+/*
+ * The fixed warm brown/cream footer (above) grounds the page nicely
+ * against the light/dark/slate themes' own warmer or cooler-but-moderate
+ * palettes - but it visibly clashes with guitorial-contrast's stark
+ * black/white/neon language, reading as an odd muddy band rather than a
+ * grounding one. Only this theme gets its own footer colors, matching its
+ * base black/white instead. Unlayered so it reliably overrides the
+ * @theme default above regardless of Tailwind's internal layer order.
+ */
+[data-theme="guitorial-contrast"] {
+  --color-footer: #000000;
+  --color-footer-content: #ffffff;
+}
+
 @layer base {
   @keyframes toast-in {
     from {
@@ -253,4 +267,20 @@
   .chart-tooltip {
     @apply pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-md bg-base-300 px-2 py-1 font-mono text-xs text-base-content/80 shadow;
   }
+}
+
+/*
+ * DaisyUI's default :focus-visible state resets a ghost button back to
+ * solid chrome (filled background + border pill) on top of its own
+ * outline ring - a jarring, inconsistent look for our minimal "ghost"
+ * buttons (e.g. "Als Übung übernehmen"), especially stark in the
+ * high-contrast theme. Keep just the outline ring for a visible focus
+ * indicator, drop the extra solid-pill chrome swap. Unlayered so it
+ * reliably wins over DaisyUI's own utility-layer rule.
+ */
+.btn-ghost:focus-visible {
+  --btn-bg: transparent;
+  --btn-border: transparent;
+  --btn-shadow: 0 0 0 0 transparent;
+  --btn-inset: 0 0 0 0 transparent;
 }
