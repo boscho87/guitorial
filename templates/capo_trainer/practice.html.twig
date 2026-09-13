@@ -66,6 +66,7 @@
                 <p class="mt-2 font-mono text-sm text-base-content/70">
                     {{ 'capo_trainer.summary.time'|trans({'%time%': elapsedLabel}) }}
                 </p>
+                {{ include('practice/_records.html.twig', {records: records}) }}
                 <div class="mt-10 flex flex-wrap justify-center gap-3">
                     <form method="post" action="{{ path('capo_trainer_restart') }}" data-controller="restart-shortcut">
                         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">

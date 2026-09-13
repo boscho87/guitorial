@@ -92,4 +92,28 @@ class PracticeSessionRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return PracticeSession[] finished sessions for this visitor and tool,
+     *         most recent first, capped (same "recent window is enough"
+     *         convention as forVisitor()) - diary "mark done" credit
+     *         sessions (backdateStart()) always have tool = null in
+     *         practice and so can never appear here regardless, but that's
+     *         a fairness caveat worth keeping in mind since it's the same
+     *         entity/table either way.
+     */
+    public function finishedForTool(string $visitorId, string $tool, int $limit = 200): array
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.visitorId = :visitorId')
+            ->andWhere('s.tool = :tool')
+            ->andWhere('s.status = :status')
+            ->setParameter('visitorId', $visitorId)
+            ->setParameter('tool', $tool)
+            ->setParameter('status', PracticeSession::STATUS_FINISHED)
+            ->orderBy('s.finishedAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

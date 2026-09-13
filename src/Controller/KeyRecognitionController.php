@@ -8,6 +8,7 @@ use App\Domain\Quiz\AnswerOptionPicker;
 use App\Domain\Quiz\WeightedQuestionPicker;
 use App\Domain\Session\ExercisePlanLink;
 use App\Domain\Session\ExerciseTargetProgress;
+use App\Domain\Session\PersonalRecords;
 use App\Domain\Session\SessionRecorder;
 use App\Domain\Session\ToolConfigSnapshot;
 use App\Domain\Theory\MusicKey;
@@ -44,6 +45,7 @@ final class KeyRecognitionController extends AbstractController
         private readonly ExercisePlanLink $planLink,
         private readonly PracticeSessionRepository $sessions,
         private readonly ExerciseTargetProgress $targetProgress,
+        private readonly PersonalRecords $personalRecords,
     ) {
     }
 
@@ -307,9 +309,19 @@ final class KeyRecognitionController extends AbstractController
             ? $this->targetProgress->forExercise($practiceSession->getExercise(), $practiceSession)
             : null;
 
+        $records = null;
+        if ($round['finished'] && $practiceSession !== null) {
+            $visitorId = $request->attributes->get('visitorId');
+            $result = $this->personalRecords->forTool(is_string($visitorId) ? $visitorId : '', self::TOOL, $practiceSession, $round['correctCount'], $round['totalQuestions']);
+            $records = $result + [
+                'fastestTimeLabel' => $result['fastestSeconds'] !== null ? $this->formatElapsed((float) $result['fastestSeconds']) : null,
+            ];
+        }
+
         return [
             'sessionId' => $round['practiceSessionId'],
             'timeProgress' => $timeProgress,
+            'records' => $records,
             'answerOptions' => array_map(
                 fn (string $id): array => ['id' => $id, 'label' => $this->pairLabel($id)],
                 $optionIds,

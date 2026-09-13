@@ -1,0 +1,13 @@
+{# Expects `records`: {bestCorrect, bestTotal, isNewScoreRecord, fastestSeconds, fastestQuestionCount, fastestTimeLabel, isNewSpeedRecord}|null #}
+{% if records %}
+    <p class="mt-2 font-mono text-xs text-base-content/60">
+        {{ 'practice_records.best_score'|trans({'%correct%': records.bestCorrect, '%total%': records.bestTotal}) }}
+        {% if records.isNewScoreRecord %} – {{ 'practice_records.new_score_record'|trans }}{% endif %}
+    </p>
+    {% if records.fastestTimeLabel %}
+        <p class="mt-1 font-mono text-xs text-base-content/60">
+            {{ 'practice_records.best_time'|trans({'%total%': records.fastestQuestionCount, '%time%': records.fastestTimeLabel}) }}
+            {% if records.isNewSpeedRecord %} – {{ 'practice_records.new_time_record'|trans }}{% endif %}
+        </p>
+    {% endif %}
+{% endif %}
