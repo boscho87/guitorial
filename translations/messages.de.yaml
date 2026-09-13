@@ -40,6 +40,7 @@ home:
 
 training:
   title: Training
+  meta_title: "Gitarre-Übungstools"
   meta_description: "Alle Guitorial-Trainer: Tonart erkennen, Kapo-Trainer, Funktion bestimmen, Griffbrett und Skalen-Generator."
   intro: "Wähle ein Tool und leg los."
   storage_hint: "Ergebnisse werden anonym gespeichert – mit Login bleiben sie geräteübergreifend erhalten."
@@ -80,6 +81,7 @@ practice_toast:
 
 key_recognition:
   title: Tonart erkennen
+  meta_title: "Tonart erkennen – Gitarre üben"
   description: "Eine Akkordfolge lesen und die passende Tonart bestimmen."
   settings:
     intro: "Du liest eine kurze Akkordfolge und bestimmst die passende Tonart. Dur und die parallele Moll-Tonart klingen in den Akkorden gleich (z.B. C-Dur/A-Moll) und zählen daher als eine Antwort. Wähle unten aus, welche Tonarten in dieser Runde vorkommen sollen."
@@ -102,6 +104,7 @@ key_recognition:
 
 harmonic_function:
   title: Funktion bestimmen
+  meta_title: "Funktion bestimmen – Gitarre üben"
   description: "Erkennen, welche Stufe ein Akkord oder Ton in einer Tonart ist."
   settings:
     intro: "Du siehst eine Tonart und einen Akkord oder Ton daraus (z.B. F#m in D-Dur) und bestimmst, welche Stufe das ist (hier: vi). Im Gegensatz zu \"Tonart erkennen\" zählen Dur und Moll hier als unterschiedliche Antworten, da dieselbe Note in Dur und Moll eine andere Stufe sein kann."
@@ -131,6 +134,7 @@ harmonic_function:
 
 capo_trainer:
   title: Kapo-Trainer
+  meta_title: "Kapo-Trainer für Gitarre"
   description: "Griffbild, Kapo-Bund und klingenden Akkord ineinander umrechnen."
   settings:
     intro: "Du rechnest Griffbild, Kapo-Bund und klingenden Akkord ineinander um (z.B. \"Kapo im 2. Bund, gegriffen G – welcher Akkord klingt wirklich?\"). Wähle unten die Shapes und die Frage-Richtung(en)."
@@ -161,6 +165,7 @@ capo_trainer:
 
 fretboard:
   title: Griffbrett
+  meta_title: "Griffbrett-Trainer für Gitarre"
   description: "Töne, Saiten und Bünde auf dem Griffbrett auswendig lernen."
   settings:
     intro: "Du bestimmst, wie ein Ton, eine Saite und ein Bund zusammenhängen – z.B. \"Welcher Ton ist auf der A-Saite im 5. Bund?\". Saite 1 (e) und Saite 6 (E) klingen bei gleichem Bund identisch und zählen bei \"Welche Saite?\" beide als richtig."
@@ -191,6 +196,7 @@ fretboard:
 
 scale_generator:
   title: "Skalen-Generator"
+  meta_title: "Skalen-Generator – Gitarre üben"
   description: "Zufälliger Ton zum Üben – zum Improvisieren, Auswendiglernen oder für Fingersätze."
   settings:
     intro: "Wähle, welche Töne vorkommen sollen. Der Generator zieht danach zufällig einen Ton – ohne Wiederholung, bis alle einmal dran waren. Optional wechselt er nach einer festen Zeit von selbst weiter."
@@ -441,6 +447,7 @@ exercise_session:
 
 practice_guide:
   title: "Richtig üben"
+  meta_title: "Gitarre richtig üben"
   meta_description: "Konkrete Tipps für den Übe-Alltag bei Guitorial: Routine aufbauen, Rhythmus, Griffbrett, Gehör, schwierige Stellen üben und dranbleiben."
   intro: "Die fünf Tools trainieren dein Musiktheorie-Verständnis – Tonarten, Funktionen, das Griffbrett. Wirklich besser wirst du aber erst, wenn du das auch am Instrument spielst. Deshalb bleiben Theorie und Praxis unter Meine Übungen bewusst sichtbar nebeneinander, statt dass eins von beiden untergeht."
   problem_label: Problem
