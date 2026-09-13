@@ -81,6 +81,7 @@ final class ExerciseDayViewBuilder
     public function buildRecentRatios(array $allVersions, array $sessions, \DateTimeImmutable $today, int $days = 7): array
     {
         $dailyStats = $this->dailyStatsByExercise($sessions);
+        $trackingStart = $this->earliestSessionDate($sessions);
 
         $result = [];
         for ($i = $days - 1; $i >= 0; $i--) {
@@ -89,7 +90,14 @@ final class ExerciseDayViewBuilder
             $done = 0;
             $total = 0;
 
-            foreach ($allVersions as $version) {
+            // A day before the oldest session still on record shows as
+            // untracked ("–"), not as a wall of 0/X misses - most visibly
+            // after "gesamten Verlauf löschen", which deletes the sessions
+            // that proved those days happened but leaves already-active
+            // exercises "geplant" for them. Without this, wiping the
+            // history would retroactively turn past good days into
+            // apparent failures instead of just starting fresh from today.
+            foreach ($trackingStart !== null && $date >= $trackingStart ? $allVersions : [] as $version) {
                 $exercise = $version->getExercise();
                 if (!$version->isActiveOn($date) || !$exercise->isActiveOn($date)) {
                     continue;
@@ -147,6 +155,26 @@ final class ExerciseDayViewBuilder
         }
 
         return $done;
+    }
+
+    /**
+     * The calendar day of the oldest session still on record (any status),
+     * or null if there are none at all - e.g. right after a full history
+     * wipe, before anything new has been logged yet.
+     *
+     * @param PracticeSession[] $sessions
+     */
+    private function earliestSessionDate(array $sessions): ?\DateTimeImmutable
+    {
+        $earliest = null;
+        foreach ($sessions as $s) {
+            $date = $s->getStartedAt()->setTime(0, 0);
+            if ($earliest === null || $date < $earliest) {
+                $earliest = $date;
+            }
+        }
+
+        return $earliest;
     }
 
     /**

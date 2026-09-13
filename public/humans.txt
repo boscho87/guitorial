@@ -1,0 +1,14 @@
+/* TEAM */
+Developer: Simon Müller
+Contact: simon.d.mueller [at] itscoding.ch
+From: Oftringen, Switzerland
+
+/* THANKS */
+Everyone practicing along with it.
+
+/* SITE */
+Last update: 2026/09/13
+Language: German
+Doctype: HTML5
+Components: Symfony, Tailwind CSS, DaisyUI, Hotwire Turbo, Stimulus
+Software: Docker, PHP, MySQL

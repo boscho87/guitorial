@@ -153,6 +153,43 @@ final class ExerciseDayViewBuilderTest extends TestCase
         self::assertSame(0, $todayRatio['total']); // no longer "planned" today - already fulfilled this week
     }
 
+    public function testBuildRecentRatiosShowsEveryDayAsUntrackedWithoutAnySessionOnRecord(): void
+    {
+        $today = new \DateTimeImmutable('today');
+        $exercise = $this->exercise(1);
+        $version = $this->version($exercise, 'Aufwärmen', null, ExerciseVersion::RHYTHM_DAILY, null, $today->modify('-10 days'));
+
+        // No sessions at all - e.g. right after "gesamten Verlauf löschen" -
+        // every day, including today, should read as untracked (total: 0),
+        // never as a 0/X miss for a day nothing proves happened or not.
+        $ratios = $this->builder->buildRecentRatios([$version], [], $today, 7);
+
+        foreach ($ratios as $day) {
+            self::assertSame(0, $day['total']);
+        }
+    }
+
+    public function testBuildRecentRatiosOnlyCountsDaysFromTheOldestRemainingSessionOnwards(): void
+    {
+        $today = new \DateTimeImmutable('today');
+        $exercise = $this->exercise(1);
+        $version = $this->version($exercise, 'Aufwärmen', null, ExerciseVersion::RHYTHM_DAILY, null, $today->modify('-10 days'));
+
+        // Only one session left, from today - as if history was just wiped
+        // and today is the first thing logged since.
+        $sessions = [$this->finishedSession($exercise, $today, 1)];
+        $ratios = $this->builder->buildRecentRatios([$version], $sessions, $today, 7);
+
+        $byDate = [];
+        foreach ($ratios as $day) {
+            $byDate[$day['date']->format('Y-m-d')] = $day;
+        }
+
+        self::assertSame(0, $byDate[$today->modify('-1 day')->format('Y-m-d')]['total']);
+        self::assertSame(1, $byDate[$today->format('Y-m-d')]['total']);
+        self::assertSame(1, $byDate[$today->format('Y-m-d')]['done']);
+    }
+
     private function exercise(int $id, ?\DateTimeImmutable $archivedAt = null): Exercise
     {
         $exercise = new Exercise('visitor-1');

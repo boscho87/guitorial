@@ -1,0 +1,23 @@
+# Guitorial
+
+> Guitorial ist ein persönlicher Übungsbegleiter für Gitarre (und Bass): kurze, fokussierte Musiktheorie-Trainer kombiniert mit einem Bereich für eigene Übungen, Routinen, Verlauf und Fortschritt. Deutschsprachig, ohne Konto nutzbar, Login optional für geräteübergreifende Speicherung.
+
+Kernidee: kurze, gezielte Übungsrunden statt langer Theoriestunden. Fünf Trainer decken Tonarten, Akkordfunktionen, Kapo-Transposition, Griffbrett-Töne und einen freien Übungsgenerator ab. "Meine Übungen" verbindet diese Tool-Runden mit komplett manuell erfassten Übungen (z. B. einem Song oder Fingerübungen) in einem gemeinsamen Verlauf mit Serie, Rekorden und Meilensteinen.
+
+## Kernseiten
+
+- [Startseite](https://guitorial.com/): Nutzenversprechen und Einstieg
+- [Tools](https://guitorial.com/training): Übersicht der fünf Übungstrainer
+- [Tonart erkennen](https://guitorial.com/tonart-erkennen): Akkordfolge einer Tonart zuordnen
+- [Kapo-Trainer](https://guitorial.com/kapo-trainer): Kapo-Transposition üben
+- [Funktion bestimmen](https://guitorial.com/funktion): Akkorde/Töne einer Skalenstufe zuordnen
+- [Griffbrett](https://guitorial.com/griffbrett): Töne, Saiten und Bünde auswendig lernen
+- [Skalen-Generator](https://guitorial.com/skalen-generator): freies, zufallsbasiertes Tonübungstraining
+- [Richtig üben](https://guitorial.com/richtig-ueben): konkrete Übungstipps nach Thema
+- [Anmelden](https://guitorial.com/login): optionale Anmeldung via Google oder Microsoft
+
+## Hinweise
+
+- Keine lokalen Passwörter, ausschliesslich OIDC-Login (Google/Microsoft).
+- Ohne Anmeldung funktioniert die App vollständig; ein anonymes Cookie speichert den Fortschritt im Browser.
+- "Meine Übungen" (Heute/Routinen/Verlauf/Fortschritt) ist personalisiert und daher nicht sinnvoll crawlbar - die oben gelisteten Seiten sind die stabilen, öffentlichen Einstiegspunkte.

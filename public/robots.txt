@@ -1,4 +1,10 @@
 User-agent: *
 Allow: /
+Disallow: /tagebuch
+Disallow: /verlauf
+Disallow: /routinen
+Disallow: /fortschritt
+Disallow: /connect/
+Disallow: /api/
 
 Sitemap: https://guitorial.com/sitemap.xml
