@@ -26,29 +26,32 @@ home:
   benefit_progress_text: "Serie, Bestleistungen und Verlauf zeigen, dass sich das Üben lohnt."
   trainer_title: Trainer
   trainer_bass_hint: "Tonart erkennen, Funktion bestimmen und der Skalen-Generator sind reine Musiktheorie - funktionieren genauso am Bass."
-  diary_title: Übungstagebuch
-  diary_text: "Im Tagebuch landet beides: Runden aus den Trainern und alles, was du sonst übst - ein Stück, Akkordwechsel, Timing mit dem Metronom. Rhythmus und Tagesziel pro Übung, damit du siehst, was ansteht."
+  diary_title: "Meine Übungen"
+  diary_text: "Hier landet alles: Runden aus den Trainern und alles, was du sonst übst - ein Stück, Akkordwechsel, Timing mit dem Metronom. Stell mehrere Übungen zu einer Routine zusammen, halte Rhythmus und Tagesziel pro Übung fest, und sieh im Verlauf, was du bereits geschafft hast."
   diary_examples: "Zum Beispiel: Pentatonik, ein Song, Alternate Picking, Akkordwechsel, Metronom-Timing"
-  diary_cta: "Zum Tagebuch"
+  diary_cta: "Meine Übungen öffnen"
   progress_title: Fortschritt
   progress_text: "Ein paar Beispiele, wie sich das im Alltag zeigt:"
   progress_example_streak: "7 Tage in Folge geübt"
   progress_example_record: "Neue Bestleistung"
   progress_example_week: "4 von 5 Übungstagen diese Woche"
+  progress_cta: "Fortschritt ansehen"
   storage_text: "Ohne Konto starten. Mit Login (Google oder Microsoft) bleibt dein Fortschritt auch auf einem neuen Gerät erhalten."
 
 training:
   title: Training
   meta_description: "Alle Guitorial-Trainer: Tonart erkennen, Kapo-Trainer, Funktion bestimmen, Griffbrett und Skalen-Generator."
   intro: "Wähle ein Tool und leg los."
+  storage_hint: "Ergebnisse werden anonym gespeichert – mit Login bleiben sie geräteübergreifend erhalten."
   streak_one: "%days% Tag in Folge geübt"
   streak_other: "%days% Tage in Folge geübt"
 
 nav:
   back_home: Zurück
-  training: Training
+  start: Start
+  training: Tools
   history: Verlauf
-  diary: Tagebuch
+  diary: "Meine Übungen"
   practice_guide: Tipps
   login: Anmelden
   logout: Abmelden
@@ -220,10 +223,10 @@ history:
   tones_practiced: "%count% Töne geübt"
   groups_link: "Nach Gruppe"
   delete_all: "Gesamten Verlauf löschen"
-  delete_all_confirm: "Den gesamten Verlauf wirklich löschen? Deine Übungen im Tagebuch bleiben erhalten, nur die aufgezeichneten Runden werden entfernt."
+  delete_all_confirm: "Den gesamten Verlauf wirklich löschen? Deine Übungen unter Meine Übungen bleiben erhalten, nur die aufgezeichneten Runden werden entfernt."
   promote:
     submit: "Als Übung übernehmen"
-    flash: "Als wiederkehrende Übung übernommen – im Tagebuch anpassbar."
+    flash: "Als wiederkehrende Übung übernommen – unter Meine Übungen anpassbar."
   groups_page:
     title: "Verlauf nach Gruppe"
     intro: "Übungszeit und Lernstand der letzten 30 Tage, aggregiert nach Gruppe."
@@ -240,7 +243,7 @@ history:
     back: "Zurück zur Gruppen-Übersicht"
     empty: "Noch kein Verlauf für diese Übung."
     delete: "Verlauf dieser Übung löschen"
-    delete_confirm: "Den Verlauf dieser Übung wirklich löschen? Die Übung selbst bleibt im Tagebuch erhalten."
+    delete_confirm: "Den Verlauf dieser Übung wirklich löschen? Die Übung selbst bleibt unter Meine Übungen erhalten."
   stats:
     rounds_label: "Abgeschlossene Runden"
     accuracy_label: "Ø Genauigkeit"
@@ -264,10 +267,39 @@ history:
     page_of: "Seite %page% von %total%"
     stats_cap_hint: "Statistik und Diagramm oben basieren auf den letzten %window% deiner insgesamt %total% Runden."
 
+progress:
+  title: Fortschritt
+  meta_description: "Dein Fortschritt bei Guitorial: Serie, Übungstage, Gesamtdauer und persönliche Rekorde."
+  intro: "Dein persönlicher Fortschritt – kein Vergleich mit anderen, nur mit dir selbst."
+  empty: "Noch nichts zu zeigen."
+  empty_cta: "Jetzt eine Übung starten"
+  stats:
+    current_streak: "Aktuelle Serie"
+    longest_streak: "Längste Serie"
+    practice_days: Übungstage
+    total_duration: Übungszeit
+    duration_hours: "%hours%h %minutes%min"
+    duration_minutes: "%minutes% Min."
+    completed_sessions: "Abgeschlossene Einheiten"
+  milestones:
+    title: Meilensteine
+    days_title: Übungstage
+    sessions_title: "Abgeschlossene Einheiten"
+    achieved: "Erreicht: %value%"
+    next: "Nächstes Ziel: %value%"
+  records:
+    title: "Persönliche Rekorde"
+    points: "%points% Punkte"
+
 diary:
-  title: Übetagebuch
-  meta_description: "Dein persönlicher Übe-Plan bei Guitorial, mit oder ohne Konto."
-  intro: "Dein täglicher Übungsplan. Änderungen an einer Übung wirken erst ab heute, vergangene Tage bleiben unverändert."
+  title: "Meine Übungen"
+  meta_description: "Deine Übungen bei Guitorial: eigene und tool-basierte Übungen, Routinen, Verlauf und Fortschritt an einem Ort."
+  intro: "Dein heutiger Übungsplan. Änderungen an einer Übung wirken erst ab heute, vergangene Tage bleiben unverändert."
+  area_nav:
+    today: Heute
+    routines: Routinen
+    history: Verlauf
+    progress: Fortschritt
   empty: "Noch keine Übungen im Plan."
   empty_past: "An diesem Tag gab es noch keine Übungen im Plan."
   manage_link: "Übungen verwalten"
@@ -293,7 +325,7 @@ diary:
     title: "Übungen verwalten"
     intro: "Deine bestehenden Übungen – bearbeiten, archivieren oder löschen. Änderungen wirken ab heute."
     active_heading: "Aktive Übungen"
-    back_to_diary: "Zurück zum Tagebuch"
+    back_to_diary: "Zurück zu Meine Übungen"
     back_to_list: "Zurück zur Liste"
   item:
     linked_to: "Verknüpft mit %tool%"
@@ -358,6 +390,33 @@ diary:
   recent:
     title: "Letzte 7 Tage"
 
+routine:
+  title: Routinen
+  meta_description: "Deine Übungsroutinen bei Guitorial: mehrere Übungen zu einem wiederkehrenden Ablauf zusammenstellen."
+  intro: "Fasse mehrere Übungen zu einem festen Ablauf zusammen, den du am Stück durchgehst."
+  list_heading: "Deine Routinen"
+  new_button: "+ Neue Routine"
+  empty: "Noch keine Routine erstellt."
+  item_count: "%count% Übungen"
+  start: Starten
+  delete_confirm: "Routine wirklich löschen? Die enthaltenen Übungen selbst bleiben unter Meine Übungen erhalten."
+  back_to_list: "Zurück zu Routinen"
+  add:
+    title: "Neue Routine"
+  edit:
+    title: "Routine bearbeiten"
+    order_heading: Reihenfolge
+    no_items: "Noch keine Übungen in dieser Routine."
+  form:
+    name: Name
+    exercises: Übungen
+    no_exercises: "Du hast noch keine aktiven Übungen."
+    no_exercises_cta: "Jetzt eine Übung erfassen"
+    save: Speichern
+  show:
+    all_done: "Routine heute abgeschlossen."
+    empty: "Diese Routine enthält keine aktiven Übungen mehr."
+
 exercise_session:
   title: Übungssitzung
   untitled: Übung
@@ -378,19 +437,56 @@ exercise_session:
 
 practice_guide:
   title: "Richtig üben"
-  meta_description: "Tipps für effektives Musiktheorie- und Gitarrenüben: Struktur statt Zufall, Balance zwischen Theorie und Praxis, und wie du dranbleibst."
-  structure:
-    title: "Struktur schlägt Zufall"
-    body: "Fang mit ein paar Minuten Aufwärmen an, um die Finger locker zu machen. Übe danach gezielt das, was bisher oft schiefging – die Tools gewichten automatisch stärker, was du bereits falsch beantwortet hast. Erst danach kommt Neues dazu: ein Akkord, ein Konzept, ein Stück. Am Ende darf es auch einfach Spass machen: frei spielen."
-  balance:
-    title: "Theorie und Praxis brauchen sich gegenseitig"
-    body: "Die fünf Übungs-Tools trainieren dein Musiktheorie-Verständnis – Tonarten, Funktionen, das Griffbrett. Fortschritt am Instrument entsteht aber erst, wenn du das auch wirklich spielst. Das Tagebuch trennt deshalb bewusst zwischen „Theorie“ und „Praxis“, damit beides sichtbar bleibt und keins der beiden untergeht."
-  consistency:
-    title: "Kurz und regelmässig statt lang und selten"
-    body: "10 bis 15 fokussierte Minuten am Tag bringen mehr als eine lange Session einmal pro Woche. Im Verlauf siehst du deine aktuelle Serie – ein einfacher Anreiz, dranzubleiben, statt alles auf einmal nachzuholen."
+  meta_description: "Konkrete Tipps für den Übe-Alltag bei Guitorial: Routine aufbauen, Rhythmus, Griffbrett, Gehör, schwierige Stellen üben und dranbleiben."
+  intro: "Die fünf Tools trainieren dein Musiktheorie-Verständnis – Tonarten, Funktionen, das Griffbrett. Wirklich besser wirst du aber erst, wenn du das auch am Instrument spielst. Deshalb bleiben Theorie und Praxis unter Meine Übungen bewusst sichtbar nebeneinander, statt dass eins von beiden untergeht."
+  problem_label: Problem
+  duration_label: Dauer
+  more_topics: "Weitere Themen anzeigen"
+  as_exercise_cta: "Als eigene Übung erfassen"
+  topics:
+    routine:
+      title: "Übungsroutine aufbauen"
+      problem: "Du übst mal viel, mal gar nicht – ohne klaren roten Faden."
+      explanation: "Eine kurze, feste Reihenfolge sorgt dafür, dass Aufwärmen, Schwachstellen und Neues nicht dem Zufall überlassen bleiben."
+      exercise: "Leg eine feste Reihenfolge fest: 2 Minuten aufwärmen, dann gezielt üben, was zuletzt oft schiefging (die Tools gewichten das automatisch stärker), danach etwas Neues – ein Akkord, ein Konzept, ein Stück – und zum Schluss frei spielen."
+      duration: "10–15 Min."
+      tool_label: "Zu den Tools"
+    rhythm:
+      title: "Rhythmus und Timing"
+      problem: "Ein Akkordwechsel klappt einzeln, aber im Takt bricht alles zusammen."
+      explanation: "Timing ist eine eigene Fertigkeit, die sich getrennt vom reinen Greifen trainieren lässt."
+      exercise: "Stell ein Metronom auf ein Tempo, bei dem du dich sicher fühlst, und übe einen Akkordwechsel oder ein Riff ausschliesslich im Takt – lieber langsam und exakt als schnell und wackelig. Steigere das Tempo erst, wenn es sauber sitzt."
+      duration: "5–10 Min."
+    fretboard:
+      title: "Griffbrett verstehen"
+      problem: "Ausserhalb der ersten paar Lagen weisst du nicht mehr, welcher Ton wo liegt."
+      explanation: "Das Griffbrett wird erst dann wirklich vertraut, wenn du Töne auch in höheren Lagen sofort findest, nicht nur die üblichen Startpositionen."
+      exercise: "Wähle eine Saite und suche gezielt einen bestimmten Ton in mehreren Lagen, bevor du zur nächsten Saite wechselst."
+      duration: "5–10 Min."
+      tool_label: "Zum Griffbrett-Trainer"
+    ear:
+      title: "Gehör entwickeln"
+      problem: "Du hörst einen Akkordwechsel, kannst ihn aber nicht benennen."
+      explanation: "Tonarten und Funktionen schneller zu erkennen setzt regelmässiges, gezieltes Training voraus – reines Zuhören reicht dafür meist nicht."
+      exercise: "Übe kurze Runden mit einem der Theorie-Tools, statt zu versuchen, alles auf einmal beim freien Spielen mitzuhören."
+      duration: "5–10 Min."
+      tool_label: "Tonart erkennen üben"
+    hard_spots:
+      title: "Schwierige Stellen üben"
+      problem: "Ein Stück klappt fast durchgehend – aber an derselben Stelle reisst es immer wieder ab."
+      explanation: "Eine schwierige Stelle isoliert und langsam zu üben bringt mehr als das ganze Stück von vorne zu wiederholen."
+      exercise: "Grenze die schwierige Stelle auf wenige Takte ein, übe sie deutlich langsamer im Kreis, und binde sie erst danach wieder in den Kontext davor und danach ein."
+      duration: "5–10 Min."
+    motivation:
+      title: "Motivation und Dranbleiben"
+      problem: "Nach ein paar Tagen ohne Übung fällt es schwer, wieder anzufangen."
+      explanation: "Kurze, regelmässige Einheiten bringen mehr als eine lange Session einmal pro Woche – und sichtbarer Fortschritt hält den Antrieb aufrecht."
+      exercise: "Leg dir eine minimale tägliche Grösse fest, die du fast immer schaffst, und schau danach kurz im Fortschritt vorbei, wie sich deine Serie entwickelt."
+      duration: "5–10 Min."
+      tool_label: "Fortschritt ansehen"
   cta:
     title: "Leg los"
-    diary: "Zum Tagebuch"
+    diary: "Meine Übungen öffnen"
     tools: "Zu den Tools"
 
 footer:
@@ -404,7 +500,7 @@ security:
   login:
     title: Anmelden
     meta_description: "Optional mit Google oder Microsoft bei Guitorial anmelden, um deinen Übungsfortschritt geräteübergreifend zu speichern."
-    intro: "Optional – ohne Anmeldung funktioniert Guitorial genau wie bisher. Mit Konto bleibt dein Fortschritt auch nach einem Cookie-Verlust oder auf einem neuen Gerät erhalten (sobald du dich dort ebenfalls anmeldest)."
+    intro: "Optional – ohne Anmeldung funktioniert Guitorial genau wie bisher. Mit Konto bleiben Meine Übungen, Routinen und dein Verlauf auch nach einem Cookie-Verlust oder auf einem neuen Gerät erhalten (sobald du dich dort ebenfalls anmeldest)."
     google: "Mit Google anmelden"
     microsoft: "Mit Microsoft anmelden"
     privacy_hint: "Es werden nur E-Mail-Adresse, Vor- und Nachname gespeichert. Details siehe Datenschutzerklärung."

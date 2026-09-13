@@ -1,37 +1,54 @@
 {% extends 'base.html.twig' %}
+{% import _self as m %}
 
 {% block title %}{{ 'practice_guide.title'|trans }} – Guitorial{% endblock %}
 
 {% block meta_description %}{{ 'practice_guide.meta_description'|trans }}{% endblock %}
 
+{% macro topicCard(prefix, route, routeLabel) %}
+    <div class="rounded-box border border-base-300 p-5">
+        <h3 class="font-display text-lg font-semibold">{{ (prefix ~ '.title')|trans }}</h3>
+        <p class="mt-3 text-sm text-base-content/60"><span class="font-medium text-base-content/80">{{ 'practice_guide.problem_label'|trans }}:</span> {{ (prefix ~ '.problem')|trans }}</p>
+        <p class="mt-2 text-sm text-base-content/70">{{ (prefix ~ '.explanation')|trans }}</p>
+        <p class="mt-3 text-sm font-medium">{{ (prefix ~ '.exercise')|trans }}</p>
+        <div class="mt-3 flex flex-wrap items-center gap-3 text-xs">
+            <span class="badge badge-outline">{{ 'practice_guide.duration_label'|trans }}: {{ (prefix ~ '.duration')|trans }}</span>
+            {% if route %}
+                <a href="{{ path(route) }}" class="font-medium text-primary hover:underline">{{ routeLabel|trans }}</a>
+            {% endif %}
+        </div>
+        <form method="post" action="{{ path('diary_add') }}" class="mt-3">
+            <input type="hidden" name="_token" value="{{ csrf_token('diary') }}">
+            <input type="hidden" name="title" value="{{ (prefix ~ '.title')|trans }}">
+            <button type="submit" class="btn btn-outline btn-xs">{{ 'practice_guide.as_exercise_cta'|trans }}</button>
+        </form>
+    </div>
+{% endmacro %}
+
 {% block body %}
-    <a href="{{ path('training_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        {{ 'nav.back_home'|trans }}
-    </a>
+    <h1 class="font-display text-2xl font-semibold sm:text-3xl">{{ 'practice_guide.title'|trans }}</h1>
+    <p class="mt-3 text-base-content/70">{{ 'practice_guide.intro'|trans }}</p>
 
-    <h1 class="font-display mt-3 text-2xl font-semibold sm:text-3xl">{{ 'practice_guide.title'|trans }}</h1>
+    <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {{ m.topicCard('practice_guide.topics.routine', 'training_index', 'practice_guide.topics.routine.tool_label') }}
+        {{ m.topicCard('practice_guide.topics.hard_spots', null, null) }}
+        {{ m.topicCard('practice_guide.topics.motivation', 'progress_index', 'practice_guide.topics.motivation.tool_label') }}
+    </div>
 
-    <section class="mt-8">
-        <h2 class="font-display text-lg font-semibold">{{ 'practice_guide.structure.title'|trans }}</h2>
-        <p class="mt-2 text-base-content/70">{{ 'practice_guide.structure.body'|trans }}</p>
-    </section>
+    <details class="mt-6">
+        <summary class="cursor-pointer text-sm font-medium text-primary hover:underline">{{ 'practice_guide.more_topics'|trans }}</summary>
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {{ m.topicCard('practice_guide.topics.rhythm', null, null) }}
+            {{ m.topicCard('practice_guide.topics.fretboard', 'fretboard_settings', 'practice_guide.topics.fretboard.tool_label') }}
+            {{ m.topicCard('practice_guide.topics.ear', 'key_recognition_settings', 'practice_guide.topics.ear.tool_label') }}
+        </div>
+    </details>
 
-    <section class="mt-8">
-        <h2 class="font-display text-lg font-semibold">{{ 'practice_guide.balance.title'|trans }}</h2>
-        <p class="mt-2 text-base-content/70">{{ 'practice_guide.balance.body'|trans }}</p>
-    </section>
-
-    <section class="mt-8">
-        <h2 class="font-display text-lg font-semibold">{{ 'practice_guide.consistency.title'|trans }}</h2>
-        <p class="mt-2 text-base-content/70">{{ 'practice_guide.consistency.body'|trans }}</p>
-    </section>
-
-    <section class="mt-10">
-        <h2 class="font-display text-lg font-semibold">{{ 'practice_guide.cta.title'|trans }}</h2>
-        <div class="mt-4 flex flex-wrap gap-3">
-            <a href="{{ path('diary_index') }}" class="btn btn-primary">{{ 'practice_guide.cta.diary'|trans }}</a>
-            <a href="{{ path('training_index') }}" class="btn btn-outline">{{ 'practice_guide.cta.tools'|trans }}</a>
+    <section class="mt-12 text-center">
+        <h2 class="font-display text-2xl font-semibold">{{ 'practice_guide.cta.title'|trans }}</h2>
+        <div class="mt-4 flex flex-wrap items-center justify-center gap-3">
+            <a href="{{ path('diary_index') }}" class="btn btn-outline">{{ 'practice_guide.cta.diary'|trans }}</a>
+            <a href="{{ path('training_index') }}" class="btn btn-primary">{{ 'practice_guide.cta.tools'|trans }}</a>
         </div>
     </section>
 {% endblock %}

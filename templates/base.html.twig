@@ -12,6 +12,10 @@
     <title>{% block title %}Guitorial{% endblock %}</title>
     <meta name="description" content="{% block meta_description %}Guitorial hilft dir, Musiktheorie und Gitarrenspiel gezielt zu üben – Tonarten, Akkordfunktionen, Griffbrett und mehr, mit Verlauf und Übetagebuch.{% endblock %}">
     <meta name="theme-color" content="#a8752e">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Guitorial">
+    <link rel="apple-touch-icon" href="/favicon.svg">
     <link rel="canonical" href="{{ app.request.uri }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Guitorial">
@@ -34,6 +38,20 @@
     {% endblock %}
 </head>
 <body class="flex min-h-screen flex-col text-base-content">
+{% set currentRoute = app.request.attributes.get('_route') %}
+{% set isStartActive = currentRoute == 'home_index' %}
+{% set isToolsActive = currentRoute == 'training_index'
+    or currentRoute starts with 'key_recognition_'
+    or currentRoute starts with 'capo_trainer_'
+    or currentRoute starts with 'harmonic_function_'
+    or currentRoute starts with 'fretboard_'
+    or currentRoute starts with 'scale_generator_' %}
+{% set isMyExercisesActive = currentRoute starts with 'diary_'
+    or currentRoute starts with 'history_'
+    or currentRoute starts with 'routine_'
+    or currentRoute starts with 'exercise_session_'
+    or currentRoute == 'progress_index' %}
+{% set isTipsActive = currentRoute == 'practice_guide_index' %}
 <header class="relative border-b border-base-300" data-controller="nav-menu">
     <div class="mx-auto flex max-w-3xl items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-4">
         <a class="font-display flex items-center gap-2 text-lg font-semibold" href="{{ path(app.user ? 'diary_index' : 'home_index') }}">
@@ -43,10 +61,10 @@
             Guitorial
         </a>
         <nav class="hidden items-center gap-x-4 gap-y-1.5 text-sm sm:flex">
-            <a href="{{ path('training_index') }}" class="text-base-content/70 hover:text-primary">{{ 'nav.training'|trans }}</a>
-            <a href="{{ path('diary_index') }}" class="text-base-content/70 hover:text-primary">{{ 'nav.diary'|trans }}</a>
-            <a href="{{ path('history_index') }}" class="text-base-content/70 hover:text-primary">{{ 'nav.history'|trans }}</a>
-            <a href="{{ path('practice_guide_index') }}" class="text-base-content/70 hover:text-primary">{{ 'nav.practice_guide'|trans }}</a>
+            <a href="{{ path('home_index') }}" class="{{ isStartActive ? 'font-medium text-primary' : 'text-base-content/70 hover:text-primary' }}" {% if isStartActive %}aria-current="page"{% endif %}>{{ 'nav.start'|trans }}</a>
+            <a href="{{ path('training_index') }}" class="{{ isToolsActive ? 'font-medium text-primary' : 'text-base-content/70 hover:text-primary' }}" {% if isToolsActive %}aria-current="page"{% endif %}>{{ 'nav.training'|trans }}</a>
+            <a href="{{ path('diary_index') }}" class="{{ isMyExercisesActive ? 'font-medium text-primary' : 'text-base-content/70 hover:text-primary' }}" {% if isMyExercisesActive %}aria-current="page"{% endif %}>{{ 'nav.diary'|trans }}</a>
+            <a href="{{ path('practice_guide_index') }}" class="{{ isTipsActive ? 'font-medium text-primary' : 'text-base-content/70 hover:text-primary' }}" {% if isTipsActive %}aria-current="page"{% endif %}>{{ 'nav.practice_guide'|trans }}</a>
             <div class="flex items-center gap-4 border-l border-primary/30 pl-4">
                 {% if app.user %}
                     <span class="inline-flex items-center gap-1.5 font-medium text-base-content/90" title="{{ 'nav.logged_in_as'|trans({'%email%': app.user.email}) }}">
@@ -103,10 +121,10 @@
             </button>
         </div>
         <nav class="flex flex-1 flex-col gap-1 overflow-y-auto p-3 text-base">
-            <a href="{{ path('training_index') }}" class="rounded-box px-4 py-3 text-base-content/80 hover:bg-base-200 active:bg-base-200">{{ 'nav.training'|trans }}</a>
-            <a href="{{ path('diary_index') }}" class="rounded-box px-4 py-3 text-base-content/80 hover:bg-base-200 active:bg-base-200">{{ 'nav.diary'|trans }}</a>
-            <a href="{{ path('history_index') }}" class="rounded-box px-4 py-3 text-base-content/80 hover:bg-base-200 active:bg-base-200">{{ 'nav.history'|trans }}</a>
-            <a href="{{ path('practice_guide_index') }}" class="rounded-box px-4 py-3 text-base-content/80 hover:bg-base-200 active:bg-base-200">{{ 'nav.practice_guide'|trans }}</a>
+            <a href="{{ path('home_index') }}" class="rounded-box px-4 py-3 {{ isStartActive ? 'bg-base-200 font-medium text-primary' : 'text-base-content/80 hover:bg-base-200 active:bg-base-200' }}" {% if isStartActive %}aria-current="page"{% endif %}>{{ 'nav.start'|trans }}</a>
+            <a href="{{ path('training_index') }}" class="rounded-box px-4 py-3 {{ isToolsActive ? 'bg-base-200 font-medium text-primary' : 'text-base-content/80 hover:bg-base-200 active:bg-base-200' }}" {% if isToolsActive %}aria-current="page"{% endif %}>{{ 'nav.training'|trans }}</a>
+            <a href="{{ path('diary_index') }}" class="rounded-box px-4 py-3 {{ isMyExercisesActive ? 'bg-base-200 font-medium text-primary' : 'text-base-content/80 hover:bg-base-200 active:bg-base-200' }}" {% if isMyExercisesActive %}aria-current="page"{% endif %}>{{ 'nav.diary'|trans }}</a>
+            <a href="{{ path('practice_guide_index') }}" class="rounded-box px-4 py-3 {{ isTipsActive ? 'bg-base-200 font-medium text-primary' : 'text-base-content/80 hover:bg-base-200 active:bg-base-200' }}" {% if isTipsActive %}aria-current="page"{% endif %}>{{ 'nav.practice_guide'|trans }}</a>
             <div class="mt-2 border-t border-base-300 pt-2" data-controller="theme">
                 <p class="px-4 pb-1.5 text-xs uppercase tracking-widest text-base-content/50">{{ 'nav.theme_switch'|trans }}</p>
                 <div class="grid grid-cols-2 gap-2 px-4 pb-2">
@@ -165,5 +183,12 @@
     </div>
 </footer>
 {% endif %}
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+            navigator.serviceWorker.register('/sw.js');
+        });
+    }
+</script>
 </body>
 </html>

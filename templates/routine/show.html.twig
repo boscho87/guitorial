@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ routine.name }} – Guitorial{% endblock %}
+
+{% block body %}
+    <a href="{{ path('routine_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{ 'routine.back_to_list'|trans }}
+    </a>
+
+    <h1 class="mt-3 font-display text-2xl font-semibold sm:text-3xl">{{ routine.name }}</h1>
+
+    {% if allDone %}
+        <p class="mt-4 rounded-box border border-primary/30 bg-primary/10 px-4 py-3 text-sm text-primary">{{ 'routine.show.all_done'|trans }}</p>
+    {% endif %}
+
+    {% if rows is empty %}
+        <p class="mt-8 text-sm text-base-content/60">{{ 'routine.show.empty'|trans }}</p>
+    {% else %}
+        <ul class="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
+            {% for row in rows %}
+                {% set exercise = row.version.exercise %}
+                {{ include('diary/_exercise_row.html.twig', {
+                    exercise: exercise,
+                    version: row.version,
+                    row: row,
+                    resources: resourcesByExerciseId[exercise.id],
+                    toolTitles: toolTitles,
+                    toolSettingsRoutes: toolSettingsRoutes,
+                    toolPracticeRoutes: toolPracticeRoutes,
+                    sessionCsrfIntention: sessionCsrfIntention,
+                    csrfIntention: 'diary',
+                    groupName: null,
+                    isToday: true,
+                }) }}
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

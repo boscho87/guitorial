@@ -125,6 +125,85 @@ final class HistoryStatsBuilderTest extends TestCase
         self::assertSame(0, $result['currentStreak']);
     }
 
+    public function testLongestStreakFindsThePastRunEvenWhenItsLongerThanTheCurrentOne(): void
+    {
+        $today = new \DateTimeImmutable('today');
+        $sessions = [
+            // current run: 2 consecutive days ending today
+            $this->finishedOn($today),
+            $this->finishedOn($today->modify('-1 day')),
+            // an older, longer run: 5 consecutive days, well before the gap
+            $this->finishedOn($today->modify('-10 days')),
+            $this->finishedOn($today->modify('-11 days')),
+            $this->finishedOn($today->modify('-12 days')),
+            $this->finishedOn($today->modify('-13 days')),
+            $this->finishedOn($today->modify('-14 days')),
+        ];
+
+        $result = $this->builder->build($sessions);
+
+        self::assertSame(2, $result['currentStreak']);
+        self::assertSame(5, $result['longestStreak']);
+    }
+
+    public function testTotalPracticeDaysCountsDistinctCalendarDaysNotSessions(): void
+    {
+        $today = new \DateTimeImmutable('today');
+        $sessions = [
+            $this->finishedOn($today),
+            $this->finishedOn($today), // same day as above - must not double-count
+            $this->finishedOn($today->modify('-1 day')),
+        ];
+
+        $result = $this->builder->build($sessions);
+
+        self::assertSame(2, $result['totalPracticeDays']);
+    }
+
+    public function testTotalDurationMinutesSumsFinishedSessionDurations(): void
+    {
+        $sessions = [$this->finishedWithDurationMinutes(5), $this->finishedWithDurationMinutes(12)];
+
+        $result = $this->builder->build($sessions);
+
+        self::assertSame(17, $result['totalDurationMinutes']);
+    }
+
+    public function testMilestonesReportHighestAchievedAndNextTargetForDaysAndSessions(): void
+    {
+        $today = new \DateTimeImmutable('today');
+        $sessions = [];
+        for ($i = 0; $i < 10; $i++) {
+            $sessions[] = $this->finishedOn($today->modify("-{$i} days"));
+        }
+        // 2 extra rounds on an already-counted day: 10 practice days, 12 finished rounds.
+        $sessions[] = $this->finishedOn($today);
+        $sessions[] = $this->finishedOn($today);
+
+        $result = $this->builder->build($sessions);
+
+        self::assertSame(10, $result['totalPracticeDays']);
+        self::assertSame(12, $result['totalFinishedRounds']);
+        self::assertSame(['achieved' => 7, 'next' => 14], $result['milestones']['days']);
+        self::assertSame(['achieved' => 10, 'next' => 25], $result['milestones']['sessions']);
+    }
+
+    public function testMilestonesReportNoAchievementBelowTheFirstThreshold(): void
+    {
+        $result = $this->builder->build([$this->finishedOn(new \DateTimeImmutable('today'))]);
+
+        self::assertSame(['achieved' => null, 'next' => 3], $result['milestones']['days']);
+        self::assertSame(['achieved' => null, 'next' => 10], $result['milestones']['sessions']);
+    }
+
+    private function finishedWithDurationMinutes(int $minutes): PracticeSession
+    {
+        $session = $this->finished('tonart-erkennen', total: 1, correct: 1);
+        $session->backdateStart($minutes);
+
+        return $session;
+    }
+
     private function finished(string $tool, int $total, ?int $correct): PracticeSession
     {
         $session = new PracticeSession('visitor-1', $this->nextSessionId(), $tool);

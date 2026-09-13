@@ -130,6 +130,32 @@ final class PersonalRecordsTest extends TestCase
         self::assertSame(100, $result['bestPoints']);
     }
 
+    // --- PersonalRecords::bestForTool() (instance method, needs a repository) ---
+
+    public function testBestForToolReturnsHighestStoredPointsAcrossSessions(): void
+    {
+        $sessions = $this->createStub(\App\Repository\PracticeSessionRepository::class);
+        $sessions->method('finishedForTool')->willReturn([
+            $this->finishedWithPoints('client-1', 80),
+            $this->finishedWithPoints('client-2', 150),
+            $this->finishedWithPoints('client-3', 120),
+        ]);
+
+        $records = new PersonalRecords($sessions);
+
+        self::assertSame(150, $records->bestForTool('visitor-1', 'tonart-erkennen'));
+    }
+
+    public function testBestForToolReturnsNullWithoutAnyGradedSessions(): void
+    {
+        $sessions = $this->createStub(\App\Repository\PracticeSessionRepository::class);
+        $sessions->method('finishedForTool')->willReturn([]);
+
+        $records = new PersonalRecords($sessions);
+
+        self::assertNull($records->bestForTool('visitor-1', 'tonart-erkennen'));
+    }
+
     private function historicalSession(string $clientSessionId, int $totalQuestions, int $durationMinutes): PracticeSession
     {
         $session = new PracticeSession('visitor-1', $clientSessionId, 'tonart-erkennen');

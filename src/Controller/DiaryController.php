@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Domain\Diary\DiarySuggestions;
 use App\Domain\Diary\ExerciseDayViewBuilder;
+use App\Domain\History\HistoryStatsBuilder;
 use App\Domain\Quiz\ToolRegistry;
 use App\Domain\Session\SessionRecorder;
 use App\Entity\Exercise;
@@ -46,6 +47,7 @@ final class DiaryController extends AbstractController
         private readonly ToolRegistry $tools,
         private readonly DiarySuggestions $suggestions,
         private readonly ExerciseDayViewBuilder $dayViewBuilder,
+        private readonly HistoryStatsBuilder $statsBuilder,
     ) {
     }
 
@@ -94,6 +96,7 @@ final class DiaryController extends AbstractController
             'toolSettingsRoutes' => $toolSettingsRoutes,
             'toolPracticeRoutes' => $toolPracticeRoutes,
             'recentRatios' => $recentRatios,
+            'currentStreak' => $this->statsBuilder->build($allSessions)['currentStreak'],
             'csrfIntention' => self::CSRF_INTENTION,
             'sessionCsrfIntention' => 'exercise_session',
         ]);

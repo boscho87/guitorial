@@ -22,6 +22,8 @@
         <a href="{{ path('history_groups') }}" class="btn btn-outline btn-sm shrink-0">{{ 'history.groups_link'|trans }}</a>
     </div>
 
+    {{ include('diary/_area_nav.html.twig', {active: 'history'}) }}
+
     {% if sessions is empty %}
         <p class="mt-10 text-sm text-base-content/60">{{ 'history.empty'|trans }}</p>
     {% else %}

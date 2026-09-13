@@ -96,6 +96,7 @@
                 <p class="stat-tile font-mono text-sm">{{ 'home.progress_example_record'|trans }}</p>
                 <p class="stat-tile font-mono text-sm">{{ 'home.progress_example_week'|trans }}</p>
             </div>
+            <a href="{{ path('progress_index') }}" class="btn btn-outline mt-5">{{ 'home.progress_cta'|trans }}</a>
             <p class="mt-6 text-sm text-base-content/60">
                 {{ 'home.storage_text'|trans }}
                 {% if not app.user %}

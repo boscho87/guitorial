@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+{% import '_components/icons.html.twig' as icons %}
+
+{% block title %}{{ 'routine.title'|trans }} – Guitorial{% endblock %}
+
+{% block meta_description %}{{ 'routine.meta_description'|trans }}{% endblock %}
+
+{% block body %}
+    <a href="{{ path('diary_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{ 'nav.back_home'|trans }}
+    </a>
+
+    <div class="mt-3 flex flex-wrap items-start justify-between gap-3">
+        <div>
+            <h1 class="font-display text-2xl font-semibold sm:text-3xl">{{ 'routine.title'|trans }}</h1>
+            <p class="mt-2 text-base-content/70">{{ 'routine.intro'|trans }}</p>
+        </div>
+    </div>
+
+    {{ include('diary/_area_nav.html.twig', {active: 'routines'}) }}
+
+    <div class="flex items-center justify-between gap-3">
+        <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'routine.list_heading'|trans }}</h2>
+        <a href="{{ path('routine_add_form') }}" class="btn btn-primary btn-sm">{{ 'routine.new_button'|trans }}</a>
+    </div>
+
+    {% if routines is empty %}
+        <p class="mt-4 text-sm text-base-content/60">{{ 'routine.empty'|trans }}</p>
+    {% else %}
+        <ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {% for routine in routines %}
+                <li class="rounded-box border border-base-300 p-4">
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium sm:text-base">{{ routine.name }}</p>
+                            <p class="mt-1 text-xs text-base-content/60">{{ 'routine.item_count'|trans({'%count%': routine.items|length}) }}</p>
+                        </div>
+                        <div class="flex shrink-0 gap-0.5">
+                            <a href="{{ path('routine_edit_form', {id: routine.id}) }}" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}">
+                                {{ icons.icon('edit') }}
+                            </a>
+                            <form
+                                    method="post" action="{{ path('routine_delete', {id: routine.id}) }}"
+                                    data-controller="confirm-submit" data-confirm-submit-message-value="{{ 'routine.delete_confirm'|trans }}"
+                                    data-action="submit->confirm-submit#submit"
+                            >
+                                <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
+                                <button type="submit" class="btn btn-ghost btn-xs btn-square text-error" title="{{ 'diary.item.delete'|trans }}" aria-label="{{ 'diary.item.delete'|trans }}">
+                                    {{ icons.icon('trash') }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <a href="{{ path('routine_show', {id: routine.id}) }}" class="btn btn-outline btn-sm mt-3 w-full">{{ icons.icon('play') }}{{ 'routine.start'|trans }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+{% endblock %}

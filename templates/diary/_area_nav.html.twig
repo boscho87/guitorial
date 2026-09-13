@@ -1,0 +1,7 @@
+{# Expects `active`: 'today'|'routines'|'history'|'progress' #}
+<div role="tablist" class="tabs tabs-boxed mt-4 mb-6 inline-flex">
+    <a href="{{ path('diary_index') }}" role="tab" class="tab {{ active == 'today' ? 'tab-active' : '' }}" {% if active == 'today' %}aria-current="page"{% endif %}>{{ 'diary.area_nav.today'|trans }}</a>
+    <a href="{{ path('routine_index') }}" role="tab" class="tab {{ active == 'routines' ? 'tab-active' : '' }}" {% if active == 'routines' %}aria-current="page"{% endif %}>{{ 'diary.area_nav.routines'|trans }}</a>
+    <a href="{{ path('history_index') }}" role="tab" class="tab {{ active == 'history' ? 'tab-active' : '' }}" {% if active == 'history' %}aria-current="page"{% endif %}>{{ 'diary.area_nav.history'|trans }}</a>
+    <a href="{{ path('progress_index') }}" role="tab" class="tab {{ active == 'progress' ? 'tab-active' : '' }}" {% if active == 'progress' %}aria-current="page"{% endif %}>{{ 'diary.area_nav.progress'|trans }}</a>
+</div>

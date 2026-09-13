@@ -19,6 +19,14 @@ final class HistoryStatsBuilder
     private const CHART_WINDOW = 30;
     private const GRADED_TOOLS = ['tonart-erkennen', 'kapo-trainer', 'funktion-bestimmen', 'griffbrett'];
 
+    /**
+     * Deliberately based on monotonic counters (practice days, completed
+     * sessions) rather than the resettable current streak - a broken streak
+     * must never take an already-earned milestone away again.
+     */
+    private const DAY_MILESTONES = [3, 7, 14, 30, 60, 100, 200, 365];
+    private const SESSION_MILESTONES = [10, 25, 50, 100, 250, 500];
+
     public function __construct(private readonly ToolRegistry $tools)
     {
     }
@@ -31,6 +39,10 @@ final class HistoryStatsBuilder
      *     totalFinishedRounds: int,
      *     averageAccuracy: ?float,
      *     currentStreak: int,
+     *     longestStreak: int,
+     *     totalPracticeDays: int,
+     *     totalDurationMinutes: int,
+     *     milestones: array{days: array{achieved: ?int, next: ?int}, sessions: array{achieved: ?int, next: ?int}},
      *     series: array<string, array{label: string, points: list<array{date: \DateTimeImmutable, accuracy: float}>}>,
      * }
      */
@@ -38,11 +50,20 @@ final class HistoryStatsBuilder
     {
         $finished = array_values(array_filter($sessions, static fn (PracticeSession $s): bool => $s->isFinished()));
         $graded = array_values(array_filter($finished, self::isGraded(...)));
+        $days = self::practiceDays($finished);
+        $totalFinishedRounds = count($finished);
 
         return [
-            'totalFinishedRounds' => count($finished),
+            'totalFinishedRounds' => $totalFinishedRounds,
             'averageAccuracy' => self::averageAccuracy($graded),
-            'currentStreak' => self::currentStreak($finished),
+            'currentStreak' => self::currentStreak($days),
+            'longestStreak' => self::longestStreak($days),
+            'totalPracticeDays' => count($days),
+            'totalDurationMinutes' => self::totalDurationMinutes($finished),
+            'milestones' => [
+                'days' => self::milestoneProgress(count($days), self::DAY_MILESTONES),
+                'sessions' => self::milestoneProgress($totalFinishedRounds, self::SESSION_MILESTONES),
+            ],
             'series' => $this->buildSeries($graded),
         ];
     }
@@ -77,6 +98,20 @@ final class HistoryStatsBuilder
     }
 
     /**
+     * @param PracticeSession[] $finished
+     * @return array<string, true> calendar-day keys (Y-m-d) with at least one finished round
+     */
+    private static function practiceDays(array $finished): array
+    {
+        $days = [];
+        foreach ($finished as $s) {
+            $days[$s->getFinishedAt()->format('Y-m-d')] = true;
+        }
+
+        return $days;
+    }
+
+    /**
      * Consecutive calendar days with at least one finished round (any
      * tool), walking back from today. Duolingo-style grace: not having
      * practiced yet today doesn't zero out yesterday's streak - it only
@@ -84,15 +119,10 @@ final class HistoryStatsBuilder
      * timezone; the app stores no per-visitor timezone, same simplification
      * as the rest of this anonymous-history prototype.
      *
-     * @param PracticeSession[] $finished
+     * @param array<string, true> $days
      */
-    private static function currentStreak(array $finished): int
+    private static function currentStreak(array $days): int
     {
-        $days = [];
-        foreach ($finished as $s) {
-            $days[$s->getFinishedAt()->format('Y-m-d')] = true;
-        }
-
         $cursor = new \DateTimeImmutable('today');
         if (!isset($days[$cursor->format('Y-m-d')])) {
             $cursor = $cursor->modify('-1 day');
@@ -108,6 +138,67 @@ final class HistoryStatsBuilder
         }
 
         return $streak;
+    }
+
+    /**
+     * Longest run of consecutive calendar days anywhere in the history, not
+     * just the one currently ending at today - a permanent personal best
+     * that a broken streak never erases.
+     *
+     * @param array<string, true> $days
+     */
+    private static function longestStreak(array $days): int
+    {
+        if ($days === []) {
+            return 0;
+        }
+
+        $sorted = array_keys($days);
+        sort($sorted);
+
+        $longest = 1;
+        $current = 1;
+        $previous = new \DateTimeImmutable($sorted[0]);
+        for ($i = 1; $i < count($sorted); $i++) {
+            $date = new \DateTimeImmutable($sorted[$i]);
+            $current = $date->diff($previous)->days === 1 ? $current + 1 : 1;
+            $longest = max($longest, $current);
+            $previous = $date;
+        }
+
+        return $longest;
+    }
+
+    /**
+     * @param PracticeSession[] $finished
+     */
+    private static function totalDurationMinutes(array $finished): int
+    {
+        $seconds = 0;
+        foreach ($finished as $s) {
+            $seconds += $s->getFinishedAt()->getTimestamp() - $s->getStartedAt()->getTimestamp();
+        }
+
+        return (int) round($seconds / 60);
+    }
+
+    /**
+     * @param int[] $milestones ascending thresholds
+     * @return array{achieved: ?int, next: ?int}
+     */
+    private static function milestoneProgress(int $value, array $milestones): array
+    {
+        $achieved = null;
+        $next = null;
+        foreach ($milestones as $milestone) {
+            if ($value >= $milestone) {
+                $achieved = $milestone;
+            } elseif ($next === null) {
+                $next = $milestone;
+            }
+        }
+
+        return ['achieved' => $achieved, 'next' => $next];
     }
 
     /**

@@ -93,6 +93,24 @@ final class PersonalRecords
     }
 
     /**
+     * The highest points ever scored for this tool, with no "current round"
+     * to compare against - for an aggregate view (e.g. the Fortschritt page)
+     * rather than a just-finished round's own summary.
+     */
+    public function bestForTool(string $visitorId, string $tool): ?int
+    {
+        $best = null;
+        foreach ($this->sessions->finishedForTool($visitorId, $tool) as $session) {
+            $points = $session->getPoints();
+            if ($points !== null && ($best === null || $points > $best)) {
+                $best = $points;
+            }
+        }
+
+        return $best;
+    }
+
+    /**
      * @param PracticeSession[] $finishedSessions
      * @return array{points: int, timeBonusPoints: int, bestPoints: int, isNewRecord: bool}|null
      */

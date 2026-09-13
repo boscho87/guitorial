@@ -1,0 +1,19 @@
+{
+    "name": "Guitorial",
+    "short_name": "Guitorial",
+    "description": "Musiktheorie und Gitarrenspiel gezielt üben.",
+    "start_url": "/training",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#a8752e",
+    "theme_color": "#a8752e",
+    "lang": "de",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "type": "image/svg+xml",
+            "sizes": "any",
+            "purpose": "any"
+        }
+    ]
+}

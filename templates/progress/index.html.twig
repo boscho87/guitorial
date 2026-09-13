@@ -1,0 +1,97 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ 'progress.title'|trans }} – Guitorial{% endblock %}
+
+{% block meta_description %}{{ 'progress.meta_description'|trans }}{% endblock %}
+
+{% block body %}
+    <a href="{{ path('training_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{ 'nav.back_home'|trans }}
+    </a>
+
+    <div class="mt-3">
+        <h1 class="font-display text-2xl font-semibold sm:text-3xl">{{ 'progress.title'|trans }}</h1>
+        <p class="mt-2 text-base-content/70">{{ 'progress.intro'|trans }}</p>
+    </div>
+
+    {{ include('diary/_area_nav.html.twig', {active: 'progress'}) }}
+
+    {% if stats.totalFinishedRounds == 0 %}
+        <p class="mt-8 text-sm text-base-content/60">
+            {{ 'progress.empty'|trans }}
+            <a href="{{ path('training_index') }}" class="font-medium text-primary hover:underline">{{ 'progress.empty_cta'|trans }}</a>
+        </p>
+    {% else %}
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div class="stat-tile">
+                <p class="text-sm text-base-content/70">{{ 'progress.stats.current_streak'|trans }}</p>
+                {% if stats.currentStreak > 0 %}
+                    <p class="mt-1 font-mono text-2xl font-semibold text-primary">{{ (stats.currentStreak == 1 ? 'history.stats.streak_value_one' : 'history.stats.streak_value_other')|trans({'%days%': stats.currentStreak}) }}</p>
+                {% else %}
+                    <p class="mt-1 text-sm text-base-content/60">{{ 'history.stats.streak_empty'|trans }}</p>
+                {% endif %}
+            </div>
+            <div class="stat-tile">
+                <p class="text-sm text-base-content/70">{{ 'progress.stats.longest_streak'|trans }}</p>
+                <p class="mt-1 font-mono text-2xl font-semibold text-primary">{{ (stats.longestStreak == 1 ? 'history.stats.streak_value_one' : 'history.stats.streak_value_other')|trans({'%days%': stats.longestStreak}) }}</p>
+            </div>
+            <div class="stat-tile">
+                <p class="text-sm text-base-content/70">{{ 'progress.stats.practice_days'|trans }}</p>
+                <p class="mt-1 font-mono text-2xl font-semibold text-primary">{{ stats.totalPracticeDays }}</p>
+            </div>
+            <div class="stat-tile">
+                <p class="text-sm text-base-content/70">{{ 'progress.stats.total_duration'|trans }}</p>
+                <p class="mt-1 font-mono text-2xl font-semibold text-primary">
+                    {% if stats.totalDurationMinutes >= 60 %}
+                        {{ 'progress.stats.duration_hours'|trans({'%hours%': (stats.totalDurationMinutes / 60)|round(0, 'floor'), '%minutes%': stats.totalDurationMinutes % 60}) }}
+                    {% else %}
+                        {{ 'progress.stats.duration_minutes'|trans({'%minutes%': stats.totalDurationMinutes}) }}
+                    {% endif %}
+                </p>
+            </div>
+            <div class="stat-tile">
+                <p class="text-sm text-base-content/70">{{ 'progress.stats.completed_sessions'|trans }}</p>
+                <p class="mt-1 font-mono text-2xl font-semibold text-primary">{{ stats.totalFinishedRounds }}</p>
+            </div>
+        </div>
+
+        <section class="mt-8">
+            <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'progress.milestones.title'|trans }}</h2>
+            <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div class="rounded-box border border-base-300 p-4">
+                    <p class="text-sm font-medium">{{ 'progress.milestones.days_title'|trans }}</p>
+                    {% if stats.milestones.days.achieved %}
+                        <p class="mt-1 text-sm text-primary">{{ 'progress.milestones.achieved'|trans({'%value%': stats.milestones.days.achieved}) }}</p>
+                    {% endif %}
+                    {% if stats.milestones.days.next %}
+                        <p class="mt-1 text-xs text-base-content/50">{{ 'progress.milestones.next'|trans({'%value%': stats.milestones.days.next}) }}</p>
+                    {% endif %}
+                </div>
+                <div class="rounded-box border border-base-300 p-4">
+                    <p class="text-sm font-medium">{{ 'progress.milestones.sessions_title'|trans }}</p>
+                    {% if stats.milestones.sessions.achieved %}
+                        <p class="mt-1 text-sm text-primary">{{ 'progress.milestones.achieved'|trans({'%value%': stats.milestones.sessions.achieved}) }}</p>
+                    {% endif %}
+                    {% if stats.milestones.sessions.next %}
+                        <p class="mt-1 text-xs text-base-content/50">{{ 'progress.milestones.next'|trans({'%value%': stats.milestones.sessions.next}) }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+        {% if records is not empty %}
+            <section class="mt-8">
+                <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'progress.records.title'|trans }}</h2>
+                <ul class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {% for record in records %}
+                        <li class="flex items-center justify-between gap-2 rounded-box border border-base-300 p-4">
+                            <span class="text-sm font-medium">{{ record.title|trans }}</span>
+                            <span class="font-mono text-sm font-semibold text-primary">{{ 'progress.records.points'|trans({'%points%': record.points}) }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+    {% endif %}
+{% endblock %}
