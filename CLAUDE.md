@@ -6,7 +6,7 @@ settings → bounded practice round → summary, minimal chrome.
 
 ## Stack
 
-- Symfony 7.3 / PHP 8.3 (dev) / PHP 8.5 (prod server), Doctrine ORM + Migrations, MySQL/MariaDB
+- Symfony 7.4 / PHP 8.3 (dev) / PHP 8.5 (prod server), Doctrine ORM + Migrations, MySQL/MariaDB
 - Twig, server-rendered; Hotwire Turbo (frames) + Stimulus via Symfony AssetMapper (no Node needed at runtime)
 - Tailwind CSS v4 + DaisyUI 5 - compiled `assets/styles/app.css` is **committed to git**, so prod never needs Node.
   After any template/CSS change: `docker compose exec guitorial-php-fpm npm run build:css`, then check `git diff --stat assets/styles/app.css`.
@@ -110,7 +110,7 @@ the committed `.env`). Obtained from:
   accounts" (matches `tenant: common` in `config/packages/knpu_oauth2_client.yaml`) → redirect URI
   `https://<host>/connect/azure/check` per environment → Certificates & secrets → new client secret.
 
-Current prod version: `v0.1.0`. No formal semantic-release cycle has run yet - tags so far were pushed
+Current prod version: `v0.4.0`. No formal semantic-release cycle has run yet - tags so far were pushed
 manually.
 
 ## Conventions
