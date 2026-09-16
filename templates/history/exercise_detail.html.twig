@@ -24,8 +24,16 @@
                 </thead>
                 <tbody>
                     {% for session in sessions %}
+                        {% set previousSession = loop.index0 > 0 ? sessions[loop.index0 - 1] : null %}
+                        {% if previousSession is null or session.startedAt|date('Y-m-d') != previousSession.startedAt|date('Y-m-d') %}
+                            <tr>
+                                <td colspan="3" class="pt-4 pb-1 text-xs font-semibold uppercase tracking-wide text-base-content/50">
+                                    {{ session.startedAt|date('Y-m-d') == "now"|date('Y-m-d') ? 'diary.pager.today'|trans : session.startedAt|date('d.m.Y') }}
+                                </td>
+                            </tr>
+                        {% endif %}
                         <tr>
-                            <td class="font-mono text-xs text-base-content/60">{{ session.startedAt|date('d.m.Y, H:i') }}</td>
+                            <td class="font-mono text-xs text-base-content/60">{{ session.startedAt|date('H:i') }}</td>
                             <td class="text-right font-mono text-sm font-semibold text-primary">
                                 {% if session.totalQuestions %}{{ session.correctCount }}/{{ session.totalQuestions }}{% endif %}
                             </td>

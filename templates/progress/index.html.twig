@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_components/duration.html.twig' as duration %}
 
 {% block title %}{{ 'progress.title'|trans }} – Guitorial{% endblock %}
 
@@ -42,13 +43,7 @@
             </div>
             <div class="stat-tile">
                 <p class="text-sm text-base-content/70">{{ 'progress.stats.total_duration'|trans }}</p>
-                <p class="mt-1 font-mono text-2xl font-semibold text-primary">
-                    {% if stats.totalDurationMinutes >= 60 %}
-                        {{ 'progress.stats.duration_hours'|trans({'%hours%': (stats.totalDurationMinutes / 60)|round(0, 'floor'), '%minutes%': stats.totalDurationMinutes % 60}) }}
-                    {% else %}
-                        {{ 'progress.stats.duration_minutes'|trans({'%minutes%': stats.totalDurationMinutes}) }}
-                    {% endif %}
-                </p>
+                <p class="mt-1 font-mono text-2xl font-semibold text-primary">{{ duration.minutes(stats.totalDurationMinutes) }}</p>
             </div>
             <div class="stat-tile">
                 <p class="text-sm text-base-content/70">{{ 'progress.stats.completed_sessions'|trans }}</p>

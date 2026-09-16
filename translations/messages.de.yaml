@@ -237,7 +237,6 @@ history:
     title: "Verlauf nach Gruppe"
     intro: "Übungszeit und Lernstand der letzten 30 Tage, aggregiert nach Gruppe."
     empty: "Noch keine Übungen mit Verlauf in den letzten 30 Tagen."
-    minutes: "%minutes% Min."
     sessions: "%count% Runden"
     exercises: "%count% Übungen"
     learning_state:
@@ -273,6 +272,10 @@ history:
     page_of: "Seite %page% von %total%"
     stats_cap_hint: "Statistik und Diagramm oben basieren auf den letzten %window% deiner insgesamt %total% Runden."
 
+duration:
+  hours_minutes: "%hours%h %minutes%min"
+  minutes: "%minutes% Min."
+
 progress:
   title: Fortschritt
   meta_description: "Dein Fortschritt bei Guitorial: Serie, Übungstage, Gesamtdauer und persönliche Rekorde."
@@ -284,8 +287,6 @@ progress:
     longest_streak: "Längste Serie"
     practice_days: Übungstage
     total_duration: Übungszeit
-    duration_hours: "%hours%h %minutes%min"
-    duration_minutes: "%minutes% Min."
     completed_sessions: "Abgeschlossene Einheiten"
   milestones:
     title: Meilensteine
@@ -309,6 +310,9 @@ diary:
   empty: "Noch keine Übungen im Plan."
   empty_past: "An diesem Tag gab es noch keine Übungen im Plan."
   manage_link: "Übungen verwalten"
+  active_routine:
+    label: "Aktuelle Routine:"
+    change: "Wechseln"
   pager:
     today: Heute
     previous: "Vorheriger Tag"
@@ -335,7 +339,8 @@ diary:
     back_to_list: "Zurück zur Liste"
   item:
     linked_to: "Verknüpft mit %tool%"
-    progress: "%minutes% von %target% Min."
+    of_target: "von %target% Min."
+    session_count: "%count%× heute erledigt"
     start: Start
     resume: Fortsetzen
     mark_done: "Als erledigt markieren"
@@ -401,12 +406,15 @@ diary:
 routine:
   title: Routinen
   meta_description: "Deine Übungsroutinen bei Guitorial: mehrere Übungen zu einem wiederkehrenden Ablauf zusammenstellen."
-  intro: "Fasse mehrere Übungen zu einem festen Ablauf zusammen, den du am Stück durchgehst."
+  intro: "Fasse mehrere Übungen zu einem festen Ablauf zusammen. Lege eine Routine als aktuell fest, und sie bestimmt, was du unter Heute siehst."
   list_heading: "Deine Routinen"
   new_button: "+ Neue Routine"
   empty: "Noch keine Routine erstellt."
   item_count: "%count% Übungen"
   start: Starten
+  active_badge: "Aktuelle Routine"
+  set_active: "Als aktuelle Routine festlegen"
+  unset_active: Deaktivieren
   delete_confirm: "Routine wirklich löschen? Die enthaltenen Übungen selbst bleiben unter Meine Übungen erhalten."
   back_to_list: "Zurück zu Routinen"
   add:
@@ -420,6 +428,7 @@ routine:
     exercises: Übungen
     no_exercises: "Du hast noch keine aktiven Übungen."
     no_exercises_cta: "Jetzt eine Übung erfassen"
+    order_preview: "Reihenfolge"
     save: Speichern
   show:
     all_done: "Routine heute abgeschlossen."
@@ -461,7 +470,7 @@ practice_guide:
       explanation: "Eine kurze, feste Reihenfolge sorgt dafür, dass Aufwärmen, Schwachstellen und Neues nicht dem Zufall überlassen bleiben."
       exercise: "Leg eine feste Reihenfolge fest: 2 Minuten aufwärmen, dann gezielt üben, was zuletzt oft schiefging (die Tools gewichten das automatisch stärker), danach etwas Neues – ein Akkord, ein Konzept, ein Stück – und zum Schluss frei spielen."
       duration: "10–15 Min."
-      tool_label: "Zu den Tools"
+      tool_label: "Zu den Routinen"
     rhythm:
       title: "Rhythmus und Timing"
       problem: "Ein Akkordwechsel klappt einzeln, aber im Takt bricht alles zusammen."

@@ -12,6 +12,7 @@ use App\Repository\ExerciseRepository;
 use App\Repository\ExerciseResourceRepository;
 use App\Repository\ExerciseVersionRepository;
 use App\Repository\PracticeSessionRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -91,11 +92,39 @@ final class ExerciseSessionController extends AbstractController
             'session' => $session,
             'title' => $title,
             'resource' => $session->getResource(),
+            // Started generically (2+ resources, or none picked yet) - the
+            // choice of what to open lives here on the running page, never
+            // as a list of raw-URL "start" buttons on the Heute card.
+            'openableResources' => $session->getResource() === null && $exercise !== null
+                ? array_values(array_filter($this->resources->forExercise($exercise), static fn (ExerciseResource $r): bool => !$r->isInternalTool()))
+                : [],
             'startedAtMs' => $session->getStartedAt()->getTimestamp() * 1000,
             'targetSeconds' => $this->targetSeconds($session),
             'learningStates' => PracticeSession::LEARNING_STATES,
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
+    }
+
+    /**
+     * "Still there" heartbeat while the running page stays open - posted
+     * every ~20s by a small Stimulus controller. Manual/external exercise
+     * sessions otherwise have no sync at all, unlike the 5 graded tools'
+     * rounds (practice-sync). Bumps only updatedAt (PracticeSession::touch()),
+     * which finish() later uses to cap the credited duration if the tab
+     * stops sending heartbeats (closed, backgrounded, laptop asleep, ...)
+     * long before an eventual, much later finish/discard click.
+     */
+    #[Route('/sitzung/{id}/lebenszeichen', name: 'exercise_session_heartbeat', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function heartbeat(int $id, Request $request, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $session = $this->requireRunningSession($id, $request);
+        if ($session !== null) {
+            $session->touch();
+            $em->flush();
+        }
+
+        return new Response('', 204);
     }
 
     #[Route('/sitzung/{id}/abschliessen', name: 'exercise_session_finish', methods: ['POST'], requirements: ['id' => '\d+'])]

@@ -48,21 +48,33 @@
             <input type="text" name="name" value="{{ routine ? routine.name : '' }}" maxlength="80" required class="input input-bordered mt-1 w-full">
         </label>
 
-        <div class="mt-6">
+        <div class="mt-6" data-controller="routine-picker">
             <p class="text-sm font-medium">{{ 'routine.form.exercises'|trans }}</p>
             {% if availableExercises is empty %}
                 <p class="mt-2 text-sm text-base-content/60">{{ 'routine.form.no_exercises'|trans }} <a href="{{ path('diary_add_form') }}" class="font-medium text-primary hover:underline">{{ 'routine.form.no_exercises_cta'|trans }}</a></p>
             {% else %}
-                <ul class="mt-2 flex flex-col gap-1">
-                    {% for entry in availableExercises %}
-                        <li>
-                            <label class="flex items-center gap-2 rounded-box px-2 py-1.5 hover:bg-base-200">
-                                <input type="checkbox" name="exercise_ids[]" value="{{ entry.exercise.id }}" class="checkbox checkbox-sm" {{ entry.exercise.id in selectedExerciseIds ? 'checked' : '' }}>
-                                <span class="text-sm">{{ entry.version.title }}</span>
-                            </label>
-                        </li>
-                    {% endfor %}
-                </ul>
+                <div class="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <ul class="flex flex-col gap-1">
+                        {% for entry in availableExercises %}
+                            <li>
+                                <label class="flex items-center gap-2 rounded-box px-2 py-1.5 hover:bg-base-200">
+                                    <input
+                                            type="checkbox" value="{{ entry.exercise.id }}" class="checkbox checkbox-sm"
+                                            data-routine-picker-target="checkbox" data-action="change->routine-picker#toggle"
+                                            data-label="{{ entry.version.title }}"
+                                            {{ entry.exercise.id in selectedExerciseIds ? 'checked' : '' }}
+                                    >
+                                    <span class="text-sm">{{ entry.version.title }}</span>
+                                </label>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ 'routine.form.order_preview'|trans }}</p>
+                        <div class="mt-2 text-sm text-base-content/70" data-routine-picker-target="preview"></div>
+                    </div>
+                </div>
+                <div data-routine-picker-target="hiddenInputs"></div>
             {% endif %}
         </div>
 

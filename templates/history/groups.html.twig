@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_components/duration.html.twig' as duration %}
 
 {% block title %}{{ 'history.groups_page.title'|trans }} – Guitorial{% endblock %}
 
@@ -23,7 +24,7 @@
                         <p class="text-xs text-base-content/60">{{ 'history.groups_page.exercises'|trans({'%count%': row.exerciseCount}) }}</p>
                     </div>
                     <p class="mt-1 text-sm text-base-content/70">
-                        {{ 'history.groups_page.minutes'|trans({'%minutes%': row.practicedMinutes}) }}
+                        {{ duration.minutes(row.practicedMinutes) }}
                         &middot; {{ 'history.groups_page.sessions'|trans({'%count%': row.sessionCount}) }}
                     </p>
 

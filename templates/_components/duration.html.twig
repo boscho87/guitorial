@@ -1,0 +1,8 @@
+{# Formats a raw minute count as "Xh Ymin" once it reaches an hour, "X Min." below that - shared so every duration display in the app (Fortschritt, Heute, Verlauf) reads the same way instead of always showing raw minutes. #}
+{% macro minutes(value) %}
+    {%- if value >= 60 -%}
+        {{ 'duration.hours_minutes'|trans({'%hours%': (value / 60)|round(0, 'floor'), '%minutes%': value % 60}) }}
+    {%- else -%}
+        {{ 'duration.minutes'|trans({'%minutes%': value}) }}
+    {%- endif -%}
+{% endmacro %}

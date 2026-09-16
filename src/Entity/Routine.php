@@ -16,6 +16,12 @@ use Doctrine\ORM\Mapping as ORM;
  * "done today" is derived the same way Exercise/ExerciseDayViewBuilder
  * already derives it (a finished PracticeSession for that exercise today),
  * so a Routine never becomes a second, parallel tracking system.
+ *
+ * At most one Routine per visitor is ever `isActive` - that one determines
+ * what "Heute" shows (see DiaryController::index()), instead of Heute
+ * always listing every rhythm-due exercise regardless of grouping.
+ * Enforced in the controller action (deactivate any other before
+ * activating this one), not a DB constraint.
  */
 #[ORM\Entity(repositoryClass: RoutineRepository::class)]
 #[ORM\Index(columns: ['visitor_id'])]
@@ -34,6 +40,9 @@ class Routine
 
     #[ORM\Column]
     private int $sortIndex;
+
+    #[ORM\Column]
+    private bool $isActive = false;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
@@ -70,6 +79,21 @@ class Routine
     public function getSortIndex(): int
     {
         return $this->sortIndex;
+    }
+
+    public function isActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function activate(): void
+    {
+        $this->isActive = true;
+    }
+
+    public function deactivate(): void
+    {
+        $this->isActive = false;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

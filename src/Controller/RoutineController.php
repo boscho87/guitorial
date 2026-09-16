@@ -227,6 +227,43 @@ final class RoutineController extends AbstractController
         return $this->redirectToRoute('routine_index');
     }
 
+    /**
+     * Marks this routine as the one that determines what "Heute" shows -
+     * deactivates any other currently-active routine first (at most one
+     * active per visitor, enforced here rather than at the DB level).
+     * Redirects straight to Heute so the effect is immediately visible.
+     */
+    #[Route('/{id}/aktivieren', name: 'routine_activate', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function activate(int $id, Request $request, RoutineRepository $routines, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $visitorId = $this->requireVisitorId($request);
+        $routine = $routines->findForVisitor($id, $visitorId);
+        if ($routine !== null) {
+            $currentlyActive = $routines->findActiveForVisitor($visitorId);
+            if ($currentlyActive !== null && $currentlyActive !== $routine) {
+                $currentlyActive->deactivate();
+            }
+            $routine->activate();
+            $em->flush();
+        }
+
+        return $this->redirectToRoute('diary_index');
+    }
+
+    #[Route('/{id}/deaktivieren', name: 'routine_deactivate', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function deactivate(int $id, Request $request, RoutineRepository $routines, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $routine = $routines->findForVisitor($id, $this->requireVisitorId($request));
+        if ($routine !== null) {
+            $routine->deactivate();
+            $em->flush();
+        }
+
+        return $this->redirectToRoute('routine_index');
+    }
+
     #[Route('/{id}', name: 'routine_show', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(
         int $id,
@@ -245,23 +282,12 @@ final class RoutineController extends AbstractController
         $today = new \DateTimeImmutable('today');
         $allVersions = $versions->forVisitor($visitorId);
         $allSessions = $sessions->forVisitor($visitorId, 300);
-        $dayRowsByExerciseId = [];
-        foreach ($this->dayViewBuilder->buildDay($allVersions, $allSessions, $today) as $row) {
-            $dayRowsByExerciseId[$row['version']->getExercise()->getId()] = $row;
-        }
+        $rows = $this->dayViewBuilder->buildDayForRoutine($routine, $allVersions, $allSessions, $today);
 
-        $rows = [];
         $resourcesByExerciseId = [];
-        foreach ($routine->getItems() as $item) {
-            $exerciseId = $item->getExercise()->getId();
-            $row = $dayRowsByExerciseId[$exerciseId] ?? null;
-            if ($row === null) {
-                // Exercise was archived after being added to this routine -
-                // nothing to start today, skip rather than show a broken row.
-                continue;
-            }
-            $rows[] = $row;
-            $resourcesByExerciseId[$exerciseId] = $resources->forExercise($item->getExercise());
+        foreach ($rows as $row) {
+            $exercise = $row['version']->getExercise();
+            $resourcesByExerciseId[$exercise->getId()] = $resources->forExercise($exercise);
         }
 
         $toolTitles = [];

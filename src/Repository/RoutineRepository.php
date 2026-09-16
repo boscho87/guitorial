@@ -35,4 +35,9 @@ class RoutineRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['id' => $id, 'visitorId' => $visitorId]);
     }
+
+    public function findActiveForVisitor(string $visitorId): ?Routine
+    {
+        return $this->findOneBy(['visitorId' => $visitorId, 'isActive' => true]);
+    }
 }

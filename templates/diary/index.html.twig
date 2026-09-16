@@ -42,7 +42,38 @@
         {% endif %}
     </div>
 
-    {% if grouped is empty %}
+    {% if activeRoutine %}
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-box border border-primary/30 bg-primary/5 px-4 py-2.5">
+            <p class="text-sm">
+                <span class="text-base-content/60">{{ 'diary.active_routine.label'|trans }}</span>
+                <span class="font-medium">{{ activeRoutine.name }}</span>
+            </p>
+            <a href="{{ path('routine_index') }}" class="text-xs font-medium text-primary hover:underline">{{ 'diary.active_routine.change'|trans }}</a>
+        </div>
+
+        {% if routineRows is empty %}
+            <p class="mt-8 text-sm text-base-content/60">{{ 'routine.show.empty'|trans }}</p>
+        {% else %}
+            <ul class="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
+                {% for row in routineRows %}
+                    {% set exercise = row.version.exercise %}
+                    {{ include('diary/_exercise_row.html.twig', {
+                        exercise: exercise,
+                        version: row.version,
+                        row: row,
+                        resources: resourcesByExerciseId[exercise.id],
+                        toolTitles: toolTitles,
+                        toolSettingsRoutes: toolSettingsRoutes,
+                        toolPracticeRoutes: toolPracticeRoutes,
+                        sessionCsrfIntention: sessionCsrfIntention,
+                        csrfIntention: csrfIntention,
+                        groupName: null,
+                        isToday: isToday,
+                    }) }}
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% elseif grouped is empty %}
         <p class="mt-8 text-sm text-base-content/60">{{ isToday ? 'diary.empty'|trans : 'diary.empty_past'|trans }}</p>
     {% else %}
         {% for bucket in grouped %}

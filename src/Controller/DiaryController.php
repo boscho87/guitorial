@@ -20,6 +20,7 @@ use App\Repository\ExerciseRepository;
 use App\Repository\ExerciseResourceRepository;
 use App\Repository\ExerciseVersionRepository;
 use App\Repository\PracticeSessionRepository;
+use App\Repository\RoutineRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -61,6 +62,7 @@ final class DiaryController extends AbstractController
         ExerciseResourceRepository $resources,
         ExerciseGroupRepository $groups,
         PracticeSessionRepository $sessions,
+        RoutineRepository $routines,
     ): Response {
         $visitorId = $this->requireVisitorId($request);
         $today = new \DateTimeImmutable('today');
@@ -69,8 +71,15 @@ final class DiaryController extends AbstractController
 
         $allVersions = $visitorId !== '' ? $versions->forVisitor($visitorId) : [];
         $allSessions = $visitorId !== '' ? $sessions->forVisitor($visitorId, 300) : [];
+        $activeRoutine = $visitorId !== '' ? $routines->findActiveForVisitor($visitorId) : null;
 
-        $rows = $this->dayViewBuilder->buildDay($allVersions, $allSessions, $viewDate);
+        // An active routine takes over Heute entirely, in its own order -
+        // no Gruppe headers, and exercises not in it simply aren't part of
+        // today's chosen plan. No active routine keeps the previous
+        // behaviour: every rhythm-due exercise, grouped by Gruppe.
+        $rows = $activeRoutine !== null
+            ? $this->dayViewBuilder->buildDayForRoutine($activeRoutine, $allVersions, $allSessions, $viewDate)
+            : $this->dayViewBuilder->buildDay($allVersions, $allSessions, $viewDate);
         $recentRatios = $this->dayViewBuilder->buildRecentRatios($allVersions, $allSessions, $today, self::RECENT_DAYS);
 
         $resourcesByExerciseId = [];
@@ -93,7 +102,9 @@ final class DiaryController extends AbstractController
             'isToday' => $isToday,
             'previousDate' => $viewDate->modify('-1 day'),
             'nextDate' => $isToday ? null : $viewDate->modify('+1 day'),
-            'grouped' => $this->groupRows($rows, $visitorId !== '' ? $groups->forVisitor($visitorId) : []),
+            'activeRoutine' => $activeRoutine,
+            'routineRows' => $activeRoutine !== null ? $rows : null,
+            'grouped' => $activeRoutine === null ? $this->groupRows($rows, $visitorId !== '' ? $groups->forVisitor($visitorId) : []) : [],
             'resourcesByExerciseId' => $resourcesByExerciseId,
             'toolTitles' => $toolTitles,
             'toolSettingsRoutes' => $toolSettingsRoutes,

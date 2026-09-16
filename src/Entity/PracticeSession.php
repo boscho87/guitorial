@@ -44,6 +44,24 @@ class PracticeSession
     public const LEARNING_STATE_CONFIDENT = 'sicher';
     public const LEARNING_STATES = [self::LEARNING_STATE_DIFFICULT, self::LEARNING_STATE_IMPROVING, self::LEARNING_STATE_CONFIDENT];
 
+    /**
+     * No single session is ever credited longer than this, no matter what -
+     * a hard backstop behind the heartbeat-based cap below (see finish()),
+     * in case a session type never gets a heartbeat at all (e.g. JS
+     * disabled). Same order of magnitude as DiaryController::MAX_MINUTES,
+     * the largest target minutes a visitor can even set.
+     */
+    private const MAX_SESSION_MINUTES = 180;
+
+    /**
+     * How much later than the last confirmed "still there" signal
+     * (updatedAt, bumped by a heartbeat or a tool round's practice-sync)
+     * finish() is still allowed to land, so a short session that finishes
+     * before its very first heartbeat ever fires is never wrongly clipped -
+     * deliberately more generous than any heartbeat interval in this app.
+     */
+    private const HEARTBEAT_GRACE_SECONDS = 90;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -255,12 +273,56 @@ class PracticeSession
 
     public function finish(?string $learningState = null, ?int $points = null, ?int $timeBonusPoints = null, ?string $note = null): void
     {
-        $this->finishedAt = new \DateTimeImmutable();
+        $this->finishedAt = $this->cappedFinishTimestamp();
         $this->status = self::STATUS_FINISHED;
         $this->learningState = $learningState;
         $this->points = $points;
         $this->timeBonusPoints = $timeBonusPoints;
         $this->note = $note;
+    }
+
+    /**
+     * Bumps only updatedAt - a lightweight heartbeat ("still there") signal,
+     * distinct from applySync()'s fuller question-progress semantics. Used
+     * by manual/external exercise sessions, which have no other sync
+     * mechanism at all.
+     */
+    public function touch(): void
+    {
+        $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    /**
+     * Never credits a session past whichever is most trustworthy - a tab
+     * abandoned for hours (closed laptop, forgotten background tab, ...)
+     * and only finished much later must not credit that entire real-world
+     * gap. Timestamp arithmetic (not DateTimeImmutable comparison) to match
+     * the same pattern already used for the live-progress cap in
+     * ExerciseTargetProgress::calculate().
+     *
+     * Two different cases, deliberately not just min()'d together: if a
+     * heartbeat actually arrived at least once, it's the more precise
+     * signal and gets a tight grace period past its last ping. But if none
+     * ever arrived - JS disabled, or finish() simply came before the first
+     * ~20s tick - there is no such signal to trust, and clipping to that
+     * same tight grace would wrongly punish a genuinely long session whose
+     * heartbeat mechanism just never ran; only the much looser hard
+     * ceiling applies then.
+     */
+    private function cappedFinishTimestamp(): \DateTimeImmutable
+    {
+        $now = time();
+        $startedAtSeconds = $this->startedAt->getTimestamp();
+        $updatedAtSeconds = $this->updatedAt->getTimestamp();
+        $hardCapSeconds = $startedAtSeconds + self::MAX_SESSION_MINUTES * 60;
+
+        if ($updatedAtSeconds > $startedAtSeconds) {
+            $referenceSeconds = $updatedAtSeconds + self::HEARTBEAT_GRACE_SECONDS;
+
+            return (new \DateTimeImmutable())->setTimestamp(min($now, $referenceSeconds, $hardCapSeconds));
+        }
+
+        return (new \DateTimeImmutable())->setTimestamp(min($now, $hardCapSeconds));
     }
 
     /**

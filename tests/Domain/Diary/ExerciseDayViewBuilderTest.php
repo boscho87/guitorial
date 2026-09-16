@@ -8,6 +8,8 @@ use App\Domain\Diary\ExerciseDayViewBuilder;
 use App\Entity\Exercise;
 use App\Entity\ExerciseVersion;
 use App\Entity\PracticeSession;
+use App\Entity\Routine;
+use App\Entity\RoutineItem;
 use PHPUnit\Framework\TestCase;
 
 final class ExerciseDayViewBuilderTest extends TestCase
@@ -188,6 +190,48 @@ final class ExerciseDayViewBuilderTest extends TestCase
         self::assertSame(0, $byDate[$today->modify('-1 day')->format('Y-m-d')]['total']);
         self::assertSame(1, $byDate[$today->format('Y-m-d')]['total']);
         self::assertSame(1, $byDate[$today->format('Y-m-d')]['done']);
+    }
+
+    public function testBuildDayForRoutineOrdersRowsByRoutineNotByVersionOrder(): void
+    {
+        $today = new \DateTimeImmutable('today');
+        $exerciseA = $this->exercise(1);
+        $exerciseB = $this->exercise(2);
+        $exerciseC = $this->exercise(3);
+        $versionA = $this->version($exerciseA, 'Aufwärmen', null, ExerciseVersion::RHYTHM_NONE, null, $today->modify('-10 days'));
+        $versionB = $this->version($exerciseB, 'Boogie Riff', null, ExerciseVersion::RHYTHM_NONE, null, $today->modify('-10 days'));
+        $versionC = $this->version($exerciseC, 'Chord changes', null, ExerciseVersion::RHYTHM_NONE, null, $today->modify('-10 days'));
+
+        $routine = new Routine('visitor-1', 'Abendroutine', 0);
+        // Deliberately reversed relative to $allVersions/alphabetical order.
+        $routine->addItem(new RoutineItem($routine, $exerciseC, 0));
+        $routine->addItem(new RoutineItem($routine, $exerciseA, 1));
+        $routine->addItem(new RoutineItem($routine, $exerciseB, 2));
+
+        $rows = $this->builder->buildDayForRoutine($routine, [$versionA, $versionB, $versionC], [], $today);
+
+        self::assertSame(['Chord changes', 'Aufwärmen', 'Boogie Riff'], array_map(
+            static fn (array $row): string => $row['version']->getTitle(),
+            $rows,
+        ));
+    }
+
+    public function testBuildDayForRoutineSkipsAnExerciseThatIsNoLongerActive(): void
+    {
+        $today = new \DateTimeImmutable('today');
+        $archivedExercise = $this->exercise(1, archivedAt: $today->modify('-1 day'));
+        $activeExercise = $this->exercise(2);
+        $archivedVersion = $this->version($archivedExercise, 'Archiviert', null, ExerciseVersion::RHYTHM_NONE, null, $today->modify('-10 days'));
+        $activeVersion = $this->version($activeExercise, 'Aktiv', null, ExerciseVersion::RHYTHM_NONE, null, $today->modify('-10 days'));
+
+        $routine = new Routine('visitor-1', 'Routine', 0);
+        $routine->addItem(new RoutineItem($routine, $archivedExercise, 0));
+        $routine->addItem(new RoutineItem($routine, $activeExercise, 1));
+
+        $rows = $this->builder->buildDayForRoutine($routine, [$archivedVersion, $activeVersion], [], $today);
+
+        self::assertCount(1, $rows);
+        self::assertSame('Aktiv', $rows[0]['version']->getTitle());
     }
 
     private function exercise(int $id, ?\DateTimeImmutable $archivedAt = null): Exercise

@@ -6,6 +6,7 @@ namespace App\Domain\Diary;
 
 use App\Entity\ExerciseVersion;
 use App\Entity\PracticeSession;
+use App\Entity\Routine;
 
 /**
  * Resolves a visitor's ExerciseVersion history + PracticeSession rows into
@@ -23,7 +24,7 @@ final class ExerciseDayViewBuilder
     /**
      * @param ExerciseVersion[] $allVersions every version this visitor ever had
      * @param PracticeSession[] $sessions this visitor's recent sessions, any status
-     * @return list<array{version: ExerciseVersion, checked: bool, practicedMinutes: ?int, runningSessionId: ?int, runningSessionTool: ?string, weeklyDone: ?int, weeklyTarget: ?int}>
+     * @return list<array{version: ExerciseVersion, checked: bool, practicedMinutes: ?int, sessionCount: int, runningSessionId: ?int, runningSessionTool: ?string, weeklyDone: ?int, weeklyTarget: ?int}>
      */
     public function buildDay(array $allVersions, array $sessions, \DateTimeImmutable $date): array
     {
@@ -56,11 +57,44 @@ final class ExerciseDayViewBuilder
                 'version' => $version,
                 'checked' => $checked,
                 'practicedMinutes' => $targetMinutes !== null ? (int) round($stat['minutes']) : null,
+                'sessionCount' => $stat['count'],
                 'runningSessionId' => $runningSession?->getId(),
                 'runningSessionTool' => $runningSession?->getTool(),
                 'weeklyDone' => $weeklyDone,
                 'weeklyTarget' => $weeklyTarget,
             ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Same per-day rows as buildDay(), filtered and reordered to one
+     * Routine's items instead of every active exercise - used both by
+     * Heute (when a routine is marked active) and by a routine's own
+     * "starten" view, so the two never diverge.
+     *
+     * @param ExerciseVersion[] $allVersions
+     * @param PracticeSession[] $sessions
+     * @return list<array{version: ExerciseVersion, checked: bool, practicedMinutes: ?int, sessionCount: int, runningSessionId: ?int, runningSessionTool: ?string, weeklyDone: ?int, weeklyTarget: ?int}>
+     */
+    public function buildDayForRoutine(Routine $routine, array $allVersions, array $sessions, \DateTimeImmutable $date): array
+    {
+        $rowsByExerciseId = [];
+        foreach ($this->buildDay($allVersions, $sessions, $date) as $row) {
+            $rowsByExerciseId[$row['version']->getExercise()->getId()] = $row;
+        }
+
+        $rows = [];
+        foreach ($routine->getItems() as $item) {
+            $row = $rowsByExerciseId[$item->getExercise()->getId()] ?? null;
+            if ($row !== null) {
+                // Missing here means the exercise was archived (or its
+                // version no longer active) after being added to this
+                // routine - nothing to show for it today, skip rather than
+                // render a broken row.
+                $rows[] = $row;
+            }
         }
 
         return $rows;

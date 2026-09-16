@@ -10,7 +10,12 @@
 
     <h1 class="font-display mt-3 text-2xl font-semibold sm:text-3xl">{{ title ?? 'exercise_session.untitled'|trans }}</h1>
 
-    <div class="stat-tile mt-8 flex flex-col items-center gap-2 py-10 text-center">
+    <div
+            class="stat-tile mt-8 flex flex-col items-center gap-2 py-10 text-center"
+            data-controller="session-heartbeat"
+            data-session-heartbeat-url-value="{{ path('exercise_session_heartbeat', {id: session.id}) }}"
+            data-session-heartbeat-token-value="{{ csrf_token(csrfIntention) }}"
+    >
         {# Wall-clock elapsed time (from the session's real startedAt, never a JS
            countdown) - stays correct across a closed tab/standby, unlike setInterval counting. #}
         <span
@@ -27,6 +32,14 @@
         <a href="{{ resource.externalUrl }}" target="_blank" rel="noopener" class="btn btn-outline btn-block mt-6">
             {{ 'exercise_session.reopen_resource'|trans }} ({{ resource.externalProvider ?? resource.externalUrl }})
         </a>
+    {% elseif openableResources is not empty %}
+        <div class="mt-6 flex flex-col gap-2">
+            {% for openableResource in openableResources %}
+                <a href="{{ openableResource.externalUrl }}" target="_blank" rel="noopener" class="btn btn-outline btn-block">
+                    {{ 'exercise_session.reopen_resource'|trans }} ({{ openableResource.externalProvider ?? openableResource.externalUrl }})
+                </a>
+            {% endfor %}
+        </div>
     {% endif %}
 
     <div class="mt-8">
