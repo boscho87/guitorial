@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Domain\Diary\ExerciseDayViewBuilder;
+use App\Domain\Diary\RoutineProvisioner;
 use App\Domain\Quiz\ToolRegistry;
 use App\Entity\Routine;
 use App\Entity\RoutineItem;
@@ -37,6 +38,7 @@ final class RoutineController extends AbstractController
     public function __construct(
         private readonly ToolRegistry $tools,
         private readonly ExerciseDayViewBuilder $dayViewBuilder,
+        private readonly RoutineProvisioner $routineProvisioner,
     ) {
     }
 
@@ -44,6 +46,12 @@ final class RoutineController extends AbstractController
     public function index(Request $request, RoutineRepository $routines): Response
     {
         $visitorId = $this->requireVisitorId($request);
+        if ($visitorId !== '') {
+            // So visiting /routinen directly (without ever visiting Heute
+            // first) also shows the auto-provisioned default routine
+            // instead of an empty list.
+            $this->routineProvisioner->ensureActiveRoutine($visitorId);
+        }
 
         return $this->render('routine/index.html.twig', [
             'routines' => $visitorId !== '' ? $routines->forVisitor($visitorId) : [],
@@ -82,6 +90,12 @@ final class RoutineController extends AbstractController
         }
 
         $routine = new Routine($visitorId, $name, $routines->countForVisitor($visitorId));
+        if ($routines->findActiveForVisitor($visitorId) === null) {
+            // First routine ever (or the defensive "routines exist, none
+            // active" case) - the invariant requires at least one active
+            // routine whenever any exist.
+            $routine->activate();
+        }
         $em->persist($routine);
 
         $sortIndex = 0;
@@ -220,6 +234,15 @@ final class RoutineController extends AbstractController
         $this->assertValidCsrf($request);
         $routine = $routines->findForVisitor($id, $this->requireVisitorId($request));
         if ($routine !== null) {
+            // Deleting the active routine would leave Heute without one -
+            // the UI never offers this button for it, this is just the
+            // defense-in-depth backstop.
+            if ($routine->isActive()) {
+                $this->addFlash('error', 'routine.delete_active_error');
+
+                return $this->redirectToRoute('routine_index');
+            }
+
             $em->remove($routine);
             $em->flush();
         }
@@ -249,19 +272,6 @@ final class RoutineController extends AbstractController
         }
 
         return $this->redirectToRoute('diary_index');
-    }
-
-    #[Route('/{id}/deaktivieren', name: 'routine_deactivate', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function deactivate(int $id, Request $request, RoutineRepository $routines, EntityManagerInterface $em): Response
-    {
-        $this->assertValidCsrf($request);
-        $routine = $routines->findForVisitor($id, $this->requireVisitorId($request));
-        if ($routine !== null) {
-            $routine->deactivate();
-            $em->flush();
-        }
-
-        return $this->redirectToRoute('routine_index');
     }
 
     #[Route('/{id}', name: 'routine_show', methods: ['GET'], requirements: ['id' => '\d+'])]

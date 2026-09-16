@@ -414,8 +414,8 @@ routine:
   start: Starten
   active_badge: "Aktuelle Routine"
   set_active: "Als aktuelle Routine festlegen"
-  unset_active: Deaktivieren
   delete_confirm: "Routine wirklich löschen? Die enthaltenen Übungen selbst bleiben unter Meine Übungen erhalten."
+  delete_active_error: "Die aktuelle Routine kann nicht gelöscht werden. Aktiviere zuerst eine andere Routine."
   back_to_list: "Zurück zu Routinen"
   add:
     title: "Neue Routine"

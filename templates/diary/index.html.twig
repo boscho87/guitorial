@@ -50,55 +50,31 @@
             </p>
             <a href="{{ path('routine_index') }}" class="text-xs font-medium text-primary hover:underline">{{ 'diary.active_routine.change'|trans }}</a>
         </div>
+    {% endif %}
 
-        {% if routineRows is empty %}
-            <p class="mt-8 text-sm text-base-content/60">{{ 'routine.show.empty'|trans }}</p>
-        {% else %}
-            <ul class="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
-                {% for row in routineRows %}
-                    {% set exercise = row.version.exercise %}
-                    {{ include('diary/_exercise_row.html.twig', {
-                        exercise: exercise,
-                        version: row.version,
-                        row: row,
-                        resources: resourcesByExerciseId[exercise.id],
-                        toolTitles: toolTitles,
-                        toolSettingsRoutes: toolSettingsRoutes,
-                        toolPracticeRoutes: toolPracticeRoutes,
-                        sessionCsrfIntention: sessionCsrfIntention,
-                        csrfIntention: csrfIntention,
-                        groupName: null,
-                        isToday: isToday,
-                    }) }}
-                {% endfor %}
-            </ul>
-        {% endif %}
-    {% elseif grouped is empty %}
-        <p class="mt-8 text-sm text-base-content/60">{{ isToday ? 'diary.empty'|trans : 'diary.empty_past'|trans }}</p>
+    {% if routineRows is not empty %}
+        <ul class="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
+            {% for row in routineRows %}
+                {% set exercise = row.version.exercise %}
+                {{ include('diary/_exercise_row.html.twig', {
+                    exercise: exercise,
+                    version: row.version,
+                    row: row,
+                    resources: resourcesByExerciseId[exercise.id],
+                    toolTitles: toolTitles,
+                    toolSettingsRoutes: toolSettingsRoutes,
+                    toolPracticeRoutes: toolPracticeRoutes,
+                    sessionCsrfIntention: sessionCsrfIntention,
+                    csrfIntention: csrfIntention,
+                    groupName: null,
+                    isToday: isToday,
+                }) }}
+            {% endfor %}
+        </ul>
+    {% elseif activeRoutine %}
+        <p class="mt-8 text-sm text-base-content/60">{{ 'routine.show.empty'|trans }}</p>
     {% else %}
-        {% for bucket in grouped %}
-            <section class="mt-8">
-                <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ bucket.group.name }}</h2>
-                <ul class="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
-                    {% for row in bucket.rows %}
-                        {% set exercise = row.version.exercise %}
-                        {{ include('diary/_exercise_row.html.twig', {
-                            exercise: exercise,
-                            version: row.version,
-                            row: row,
-                            resources: resourcesByExerciseId[exercise.id],
-                            toolTitles: toolTitles,
-                            toolSettingsRoutes: toolSettingsRoutes,
-                            toolPracticeRoutes: toolPracticeRoutes,
-                            sessionCsrfIntention: sessionCsrfIntention,
-                            csrfIntention: csrfIntention,
-                            groupName: bucket.group.name,
-                            isToday: isToday,
-                        }) }}
-                    {% endfor %}
-                </ul>
-            </section>
-        {% endfor %}
+        <p class="mt-8 text-sm text-base-content/60">{{ isToday ? 'diary.empty'|trans : 'diary.empty_past'|trans }}</p>
     {% endif %}
 
     <div class="mt-10">

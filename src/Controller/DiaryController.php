@@ -8,6 +8,7 @@ use App\Domain\Diary\DiarySuggestions;
 use App\Domain\Diary\ExerciseDayViewBuilder;
 use App\Domain\Diary\ExerciseGroupProvisioner;
 use App\Domain\Diary\NoteLinkExtractor;
+use App\Domain\Diary\RoutineProvisioner;
 use App\Domain\History\HistoryStatsBuilder;
 use App\Domain\Quiz\ToolRegistry;
 use App\Domain\Session\SessionRecorder;
@@ -20,7 +21,6 @@ use App\Repository\ExerciseRepository;
 use App\Repository\ExerciseResourceRepository;
 use App\Repository\ExerciseVersionRepository;
 use App\Repository\PracticeSessionRepository;
-use App\Repository\RoutineRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -52,6 +52,7 @@ final class DiaryController extends AbstractController
         private readonly ExerciseDayViewBuilder $dayViewBuilder,
         private readonly HistoryStatsBuilder $statsBuilder,
         private readonly ExerciseGroupProvisioner $groupProvisioner,
+        private readonly RoutineProvisioner $routineProvisioner,
     ) {
     }
 
@@ -60,9 +61,7 @@ final class DiaryController extends AbstractController
         Request $request,
         ExerciseVersionRepository $versions,
         ExerciseResourceRepository $resources,
-        ExerciseGroupRepository $groups,
         PracticeSessionRepository $sessions,
-        RoutineRepository $routines,
     ): Response {
         $visitorId = $this->requireVisitorId($request);
         $today = new \DateTimeImmutable('today');
@@ -71,15 +70,14 @@ final class DiaryController extends AbstractController
 
         $allVersions = $visitorId !== '' ? $versions->forVisitor($visitorId) : [];
         $allSessions = $visitorId !== '' ? $sessions->forVisitor($visitorId, 300) : [];
-        $activeRoutine = $visitorId !== '' ? $routines->findActiveForVisitor($visitorId) : null;
+        // Heute is always routine-driven - a visitor with at least one
+        // exercise always has an active routine (see RoutineProvisioner);
+        // a visitor with none yet legitimately has no routine either.
+        $activeRoutine = $visitorId !== '' ? $this->routineProvisioner->ensureActiveRoutine($visitorId) : null;
 
-        // An active routine takes over Heute entirely, in its own order -
-        // no Gruppe headers, and exercises not in it simply aren't part of
-        // today's chosen plan. No active routine keeps the previous
-        // behaviour: every rhythm-due exercise, grouped by Gruppe.
         $rows = $activeRoutine !== null
             ? $this->dayViewBuilder->buildDayForRoutine($activeRoutine, $allVersions, $allSessions, $viewDate)
-            : $this->dayViewBuilder->buildDay($allVersions, $allSessions, $viewDate);
+            : [];
         $recentRatios = $this->dayViewBuilder->buildRecentRatios($allVersions, $allSessions, $today, self::RECENT_DAYS);
 
         $resourcesByExerciseId = [];
@@ -103,8 +101,7 @@ final class DiaryController extends AbstractController
             'previousDate' => $viewDate->modify('-1 day'),
             'nextDate' => $isToday ? null : $viewDate->modify('+1 day'),
             'activeRoutine' => $activeRoutine,
-            'routineRows' => $activeRoutine !== null ? $rows : null,
-            'grouped' => $activeRoutine === null ? $this->groupRows($rows, $visitorId !== '' ? $groups->forVisitor($visitorId) : []) : [],
+            'routineRows' => $rows,
             'resourcesByExerciseId' => $resourcesByExerciseId,
             'toolTitles' => $toolTitles,
             'toolSettingsRoutes' => $toolSettingsRoutes,
@@ -506,36 +503,6 @@ final class DiaryController extends AbstractController
         }
 
         return $this->redirectToRoute('diary_index');
-    }
-
-    /**
-     * @param list<array{version: ExerciseVersion, checked: bool, practicedMinutes: ?int, runningSessionId: ?int, weeklyDone: ?int, weeklyTarget: ?int}> $rows
-     * @param ExerciseGroup[] $visitorGroups ordered by sortIndex
-     * @return list<array{group: ExerciseGroup, rows: array}>
-     */
-    private function groupRows(array $rows, array $visitorGroups): array
-    {
-        $byGroupId = [];
-        foreach ($rows as $row) {
-            $groupId = $row['version']->getGroup()?->getId();
-            if ($groupId !== null) {
-                $byGroupId[$groupId][] = $row;
-            }
-        }
-
-        $grouped = [];
-        foreach ($visitorGroups as $group) {
-            if (isset($byGroupId[$group->getId()])) {
-                // Still-open exercises first, already-checked ones sink to
-                // the bottom of their group - a done item mixed in with the
-                // rest just adds visual noise to "what's left today".
-                $groupRows = $byGroupId[$group->getId()];
-                usort($groupRows, static fn (array $a, array $b): int => $a['checked'] <=> $b['checked']);
-                $grouped[] = ['group' => $group, 'rows' => $groupRows];
-            }
-        }
-
-        return $grouped;
     }
 
     /**

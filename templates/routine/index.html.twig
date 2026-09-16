@@ -40,26 +40,24 @@
                             <a href="{{ path('routine_edit_form', {id: routine.id}) }}" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}">
                                 {{ icons.icon('edit') }}
                             </a>
-                            <form
-                                    method="post" action="{{ path('routine_delete', {id: routine.id}) }}"
-                                    data-controller="confirm-submit" data-confirm-submit-message-value="{{ 'routine.delete_confirm'|trans }}"
-                                    data-action="submit->confirm-submit#submit"
-                            >
-                                <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
-                                <button type="submit" class="btn btn-ghost btn-xs btn-square text-error" title="{{ 'diary.item.delete'|trans }}" aria-label="{{ 'diary.item.delete'|trans }}">
-                                    {{ icons.icon('trash') }}
-                                </button>
-                            </form>
+                            {% if not routine.isActive %}
+                                <form
+                                        method="post" action="{{ path('routine_delete', {id: routine.id}) }}"
+                                        data-controller="confirm-submit" data-confirm-submit-message-value="{{ 'routine.delete_confirm'|trans }}"
+                                        data-action="submit->confirm-submit#submit"
+                                >
+                                    <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
+                                    <button type="submit" class="btn btn-ghost btn-xs btn-square text-error" title="{{ 'diary.item.delete'|trans }}" aria-label="{{ 'diary.item.delete'|trans }}">
+                                        {{ icons.icon('trash') }}
+                                    </button>
+                                </form>
+                            {% endif %}
                         </div>
                     </div>
                     <a href="{{ path('routine_show', {id: routine.id}) }}" class="btn btn-outline btn-sm mt-3 w-full">{{ icons.icon('play') }}{{ 'routine.start'|trans }}</a>
                     {% if routine.isActive %}
                         <div class="mt-2 flex items-center justify-center gap-2">
                             <span class="badge badge-primary badge-sm">{{ 'routine.active_badge'|trans }}</span>
-                            <form method="post" action="{{ path('routine_deactivate', {id: routine.id}) }}">
-                                <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
-                                <button type="submit" class="btn btn-ghost btn-xs text-base-content/60">{{ 'routine.unset_active'|trans }}</button>
-                            </form>
                         </div>
                     {% else %}
                         <form method="post" action="{{ path('routine_activate', {id: routine.id}) }}" class="mt-2">
