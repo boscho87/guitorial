@@ -3,7 +3,7 @@
 {% block title %}{{ 'exercise_session.title'|trans }} – Guitorial{% endblock %}
 
 {% block body %}
-    <a href="{{ path('diary_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
+    <a href="{{ returnRouteId ? path('routine_show', {id: returnRouteId}) : path('diary_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         {{ 'nav.diary'|trans }}
     </a>
@@ -46,6 +46,10 @@
         <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'exercise_session.finish.title'|trans }}</h2>
         <form method="post" action="{{ path('exercise_session_finish', {id: session.id}) }}" class="mt-3">
             <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+            {% if returnRouteId %}
+                <input type="hidden" name="return_route" value="routine_show">
+                <input type="hidden" name="return_route_id" value="{{ returnRouteId }}">
+            {% endif %}
             <div class="grid grid-cols-3 gap-2">
                 {% for state in learningStates %}
                     <button type="submit" name="learning_state" value="{{ state }}" class="btn btn-outline btn-sm w-full">{{ ('exercise_session.learning_state.' ~ state)|trans }}</button>
@@ -65,6 +69,10 @@
             data-action="submit->confirm-submit#submit"
     >
         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+        {% if returnRouteId %}
+            <input type="hidden" name="return_route" value="routine_show">
+            <input type="hidden" name="return_route_id" value="{{ returnRouteId }}">
+        {% endif %}
         <button type="submit" class="btn btn-ghost btn-block text-error">{{ 'exercise_session.discard.submit'|trans }}</button>
     </form>
 {% endblock %}

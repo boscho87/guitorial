@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Domain\Session\ExercisePlanLink;
+use App\Domain\Session\ReturnRouteResolver;
 use App\Domain\Session\SessionRecorder;
 use App\Domain\Session\ToolConfigSnapshot;
 use App\Domain\Theory\Note;
@@ -38,6 +39,8 @@ final class ScaleGeneratorController extends AbstractController
     public function __construct(
         private readonly SessionRecorder $sessionRecorder,
         private readonly ExercisePlanLink $planLink,
+        private readonly PracticeSessionRepository $sessions,
+        private readonly ReturnRouteResolver $returnRoute,
     ) {
     }
 
@@ -52,13 +55,16 @@ final class ScaleGeneratorController extends AbstractController
     {
         $round = $this->currentRound($request);
         $plan = $this->resolvePlanLink($request, $request->query->get('uebung'), $request->query->get('ressource'));
+        $lastConfig = $round === null && $plan !== null ? $this->lastConfigFor($plan['exercise']) : null;
+        $target = $this->returnRoute->resolve($request->query->get('return_route'), $request->query->get('return_route_id'));
 
         return $this->render('scale_generator/settings.html.twig', [
             'allTones' => self::allTones(),
-            'activeTones' => $round !== null ? $round['tones'] : self::allTones(),
-            'autoAdvanceSeconds' => $round !== null ? $round['autoAdvanceSeconds'] : 0,
+            'activeTones' => $round['tones'] ?? $lastConfig['tones'] ?? self::allTones(),
+            'autoAdvanceSeconds' => $round['autoAdvanceSeconds'] ?? $lastConfig['autoAdvanceSeconds'] ?? 0,
             'planExerciseId' => $plan !== null ? $plan['exercise']->getId() : null,
             'planResourceId' => $plan !== null ? $plan['resource']->getId() : null,
+            'returnRouteId' => $target['id'] ?? null,
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
     }
@@ -79,7 +85,8 @@ final class ScaleGeneratorController extends AbstractController
         ));
 
         $plan = $this->resolvePlanLink($request, $request->request->get('uebung'), $request->request->get('ressource'));
-        $this->beginRound($request, $tones, $autoAdvanceSeconds, $plan['exercise'] ?? null, $plan['resource'] ?? null);
+        $target = $this->returnRoute->resolveFromRequestBody($request);
+        $this->beginRound($request, $tones, $autoAdvanceSeconds, $plan['exercise'] ?? null, $plan['resource'] ?? null, $target);
 
         return $this->redirectToRoute('scale_generator_practice');
     }
@@ -95,7 +102,7 @@ final class ScaleGeneratorController extends AbstractController
     }
 
     #[Route('/naechste', name: 'scale_generator_next', methods: ['POST'])]
-    public function next(Request $request, PracticeSessionRepository $sessions): Response
+    public function next(Request $request): Response
     {
         $this->assertValidCsrf($request);
 
@@ -105,7 +112,7 @@ final class ScaleGeneratorController extends AbstractController
             return $this->redirectToRoute('scale_generator_settings');
         }
 
-        $practiceSession = $sessions->find($round['practiceSessionId']);
+        $practiceSession = $this->sessions->find($round['practiceSessionId']);
         if ($practiceSession !== null) {
             $this->sessionRecorder->markInteraction($practiceSession);
         }
@@ -186,8 +193,9 @@ final class ScaleGeneratorController extends AbstractController
 
     /**
      * @param string[] $tones
+     * @param array{route: string, id: int}|null $returnTarget
      */
-    private function beginRound(Request $request, array $tones, int $autoAdvanceSeconds, ?Exercise $exercise = null, ?ExerciseResource $resource = null): void
+    private function beginRound(Request $request, array $tones, int $autoAdvanceSeconds, ?Exercise $exercise = null, ?ExerciseResource $resource = null, ?array $returnTarget = null): void
     {
         $queue = $tones;
         shuffle($queue);
@@ -216,7 +224,20 @@ final class ScaleGeneratorController extends AbstractController
             'startedAt' => microtime(true),
             'practiceSessionId' => $practiceSession->getId(),
             'fromPlan' => $exercise !== null,
+            'returnRouteId' => $returnTarget['id'] ?? null,
         ]);
+    }
+
+    /**
+     * @return array{tones: string[], autoAdvanceSeconds: int}|null
+     */
+    private function lastConfigFor(Exercise $exercise): ?array
+    {
+        $snapshot = $this->sessions->mostRecentForExercise($exercise, self::TOOL)?->getConfigSnapshot();
+
+        return is_array($snapshot) && isset($snapshot['tones'], $snapshot['autoAdvanceSeconds'])
+            ? ['tones' => $snapshot['tones'], 'autoAdvanceSeconds' => $snapshot['autoAdvanceSeconds']]
+            : null;
     }
 
     /** @return array<string, mixed> */
@@ -233,10 +254,13 @@ final class ScaleGeneratorController extends AbstractController
             'totalQuestions' => $round['totalQuestions'],
             'finished' => $round['finished'],
             'promotable' => $round['finished'] && !($round['fromPlan'] ?? false),
+            'returnRouteId' => $round['returnRouteId'] ?? null,
             'autoAdvanceSeconds' => $round['autoAdvanceSeconds'],
             'startedAtMs' => (int) round($round['startedAt'] * 1000),
             'elapsedLabel' => $this->formatElapsed(microtime(true) - $round['startedAt']),
             'csrfIntention' => self::CSRF_INTENTION,
+            'hide_footer' => true,
+            'hideChromeOnMobile' => true,
         ];
     }
 

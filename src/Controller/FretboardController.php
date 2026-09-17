@@ -9,6 +9,7 @@ use App\Domain\Quiz\WeightedQuestionPicker;
 use App\Domain\Session\ExercisePlanLink;
 use App\Domain\Session\ExerciseTargetProgress;
 use App\Domain\Session\PersonalRecords;
+use App\Domain\Session\ReturnRouteResolver;
 use App\Domain\Session\SessionRecorder;
 use App\Domain\Session\ToolConfigSnapshot;
 use App\Domain\Theory\GuitarString;
@@ -50,6 +51,7 @@ final class FretboardController extends AbstractController
         private readonly PracticeSessionRepository $sessions,
         private readonly ExerciseTargetProgress $targetProgress,
         private readonly PersonalRecords $personalRecords,
+        private readonly ReturnRouteResolver $returnRoute,
     ) {
     }
 
@@ -58,15 +60,18 @@ final class FretboardController extends AbstractController
     {
         $round = $this->currentRound($request);
         $plan = $this->resolvePlanLink($request, $request->query->get('uebung'), $request->query->get('ressource'));
+        $lastConfig = $round === null && $plan !== null ? $this->lastConfigFor($plan['exercise']) : null;
+        $target = $this->returnRoute->resolve($request->query->get('return_route'), $request->query->get('return_route_id'));
 
         return $this->render('fretboard/settings.html.twig', [
             'allStrings' => GuitarString::all(),
-            'activeStrings' => $round !== null ? $round['strings'] : array_keys(GuitarString::all()),
-            'activeModes' => $round !== null ? $round['modes'] : self::MODES,
-            'maxFret' => $round !== null ? $round['maxFret'] : self::DEFAULT_MAX_FRET,
-            'questionCount' => $round !== null ? $round['totalQuestions'] : self::DEFAULT_QUESTION_COUNT,
+            'activeStrings' => $round['strings'] ?? $lastConfig['strings'] ?? array_keys(GuitarString::all()),
+            'activeModes' => $round['modes'] ?? $lastConfig['modes'] ?? self::MODES,
+            'maxFret' => $round['maxFret'] ?? $lastConfig['maxFret'] ?? self::DEFAULT_MAX_FRET,
+            'questionCount' => $round['totalQuestions'] ?? $lastConfig['totalQuestions'] ?? self::DEFAULT_QUESTION_COUNT,
             'planExerciseId' => $plan !== null ? $plan['exercise']->getId() : null,
             'planResourceId' => $plan !== null ? $plan['resource']->getId() : null,
+            'returnRouteId' => $target['id'] ?? null,
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
     }
@@ -97,7 +102,8 @@ final class FretboardController extends AbstractController
         );
 
         $plan = $this->resolvePlanLink($request, $request->request->get('uebung'), $request->request->get('ressource'));
-        $this->beginRound($request, $strings, $modes, $maxFret, $questionCount, $plan['exercise'] ?? null, $plan['resource'] ?? null);
+        $target = $this->returnRoute->resolveFromRequestBody($request);
+        $this->beginRound($request, $strings, $modes, $maxFret, $questionCount, $plan['exercise'] ?? null, $plan['resource'] ?? null, $target);
 
         return $this->redirectToRoute('fretboard_practice');
     }
@@ -264,8 +270,9 @@ final class FretboardController extends AbstractController
     /**
      * @param string[] $strings
      * @param string[] $modes
+     * @param array{route: string, id: int}|null $returnTarget
      */
-    private function beginRound(Request $request, array $strings, array $modes, int $maxFret, int $questionCount, ?Exercise $exercise = null, ?ExerciseResource $resource = null): void
+    private function beginRound(Request $request, array $strings, array $modes, int $maxFret, int $questionCount, ?Exercise $exercise = null, ?ExerciseResource $resource = null, ?array $returnTarget = null): void
     {
         $visitorId = $request->attributes->get('visitorId');
         $practiceSession = $this->sessionRecorder->start(
@@ -288,8 +295,21 @@ final class FretboardController extends AbstractController
             'startedAt' => microtime(true),
             'practiceSessionId' => $practiceSession->getId(),
             'fromPlan' => $exercise !== null,
+            'returnRouteId' => $returnTarget['id'] ?? null,
         ]);
         $this->ensureCurrentQuestion($request);
+    }
+
+    /**
+     * @return array{strings: string[], modes: string[], maxFret: int, totalQuestions: int}|null
+     */
+    private function lastConfigFor(Exercise $exercise): ?array
+    {
+        $snapshot = $this->sessions->mostRecentForExercise($exercise, self::TOOL)?->getConfigSnapshot();
+
+        return is_array($snapshot) && isset($snapshot['strings'], $snapshot['modes'], $snapshot['maxFret'], $snapshot['totalQuestions'])
+            ? ['strings' => $snapshot['strings'], 'modes' => $snapshot['modes'], 'maxFret' => $snapshot['maxFret'], 'totalQuestions' => $snapshot['totalQuestions']]
+            : null;
     }
 
     /**
@@ -428,6 +448,7 @@ final class FretboardController extends AbstractController
             'correctCount' => $round['correctCount'],
             'finished' => $round['finished'],
             'promotable' => $round['finished'] && !($round['fromPlan'] ?? false),
+            'returnRouteId' => $round['returnRouteId'] ?? null,
             'stringLabel' => $current !== null ? GuitarString::get($current['stringNumber'])->label() : null,
             'fret' => $current['fret'] ?? null,
             'note' => $current['note'] ?? null,
@@ -436,6 +457,8 @@ final class FretboardController extends AbstractController
             'startedAtMs' => (int) round($startedAt * 1000),
             'elapsedLabel' => $this->formatElapsed(microtime(true) - $startedAt),
             'csrfIntention' => self::CSRF_INTENTION,
+            'hide_footer' => true,
+            'hideChromeOnMobile' => true,
         ];
     }
 

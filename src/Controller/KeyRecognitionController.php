@@ -9,6 +9,7 @@ use App\Domain\Quiz\WeightedQuestionPicker;
 use App\Domain\Session\ExercisePlanLink;
 use App\Domain\Session\ExerciseTargetProgress;
 use App\Domain\Session\PersonalRecords;
+use App\Domain\Session\ReturnRouteResolver;
 use App\Domain\Session\SessionRecorder;
 use App\Domain\Session\ToolConfigSnapshot;
 use App\Domain\Theory\MusicKey;
@@ -46,6 +47,7 @@ final class KeyRecognitionController extends AbstractController
         private readonly PracticeSessionRepository $sessions,
         private readonly ExerciseTargetProgress $targetProgress,
         private readonly PersonalRecords $personalRecords,
+        private readonly ReturnRouteResolver $returnRoute,
     ) {
     }
 
@@ -54,15 +56,18 @@ final class KeyRecognitionController extends AbstractController
     {
         $pairs = MusicKey::signaturePairs();
         $round = $this->currentRound($request);
-        $activePairs = $round !== null ? $round['pairs'] : array_column($pairs, 'majorId');
         $plan = $this->resolvePlanLink($request, $request->query->get('uebung'), $request->query->get('ressource'));
+        $lastConfig = $round === null && $plan !== null ? $this->lastConfigFor($plan['exercise']) : null;
+
+        $target = $this->returnRoute->resolve($request->query->get('return_route'), $request->query->get('return_route_id'));
 
         return $this->render('key_recognition/settings.html.twig', [
             'pairs' => $pairs,
-            'activePairs' => $activePairs,
-            'questionCount' => $round !== null ? $round['totalQuestions'] : self::DEFAULT_QUESTION_COUNT,
+            'activePairs' => $round['pairs'] ?? $lastConfig['pairs'] ?? array_column($pairs, 'majorId'),
+            'questionCount' => $round['totalQuestions'] ?? $lastConfig['totalQuestions'] ?? self::DEFAULT_QUESTION_COUNT,
             'planExerciseId' => $plan !== null ? $plan['exercise']->getId() : null,
             'planResourceId' => $plan !== null ? $plan['resource']->getId() : null,
+            'returnRouteId' => $target['id'] ?? null,
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
     }
@@ -86,7 +91,8 @@ final class KeyRecognitionController extends AbstractController
         );
 
         $plan = $this->resolvePlanLink($request, $request->request->get('uebung'), $request->request->get('ressource'));
-        $this->beginRound($request, $selected, $questionCount, $plan['exercise'] ?? null, $plan['resource'] ?? null);
+        $target = $this->returnRoute->resolveFromRequestBody($request);
+        $this->beginRound($request, $selected, $questionCount, $plan['exercise'] ?? null, $plan['resource'] ?? null, $target);
 
         return $this->redirectToRoute('key_recognition_practice');
     }
@@ -228,8 +234,11 @@ final class KeyRecognitionController extends AbstractController
         );
     }
 
-    /** @param string[] $pairs */
-    private function beginRound(Request $request, array $pairs, int $questionCount, ?Exercise $exercise = null, ?ExerciseResource $resource = null): void
+    /**
+     * @param string[] $pairs
+     * @param array{route: string, id: int}|null $returnTarget
+     */
+    private function beginRound(Request $request, array $pairs, int $questionCount, ?Exercise $exercise = null, ?ExerciseResource $resource = null, ?array $returnTarget = null): void
     {
         $visitorId = $request->attributes->get('visitorId');
         $practiceSession = $this->sessionRecorder->start(
@@ -250,8 +259,21 @@ final class KeyRecognitionController extends AbstractController
             'startedAt' => microtime(true),
             'practiceSessionId' => $practiceSession->getId(),
             'fromPlan' => $exercise !== null,
+            'returnRouteId' => $returnTarget['id'] ?? null,
         ]);
         $this->ensureCurrentQuestion($request);
+    }
+
+    /**
+     * @return array{pairs: string[], totalQuestions: int}|null
+     */
+    private function lastConfigFor(Exercise $exercise): ?array
+    {
+        $snapshot = $this->sessions->mostRecentForExercise($exercise, self::TOOL)?->getConfigSnapshot();
+
+        return is_array($snapshot) && isset($snapshot['pairs'], $snapshot['totalQuestions'])
+            ? ['pairs' => $snapshot['pairs'], 'totalQuestions' => $snapshot['totalQuestions']]
+            : null;
     }
 
     private function ensureCurrentQuestion(Request $request): void
@@ -336,11 +358,14 @@ final class KeyRecognitionController extends AbstractController
             'correctCount' => $round['correctCount'],
             'finished' => $round['finished'],
             'promotable' => $round['finished'] && !($round['fromPlan'] ?? false),
+            'returnRouteId' => $round['returnRouteId'] ?? null,
             'progression' => $round['current']['progression'] ?? null,
             'toast' => $toast,
             'startedAtMs' => (int) round($startedAt * 1000),
             'elapsedLabel' => $this->formatElapsed(microtime(true) - $startedAt),
             'csrfIntention' => self::CSRF_INTENTION,
+            'hide_footer' => true,
+            'hideChromeOnMobile' => true,
         ];
     }
 

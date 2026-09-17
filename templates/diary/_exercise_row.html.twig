@@ -7,7 +7,10 @@
     exercise), toolTitles, toolSettingsRoutes, toolPracticeRoutes
     (id-keyed maps), sessionCsrfIntention, csrfIntention, groupName
     (optional badge text), isToday (start/mark-done actions only ever make
-    sense for today - a past-day view stays read-only).
+    sense for today - a past-day view stays read-only), returnRouteId
+    (optional - a Routine's own id, so "als erledigt markieren" redirects
+    back to that Routine's page instead of Heute; omitted/null on Heute
+    itself).
 #}
 {% import '_components/icons.html.twig' as icons %}
 {% import '_components/duration.html.twig' as duration %}
@@ -15,15 +18,19 @@
     <div class="flex items-start gap-2">
         {% if isToday and row.runningSessionId %}
             {% if row.runningSessionTool %}
-                <a href="{{ path(toolPracticeRoutes[row.runningSessionTool]) }}" data-turbo-frame="_top" class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer after:absolute after:inset-0 after:content-['']" title="{{ 'diary.item.resume'|trans }}" aria-label="{{ 'diary.item.resume'|trans }}">{{ icons.icon('play') }}</a>
+                <a href="{{ path(toolPracticeRoutes[row.runningSessionTool], returnRouteId ? {return_route: 'routine_show', return_route_id: returnRouteId} : {}) }}" data-turbo-frame="_top" class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer after:absolute after:inset-0 after:content-['']" title="{{ 'diary.item.resume'|trans }}" aria-label="{{ 'diary.item.resume'|trans }}">{{ icons.icon('play') }}</a>
             {% else %}
-                <a href="{{ path('exercise_session_running', {id: row.runningSessionId}) }}" class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer after:absolute after:inset-0 after:content-['']" title="{{ 'diary.item.resume'|trans }}" aria-label="{{ 'diary.item.resume'|trans }}">{{ icons.icon('play') }}</a>
+                <a href="{{ path('exercise_session_running', returnRouteId ? {id: row.runningSessionId, return_route: 'routine_show', return_route_id: returnRouteId} : {id: row.runningSessionId}) }}" class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer after:absolute after:inset-0 after:content-['']" title="{{ 'diary.item.resume'|trans }}" aria-label="{{ 'diary.item.resume'|trans }}">{{ icons.icon('play') }}</a>
             {% endif %}
         {% elseif isToday and resources|length == 1 and resources[0].isInternalTool %}
-            <a href="{{ path(toolSettingsRoutes[resources[0].internalToolId], {uebung: exercise.id, ressource: resources[0].id}) }}" data-turbo-frame="_top" class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer after:absolute after:inset-0 after:content-['']" title="{{ 'diary.item.start'|trans }}: {{ toolTitles[resources[0].internalToolId]|trans }}" aria-label="{{ 'diary.item.start'|trans }}: {{ toolTitles[resources[0].internalToolId]|trans }}">{{ icons.icon('play') }}</a>
+            <a href="{{ path(toolSettingsRoutes[resources[0].internalToolId], returnRouteId ? {uebung: exercise.id, ressource: resources[0].id, return_route: 'routine_show', return_route_id: returnRouteId} : {uebung: exercise.id, ressource: resources[0].id}) }}" data-turbo-frame="_top" class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer after:absolute after:inset-0 after:content-['']" title="{{ 'diary.item.start'|trans }}: {{ toolTitles[resources[0].internalToolId]|trans }}" aria-label="{{ 'diary.item.start'|trans }}: {{ toolTitles[resources[0].internalToolId]|trans }}">{{ icons.icon('play') }}</a>
         {% elseif isToday and resources|length == 1 %}
             <form method="post" action="{{ path('exercise_start_external', {id: exercise.id, resourceId: resources[0].id}) }}" class="shrink-0">
                 <input type="hidden" name="_token" value="{{ csrf_token(sessionCsrfIntention) }}">
+                {% if returnRouteId %}
+                    <input type="hidden" name="return_route" value="routine_show">
+                    <input type="hidden" name="return_route_id" value="{{ returnRouteId }}">
+                {% endif %}
                 <button type="submit" class="flex h-5 w-5 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer after:absolute after:inset-0 after:content-['']" title="{{ 'diary.item.start'|trans }}: {{ resources[0].externalProvider ?? resources[0].externalUrl }}" aria-label="{{ 'diary.item.start'|trans }}: {{ resources[0].externalProvider ?? resources[0].externalUrl }}">{{ icons.icon('play') }}</button>
             </form>
         {% elseif isToday %}
@@ -33,6 +40,10 @@
                page instead of as a list of raw-URL buttons on this card. #}
             <form method="post" action="{{ path('exercise_start_manual', {id: exercise.id}) }}" class="shrink-0">
                 <input type="hidden" name="_token" value="{{ csrf_token(sessionCsrfIntention) }}">
+                {% if returnRouteId %}
+                    <input type="hidden" name="return_route" value="routine_show">
+                    <input type="hidden" name="return_route_id" value="{{ returnRouteId }}">
+                {% endif %}
                 <button type="submit" class="flex h-5 w-5 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer after:absolute after:inset-0 after:content-['']" title="{{ 'diary.item.start'|trans }}" aria-label="{{ 'diary.item.start'|trans }}">{{ icons.icon('play') }}</button>
             </form>
         {% endif %}
@@ -40,6 +51,10 @@
         {% if isToday and not row.checked %}
             <form id="mark-done-{{ exercise.id }}" method="post" action="{{ path('diary_mark_done', {id: exercise.id}) }}" class="relative z-10 shrink-0">
                 <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                {% if returnRouteId %}
+                    <input type="hidden" name="return_route" value="routine_show">
+                    <input type="hidden" name="return_route_id" value="{{ returnRouteId }}">
+                {% endif %}
                 <button
                         type="submit"
                         class="flex h-5 w-5 items-center justify-center rounded-full border border-base-300 text-transparent transition-colors hover:border-primary hover:bg-primary/10 hover:text-primary focus-visible:border-primary focus-visible:text-primary"
@@ -59,7 +74,7 @@
             </span>
             {% if groupName %}<span class="badge badge-sm badge-ghost">{{ groupName }}</span>{% endif %}
         </div>
-        <a href="{{ path('diary_setup', {id: exercise.id}) }}" class="btn btn-ghost btn-xs btn-square relative z-10 shrink-0 text-base-content/60" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}: {{ version.title }}">
+        <a href="{{ path('diary_setup', returnRouteId ? {id: exercise.id, return_route: 'routine_show', return_route_id: returnRouteId} : {id: exercise.id}) }}" class="btn btn-ghost btn-xs btn-square relative z-10 shrink-0 text-base-content/60" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}: {{ version.title }}">
             {{ icons.icon('edit') }}
         </a>
     </div>

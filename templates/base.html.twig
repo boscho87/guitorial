@@ -56,7 +56,7 @@
     or currentRoute starts with 'exercise_session_'
     or currentRoute == 'progress_index' %}
 {% set isTipsActive = currentRoute == 'practice_guide_index' %}
-<header class="relative border-b border-base-300" data-controller="nav-menu">
+<header class="relative border-b border-base-300 {{ hideChromeOnMobile is defined and hideChromeOnMobile ? 'hidden sm:block' : '' }}" data-controller="nav-menu">
     <div class="mx-auto flex max-w-3xl items-center justify-between gap-2 px-4 py-3 sm:px-6 sm:py-4">
         <a class="font-display flex items-center gap-2 text-lg font-semibold" href="{{ path(app.user ? 'diary_index' : 'home_index') }}">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" class="text-primary">
@@ -162,7 +162,7 @@
         </nav>
     </div>
 </header>
-<main class="mx-auto w-full max-w-3xl flex-grow px-4 py-6 sm:px-6 sm:py-10">
+<main class="mx-auto w-full max-w-3xl flex-grow px-4 py-6 sm:px-6 sm:py-10 {{ hideChromeOnMobile is defined and hideChromeOnMobile ? 'max-sm:flex max-sm:min-h-dvh max-sm:flex-col max-sm:justify-center max-sm:py-4' : '' }}">
     {% for label, messages in app.flashes %}
         {% for message in messages %}
             <div class="alert alert-{{ label }} mb-4">{{ message|trans }}</div>
@@ -171,7 +171,7 @@
     {% block body %}{% endblock %}
 </main>
 {% if hide_footer is not defined or not hide_footer %}
-<footer class="mt-auto border-t border-primary/20 bg-footer text-footer-content">
+<footer class="mt-auto border-t border-primary/20 bg-footer text-footer-content {{ hideChromeOnMobile is defined and hideChromeOnMobile ? 'hidden sm:block' : '' }}">
     <div class="mx-auto flex max-w-3xl flex-col items-center gap-2 px-4 py-5 text-center sm:px-6">
         <p class="text-xs text-footer-content/50">
             <span class="font-display font-medium text-footer-content/70">Guitorial</span> &ndash; {{ 'app.tagline'|trans }}

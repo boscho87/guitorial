@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Domain\Session\ReturnRouteResolver;
 use App\Domain\Session\SessionRecorder;
 use App\Entity\Exercise;
 use App\Entity\ExerciseResource;
@@ -41,6 +42,7 @@ final class ExerciseSessionController extends AbstractController
         private readonly ExerciseResourceRepository $resources,
         private readonly ExerciseVersionRepository $versions,
         private readonly PracticeSessionRepository $sessions,
+        private readonly ReturnRouteResolver $returnRoute,
     ) {
     }
 
@@ -55,7 +57,7 @@ final class ExerciseSessionController extends AbstractController
 
         $session = $this->sessionRecorder->start($this->requireVisitorId($request), null, exercise: $exercise);
 
-        return $this->redirectToRoute('exercise_session_running', ['id' => $session->getId()]);
+        return $this->redirectToRoute('exercise_session_running', $this->runningRouteParams($session, $request));
     }
 
     #[Route('/uebung/{id}/ressource/{resourceId}/starten', name: 'exercise_start_external', methods: ['POST'], requirements: ['id' => '\d+', 'resourceId' => '\d+'])]
@@ -74,7 +76,7 @@ final class ExerciseSessionController extends AbstractController
 
         $session = $this->sessionRecorder->start($this->requireVisitorId($request), null, exercise: $exercise, resource: $resource);
 
-        return $this->redirectToRoute('exercise_session_running', ['id' => $session->getId()]);
+        return $this->redirectToRoute('exercise_session_running', $this->runningRouteParams($session, $request));
     }
 
     #[Route('/sitzung/{id}', name: 'exercise_session_running', methods: ['GET'], requirements: ['id' => '\d+'])]
@@ -85,8 +87,11 @@ final class ExerciseSessionController extends AbstractController
             return $this->redirectToRoute('diary_index');
         }
 
+        $this->sessionRecorder->rebaseIfAbandoned($session);
+
         $exercise = $session->getExercise();
         $title = $exercise !== null ? $this->currentVersionTitle($exercise) : null;
+        $target = $this->returnRoute->resolveFromQuery($request);
 
         return $this->render('exercise_session/running.html.twig', [
             'session' => $session,
@@ -102,6 +107,8 @@ final class ExerciseSessionController extends AbstractController
             'targetSeconds' => $this->targetSeconds($session),
             'learningStates' => PracticeSession::LEARNING_STATES,
             'csrfIntention' => self::CSRF_INTENTION,
+            'returnRouteId' => $target['id'] ?? null,
+            'hideChromeOnMobile' => true,
         ]);
     }
 
@@ -120,6 +127,7 @@ final class ExerciseSessionController extends AbstractController
         $this->assertValidCsrf($request);
         $session = $this->requireRunningSession($id, $request);
         if ($session !== null) {
+            $session->rebaseIfAbandoned();
             $session->touch();
             $em->flush();
         }
@@ -146,7 +154,7 @@ final class ExerciseSessionController extends AbstractController
 
         $this->addFlash('success', 'exercise_session.flash.finished');
 
-        return $this->redirectToRoute('diary_index');
+        return $this->redirectAfterSession($request);
     }
 
     #[Route('/sitzung/{id}/verwerfen', name: 'exercise_session_discard', methods: ['POST'], requirements: ['id' => '\d+'])]
@@ -158,7 +166,31 @@ final class ExerciseSessionController extends AbstractController
             $this->sessionRecorder->discard($session);
         }
 
-        return $this->redirectToRoute('diary_index');
+        return $this->redirectAfterSession($request);
+    }
+
+    /**
+     * @return array<string, int|string>
+     */
+    private function runningRouteParams(PracticeSession $session, Request $request): array
+    {
+        $params = ['id' => $session->getId()];
+        $target = $this->returnRoute->resolveFromRequestBody($request);
+        if ($target !== null) {
+            $params['return_route'] = $target['route'];
+            $params['return_route_id'] = $target['id'];
+        }
+
+        return $params;
+    }
+
+    private function redirectAfterSession(Request $request): Response
+    {
+        $target = $this->returnRoute->resolveFromRequestBody($request);
+
+        return $target !== null
+            ? $this->redirectToRoute($target['route'], ['id' => $target['id']])
+            : $this->redirectToRoute('diary_index');
     }
 
     private function requireRunningSession(int $id, Request $request): ?PracticeSession

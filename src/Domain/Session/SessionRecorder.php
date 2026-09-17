@@ -85,6 +85,19 @@ final class SessionRecorder
     }
 
     /**
+     * Resuming (or heartbeating into) a session abandoned long enough to
+     * exceed the hard finish() cap should start its clock fresh, not keep
+     * the true, possibly days-old startedAt - see PracticeSession::
+     * rebaseIfAbandoned() for why.
+     */
+    public function rebaseIfAbandoned(PracticeSession $session): void
+    {
+        if ($session->rebaseIfAbandoned()) {
+            $this->em->flush();
+        }
+    }
+
+    /**
      * A previous round for this exact tool that was started but never
      * touched (no answer/next ever posted) has no browser tab left to
      * resume by the time a *new* round for the same tool starts - resolve

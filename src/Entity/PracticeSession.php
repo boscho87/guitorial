@@ -293,6 +293,31 @@ class PracticeSession
     }
 
     /**
+     * A session left untouched for longer than the hard finish() cap isn't
+     * "paused", it's abandoned - resuming it (Fortsetzen, or a heartbeat
+     * firing again after e.g. the laptop woke up) rebases startedAt/
+     * updatedAt to now instead of letting the live clock (and eventually
+     * cappedFinishTimestamp()'s hard cap, which is always anchored to the
+     * original startedAt) reflect the entire abandoned gap. A shorter gap
+     * is already handled correctly by the existing heartbeat-grace cap
+     * above, so this only ever fires well beyond that, never for a normal
+     * brief pause. Returns whether it actually changed anything, so the
+     * caller only flushes when needed.
+     */
+    public function rebaseIfAbandoned(): bool
+    {
+        $now = new \DateTimeImmutable();
+        if ($now->getTimestamp() - $this->updatedAt->getTimestamp() <= self::MAX_SESSION_MINUTES * 60) {
+            return false;
+        }
+
+        $this->startedAt = $now;
+        $this->updatedAt = $now;
+
+        return true;
+    }
+
+    /**
      * Never credits a session past whichever is most trustworthy - a tab
      * abandoned for hours (closed laptop, forgotten background tab, ...)
      * and only finished much later must not credit that entire real-world

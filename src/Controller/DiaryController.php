@@ -11,6 +11,7 @@ use App\Domain\Diary\NoteLinkExtractor;
 use App\Domain\Diary\RoutineProvisioner;
 use App\Domain\History\HistoryStatsBuilder;
 use App\Domain\Quiz\ToolRegistry;
+use App\Domain\Session\ReturnRouteResolver;
 use App\Domain\Session\SessionRecorder;
 use App\Entity\Exercise;
 use App\Entity\ExerciseGroup;
@@ -53,6 +54,7 @@ final class DiaryController extends AbstractController
         private readonly HistoryStatsBuilder $statsBuilder,
         private readonly ExerciseGroupProvisioner $groupProvisioner,
         private readonly RoutineProvisioner $routineProvisioner,
+        private readonly ReturnRouteResolver $returnRoute,
     ) {
     }
 
@@ -332,6 +334,8 @@ final class DiaryController extends AbstractController
             return $this->redirectToRoute('diary_index');
         }
 
+        $target = $this->returnRoute->resolve($request->query->get('return_route'), $request->query->get('return_route_id'));
+
         return $this->render('diary/setup.html.twig', [
             'exercise' => $exercise,
             'version' => $currentVersion,
@@ -340,6 +344,7 @@ final class DiaryController extends AbstractController
             'tools' => $this->tools->all(),
             'rhythms' => ExerciseVersion::RHYTHMS,
             'csrfIntention' => self::CSRF_INTENTION,
+            'returnRouteId' => $target['id'] ?? null,
         ]);
     }
 
@@ -392,7 +397,7 @@ final class DiaryController extends AbstractController
 
         $this->addFlash('success', 'diary.setup.flash.saved');
 
-        return $this->redirectToRoute('diary_index');
+        return $this->redirectAfterReturnRoute($request);
     }
 
     /**
@@ -502,7 +507,10 @@ final class DiaryController extends AbstractController
             $sessionRecorder->completeManually($visitorId, $exercise, $version?->getTargetMinutes(), $note !== '' ? $note : null);
         }
 
-        return $this->redirectToRoute('diary_index');
+        // Marking an exercise done from a Routine's own "starten" page
+        // should keep you there, not bounce you to Heute - the exact same
+        // partial is shared between both pages (see _exercise_row.html.twig).
+        return $this->redirectAfterReturnRoute($request);
     }
 
     /**
@@ -588,6 +596,15 @@ final class DiaryController extends AbstractController
         if (!$this->isCsrfTokenValid(self::CSRF_INTENTION, $token)) {
             throw $this->createAccessDeniedException('Invalid CSRF token.');
         }
+    }
+
+    private function redirectAfterReturnRoute(Request $request): Response
+    {
+        $target = $this->returnRoute->resolveFromRequestBody($request);
+
+        return $target !== null
+            ? $this->redirectToRoute($target['route'], ['id' => $target['id']])
+            : $this->redirectToRoute('diary_index');
     }
 
     /**

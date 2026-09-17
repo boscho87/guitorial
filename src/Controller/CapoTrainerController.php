@@ -9,6 +9,7 @@ use App\Domain\Quiz\WeightedQuestionPicker;
 use App\Domain\Session\ExercisePlanLink;
 use App\Domain\Session\ExerciseTargetProgress;
 use App\Domain\Session\PersonalRecords;
+use App\Domain\Session\ReturnRouteResolver;
 use App\Domain\Session\SessionRecorder;
 use App\Domain\Session\ToolConfigSnapshot;
 use App\Domain\Theory\CapoShape;
@@ -48,6 +49,7 @@ final class CapoTrainerController extends AbstractController
         private readonly PracticeSessionRepository $sessions,
         private readonly ExerciseTargetProgress $targetProgress,
         private readonly PersonalRecords $personalRecords,
+        private readonly ReturnRouteResolver $returnRoute,
     ) {
     }
 
@@ -56,15 +58,18 @@ final class CapoTrainerController extends AbstractController
     {
         $round = $this->currentRound($request);
         $plan = $this->resolvePlanLink($request, $request->query->get('uebung'), $request->query->get('ressource'));
+        $lastConfig = $round === null && $plan !== null ? $this->lastConfigFor($plan['exercise']) : null;
+        $target = $this->returnRoute->resolve($request->query->get('return_route'), $request->query->get('return_route_id'));
 
         return $this->render('capo_trainer/settings.html.twig', [
             'allShapes' => CapoShape::all(),
-            'activeShapes' => $round !== null ? $round['shapes'] : array_keys(CapoShape::all()),
-            'activeModes' => $round !== null ? $round['modes'] : self::MODES,
-            'maxFret' => $round !== null ? $round['maxFret'] : self::DEFAULT_MAX_FRET,
-            'questionCount' => $round !== null ? $round['totalQuestions'] : self::DEFAULT_QUESTION_COUNT,
+            'activeShapes' => $round['shapes'] ?? $lastConfig['shapes'] ?? array_keys(CapoShape::all()),
+            'activeModes' => $round['modes'] ?? $lastConfig['modes'] ?? self::MODES,
+            'maxFret' => $round['maxFret'] ?? $lastConfig['maxFret'] ?? self::DEFAULT_MAX_FRET,
+            'questionCount' => $round['totalQuestions'] ?? $lastConfig['totalQuestions'] ?? self::DEFAULT_QUESTION_COUNT,
             'planExerciseId' => $plan !== null ? $plan['exercise']->getId() : null,
             'planResourceId' => $plan !== null ? $plan['resource']->getId() : null,
+            'returnRouteId' => $target['id'] ?? null,
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
     }
@@ -95,7 +100,8 @@ final class CapoTrainerController extends AbstractController
         );
 
         $plan = $this->resolvePlanLink($request, $request->request->get('uebung'), $request->request->get('ressource'));
-        $this->beginRound($request, $shapes, $modes, $maxFret, $questionCount, $plan['exercise'] ?? null, $plan['resource'] ?? null);
+        $target = $this->returnRoute->resolveFromRequestBody($request);
+        $this->beginRound($request, $shapes, $modes, $maxFret, $questionCount, $plan['exercise'] ?? null, $plan['resource'] ?? null, $target);
 
         return $this->redirectToRoute('capo_trainer_practice');
     }
@@ -264,8 +270,9 @@ final class CapoTrainerController extends AbstractController
     /**
      * @param string[] $shapes
      * @param string[] $modes
+     * @param array{route: string, id: int}|null $returnTarget
      */
-    private function beginRound(Request $request, array $shapes, array $modes, int $maxFret, int $questionCount, ?Exercise $exercise = null, ?ExerciseResource $resource = null): void
+    private function beginRound(Request $request, array $shapes, array $modes, int $maxFret, int $questionCount, ?Exercise $exercise = null, ?ExerciseResource $resource = null, ?array $returnTarget = null): void
     {
         $visitorId = $request->attributes->get('visitorId');
         $practiceSession = $this->sessionRecorder->start(
@@ -288,8 +295,21 @@ final class CapoTrainerController extends AbstractController
             'startedAt' => microtime(true),
             'practiceSessionId' => $practiceSession->getId(),
             'fromPlan' => $exercise !== null,
+            'returnRouteId' => $returnTarget['id'] ?? null,
         ]);
         $this->ensureCurrentQuestion($request);
+    }
+
+    /**
+     * @return array{shapes: string[], modes: string[], maxFret: int, totalQuestions: int}|null
+     */
+    private function lastConfigFor(Exercise $exercise): ?array
+    {
+        $snapshot = $this->sessions->mostRecentForExercise($exercise, self::TOOL)?->getConfigSnapshot();
+
+        return is_array($snapshot) && isset($snapshot['shapes'], $snapshot['modes'], $snapshot['maxFret'], $snapshot['totalQuestions'])
+            ? ['shapes' => $snapshot['shapes'], 'modes' => $snapshot['modes'], 'maxFret' => $snapshot['maxFret'], 'totalQuestions' => $snapshot['totalQuestions']]
+            : null;
     }
 
     private function ensureCurrentQuestion(Request $request): void
@@ -387,6 +407,7 @@ final class CapoTrainerController extends AbstractController
             'correctCount' => $round['correctCount'],
             'finished' => $round['finished'],
             'promotable' => $round['finished'] && !($round['fromPlan'] ?? false),
+            'returnRouteId' => $round['returnRouteId'] ?? null,
             'shapeId' => $current['shapeId'] ?? null,
             'fret' => $current['fret'] ?? null,
             'sounding' => $current['sounding'] ?? null,
@@ -395,6 +416,8 @@ final class CapoTrainerController extends AbstractController
             'startedAtMs' => (int) round($startedAt * 1000),
             'elapsedLabel' => $this->formatElapsed(microtime(true) - $startedAt),
             'csrfIntention' => self::CSRF_INTENTION,
+            'hide_footer' => true,
+            'hideChromeOnMobile' => true,
         ];
     }
 

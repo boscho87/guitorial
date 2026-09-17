@@ -3,8 +3,7 @@
 {% block title %}{{ 'fretboard.meta_title'|trans }} – Guitorial{% endblock %}
 
 {% block body %}
-    {% set hide_footer = true %}
-    <a href="{{ path('training_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
+    <a href="{{ returnRouteId ? path('routine_show', {id: returnRouteId}) : path('training_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         {{ 'nav.back_home'|trans }}
     </a>
@@ -72,7 +71,7 @@
                         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
                         <button type="submit" class="btn btn-primary">{{ 'fretboard.summary.restart'|trans }}</button>
                     </form>
-                    <a href="{{ path('fretboard_settings') }}" data-turbo-frame="_top" class="btn btn-outline">{{ 'fretboard.summary.change_settings'|trans }}</a>
+                    <a href="{{ path('fretboard_settings', returnRouteId ? {return_route: 'routine_show', return_route_id: returnRouteId} : {}) }}" data-turbo-frame="_top" class="btn btn-outline">{{ 'fretboard.summary.change_settings'|trans }}</a>
                     {% if promotable %}
                         <form method="post" action="{{ path('history_promote_to_exercise', {session: sessionId}) }}" data-turbo-frame="_top">
                             <input type="hidden" name="_token" value="{{ csrf_token('history') }}">

@@ -63,6 +63,25 @@ class PracticeSessionRepository extends ServiceEntityRepository
         ]);
     }
 
+    /**
+     * The most recently started session for exactly this exercise+tool
+     * pairing, regardless of status - configSnapshot is frozen at start
+     * time either way, so even an abandoned/discarded round still has a
+     * usable snapshot to prefill the settings page with next time.
+     */
+    public function mostRecentForExercise(Exercise $exercise, string $tool): ?PracticeSession
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.exercise = :exercise')
+            ->andWhere('s.tool = :tool')
+            ->setParameter('exercise', $exercise)
+            ->setParameter('tool', $tool)
+            ->orderBy('s.startedAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function countForVisitor(string $visitorId): int
     {
         return (int) $this->createQueryBuilder('s')
