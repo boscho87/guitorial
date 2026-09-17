@@ -21,15 +21,21 @@ final class PracticeSessionTest extends TestCase
         self::assertLessThanOrEqual($after, $session->getFinishedAt()->getTimestamp());
     }
 
-    public function testFinishCapsAnAbandonedSessionWithNoHeartbeatAtTheHardCeiling(): void
+    public function testFinishCapsImmediatelyWhenNoHeartbeatEverArrivedRegardlessOfAge(): void
     {
         $session = new PracticeSession('visitor-1', 'client-1', null);
         $this->backdateStartedAt($session, 30 * 60 * 60); // 30 hours ago, no touch() ever called
 
         $session->finish();
 
-        $creditedMinutes = ($session->getFinishedAt()->getTimestamp() - $session->getStartedAt()->getTimestamp()) / 60;
-        self::assertSame(180, (int) round($creditedMinutes));
+        // Capped at startedAt + the small grace, not the 180-minute outer
+        // ceiling - the absence of any heartbeat no longer buys a looser
+        // cap. A real, continuously-used session always gets at least one
+        // heartbeat almost immediately (see session_heartbeat_controller.js
+        // pinging on connect()), so "no heartbeat ever" now means "quickly
+        // abandoned", not "heartbeat mechanism broken".
+        $creditedSeconds = $session->getFinishedAt()->getTimestamp() - $session->getStartedAt()->getTimestamp();
+        self::assertLessThan(5, $creditedSeconds);
     }
 
     public function testFinishCapsShortlyAfterTheLastHeartbeatNotAtTheRealAbandonmentGap(): void
@@ -48,16 +54,18 @@ final class PracticeSessionTest extends TestCase
         self::assertGreaterThanOrEqual(20, $creditedMinutes);
     }
 
-    public function testFinishDoesNotClipAVeryShortSessionThatNeverGotAHeartbeat(): void
+    public function testFinishStopsAtTheHardCeilingEvenWithContinuousHeartbeats(): void
     {
         $session = new PracticeSession('visitor-1', 'client-1', null);
-        $this->backdateStartedAt($session, 10); // started 10 seconds ago, no touch() - shorter than the grace period
+        $this->backdateStartedAt($session, 4 * 60 * 60); // started 4 hours ago
+        $this->backdateUpdatedAt($session, 1); // a heartbeat landed just now - genuinely still active
 
-        $before = time();
         $session->finish();
 
-        // Still the real "now", not clipped down to startedAt + grace.
-        self::assertGreaterThanOrEqual($before, $session->getFinishedAt()->getTimestamp());
+        // MAX_SESSION_MINUTES (180) still applies as an absolute outer
+        // ceiling regardless of how fresh the last heartbeat is.
+        $creditedMinutes = ($session->getFinishedAt()->getTimestamp() - $session->getStartedAt()->getTimestamp()) / 60;
+        self::assertSame(180, (int) round($creditedMinutes));
     }
 
     private function backdateStartedAt(PracticeSession $session, int $seconds): void

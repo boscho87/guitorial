@@ -352,29 +352,26 @@ class PracticeSession
      * the same pattern already used for the live-progress cap in
      * ExerciseTargetProgress::calculate().
      *
-     * Two different cases, deliberately not just min()'d together: if a
-     * heartbeat actually arrived at least once, it's the more precise
-     * signal and gets a tight grace period past its last ping. But if none
-     * ever arrived - JS disabled, or finish() simply came before the first
-     * ~20s tick - there is no such signal to trust, and clipping to that
-     * same tight grace would wrongly punish a genuinely long session whose
-     * heartbeat mechanism just never ran; only the much looser hard
-     * ceiling applies then.
+     * Unconditional: always caps at the more recent of startedAt/updatedAt
+     * plus the small grace, full stop, whether or not a heartbeat ever
+     * actually arrived. An earlier version only applied this tight cap once
+     * a heartbeat had landed at least once, on the theory that a session
+     * with none at all might just be one whose heartbeat mechanism never
+     * ran (e.g. JS disabled) rather than one that was genuinely abandoned
+     * quickly - but that made "no heartbeat yet" indistinguishable from "no
+     * heartbeat ever", and any away-gap shorter than the (then 90s) grace
+     * went completely uncredited-for regardless, which is exactly what was
+     * reported as "it never stops". self::MAX_SESSION_MINUTES remains as an
+     * absolute outer safety ceiling, not the primary mechanism.
      */
     private function cappedFinishTimestamp(): \DateTimeImmutable
     {
         $now = time();
         $startedAtSeconds = $this->startedAt->getTimestamp();
-        $updatedAtSeconds = $this->updatedAt->getTimestamp();
+        $referenceSeconds = max($startedAtSeconds, $this->updatedAt->getTimestamp()) + self::HEARTBEAT_GRACE_SECONDS;
         $hardCapSeconds = $startedAtSeconds + self::MAX_SESSION_MINUTES * 60;
 
-        if ($updatedAtSeconds > $startedAtSeconds) {
-            $referenceSeconds = $updatedAtSeconds + self::HEARTBEAT_GRACE_SECONDS;
-
-            return (new \DateTimeImmutable())->setTimestamp(min($now, $referenceSeconds, $hardCapSeconds));
-        }
-
-        return (new \DateTimeImmutable())->setTimestamp(min($now, $hardCapSeconds));
+        return (new \DateTimeImmutable())->setTimestamp(min($now, $referenceSeconds, $hardCapSeconds));
     }
 
     /**
