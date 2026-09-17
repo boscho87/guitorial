@@ -17,12 +17,29 @@ export default class extends Controller {
 
     connect() {
         this.timer = setInterval(() => this.ping(), this.intervalMsValue);
+
+        // The browser's own back-forward cache can freeze this whole page -
+        // JS heap, running setInterval and all - on navigating away, then
+        // resume it exactly as it was on a literal back/forward, without
+        // ever re-running a script or hitting the server. No amount of
+        // server-side capping or Turbo cache-control (a *different* cache)
+        // helps then, since nothing re-renders - the already-running clock
+        // just keeps ticking from its old in-memory start value against the
+        // real current time. pageshow's persisted flag is the standard way
+        // to detect that and force a genuine fresh reload instead.
+        this.onPageShow = (event) => {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        };
+        window.addEventListener('pageshow', this.onPageShow);
     }
 
     disconnect() {
         if (this.timer) {
             clearInterval(this.timer);
         }
+        window.removeEventListener('pageshow', this.onPageShow);
     }
 
     ping() {
