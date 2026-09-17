@@ -41,9 +41,10 @@ final class PracticeSessionTest extends TestCase
         $session->finish();
 
         $creditedMinutes = ($session->getFinishedAt()->getTimestamp() - $session->getStartedAt()->getTimestamp()) / 60;
-        // Credited up to the last heartbeat + grace (90s), nowhere near the
-        // real ~5h gap between startedAt and the finish() call just now.
-        self::assertLessThan(25, $creditedMinutes);
+        // Credited up to the last heartbeat + a couple seconds of grace,
+        // nowhere near the real ~5h gap between startedAt and the finish()
+        // call just now.
+        self::assertLessThan(21, $creditedMinutes);
         self::assertGreaterThanOrEqual(20, $creditedMinutes);
     }
 

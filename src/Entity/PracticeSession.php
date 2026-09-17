@@ -56,11 +56,15 @@ class PracticeSession
     /**
      * How much later than the last confirmed "still there" signal
      * (updatedAt, bumped by a heartbeat or a tool round's practice-sync)
-     * finish() is still allowed to land, so a short session that finishes
-     * before its very first heartbeat ever fires is never wrongly clipped -
-     * deliberately more generous than any heartbeat interval in this app.
+     * finish() is still allowed to land - deliberately just enough to
+     * absorb the heartbeat ping's own network latency, nothing more.
+     * Credited/displayed time should stop the moment the visitor actually
+     * leaves, no matter how briefly (a 90s grace here used to mean any
+     * away-gap under 90s wasn't capped at all, which is exactly the "it
+     * never stops" behaviour reported - e.g. leaving at 27:42 and coming
+     * back to 28:54, a 72s gap, sailed right under the old grace).
      */
-    private const HEARTBEAT_GRACE_SECONDS = 90;
+    private const HEARTBEAT_GRACE_SECONDS = 2;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
