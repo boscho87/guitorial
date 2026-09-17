@@ -29,6 +29,13 @@ use Symfony\Component\Routing\Attribute\Route;
  * skip this entirely - "Start" links straight to that tool's own settings
  * page with ?uebung=&ressource=, see ExercisePlanLink; the resulting
  * PracticeSession is created there.
+ *
+ * At most one PracticeSession is ever "laufend" for a given exercise -
+ * startManual()/startExternal() resume an already-running one (see
+ * PracticeSessionRepository::findRunningForExercise()) instead of creating
+ * a second, overlapping session that would just orphan the first (never
+ * shown again, since the card only ever links to the most recently created
+ * one, and never finished/discarded either).
  */
 #[Route('/tagebuch')]
 final class ExerciseSessionController extends AbstractController
@@ -50,12 +57,14 @@ final class ExerciseSessionController extends AbstractController
     public function startManual(int $id, Request $request): Response
     {
         $this->assertValidCsrf($request);
-        $exercise = $this->exercises->findForVisitor($id, $this->requireVisitorId($request));
+        $visitorId = $this->requireVisitorId($request);
+        $exercise = $this->exercises->findForVisitor($id, $visitorId);
         if ($exercise === null) {
             return $this->redirectToRoute('diary_index');
         }
 
-        $session = $this->sessionRecorder->start($this->requireVisitorId($request), null, exercise: $exercise);
+        $session = $this->sessions->findRunningForExercise($visitorId, $exercise)
+            ?? $this->sessionRecorder->start($visitorId, null, exercise: $exercise);
 
         return $this->redirectToRoute('exercise_session_running', $this->runningRouteParams($session, $request));
     }
@@ -64,7 +73,8 @@ final class ExerciseSessionController extends AbstractController
     public function startExternal(int $id, int $resourceId, Request $request): Response
     {
         $this->assertValidCsrf($request);
-        $exercise = $this->exercises->findForVisitor($id, $this->requireVisitorId($request));
+        $visitorId = $this->requireVisitorId($request);
+        $exercise = $this->exercises->findForVisitor($id, $visitorId);
         if ($exercise === null) {
             return $this->redirectToRoute('diary_index');
         }
@@ -74,7 +84,11 @@ final class ExerciseSessionController extends AbstractController
             return $this->redirectToRoute('diary_index');
         }
 
-        $session = $this->sessionRecorder->start($this->requireVisitorId($request), null, exercise: $exercise, resource: $resource);
+        // Already running (started manually, or via a different resource on
+        // this same exercise) - resume that one rather than starting a
+        // second, overlapping session that would just orphan the first.
+        $session = $this->sessions->findRunningForExercise($visitorId, $exercise)
+            ?? $this->sessionRecorder->start($visitorId, null, exercise: $exercise, resource: $resource);
 
         return $this->redirectToRoute('exercise_session_running', $this->runningRouteParams($session, $request));
     }
@@ -105,6 +119,17 @@ final class ExerciseSessionController extends AbstractController
         $todayNote = $isNoteFromToday ? $mostRecentNoteSession->getNote() : null;
         $previousNote = !$isNoteFromToday ? $mostRecentNoteSession : null;
 
+        // Today's total for this exercise, not just this one session's own
+        // elapsed time - finishing earlier today (e.g. a first pass this
+        // morning) and starting again later shouldn't reset the clock to
+        // 0:00, it should keep adding to the same day's running total.
+        $todayAlreadyFinishedSeconds = 0;
+        if ($exercise !== null) {
+            foreach ($this->sessions->finishedForExerciseOnDate($exercise, new \DateTimeImmutable('today')) as $finishedToday) {
+                $todayAlreadyFinishedSeconds += $finishedToday->getFinishedAt()->getTimestamp() - $finishedToday->getStartedAt()->getTimestamp();
+            }
+        }
+
         return $this->render('exercise_session/running.html.twig', [
             'session' => $session,
             'title' => $title,
@@ -115,11 +140,13 @@ final class ExerciseSessionController extends AbstractController
             'openableResources' => $session->getResource() === null && $exercise !== null
                 ? array_values(array_filter($this->resources->forExercise($exercise), static fn (ExerciseResource $r): bool => !$r->isInternalTool()))
                 : [],
-            // Anchored on creditable (capped) elapsed time, not raw
-            // startedAt - so a session left open in the background while
-            // browsing back to Heute and resumed later doesn't show the
-            // away-time as if it had kept running the whole time.
-            'startedAtMs' => (time() - $session->creditableSecondsElapsed()) * 1000,
+            // Anchored on this session's own creditable (capped) elapsed
+            // time plus whatever's already finished today for this exercise
+            // - so a session left open in the background while browsing
+            // back to Heute doesn't show the away-time as if it had kept
+            // running, and finishing earlier today then starting again
+            // continues the day's total instead of resetting to 0:00.
+            'startedAtMs' => (time() - $session->creditableSecondsElapsed() - $todayAlreadyFinishedSeconds) * 1000,
             'targetSeconds' => $this->targetSeconds($session),
             'learningStates' => PracticeSession::LEARNING_STATES,
             'csrfIntention' => self::CSRF_INTENTION,

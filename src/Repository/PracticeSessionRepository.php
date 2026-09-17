@@ -64,6 +64,28 @@ class PracticeSessionRepository extends ServiceEntityRepository
     }
 
     /**
+     * A still-running manual/external exercise session for this exact
+     * exercise, if one already exists - used to resume it instead of
+     * starting a second, overlapping one (which used to just pile up as an
+     * orphaned "laufend" row nobody ever finished or discarded, since the
+     * card only ever links to the most recently created one).
+     */
+    public function findRunningForExercise(string $visitorId, Exercise $exercise): ?PracticeSession
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.visitorId = :visitorId')
+            ->andWhere('s.exercise = :exercise')
+            ->andWhere('s.status = :status')
+            ->setParameter('visitorId', $visitorId)
+            ->setParameter('exercise', $exercise)
+            ->setParameter('status', PracticeSession::STATUS_RUNNING)
+            ->orderBy('s.startedAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
      * The most recently started session for exactly this exercise+tool
      * pairing, regardless of status - configSnapshot is frozen at start
      * time either way, so even an abandoned/discarded round still has a
