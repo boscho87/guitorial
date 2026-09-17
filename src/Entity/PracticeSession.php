@@ -260,6 +260,15 @@ class PracticeSession
     }
 
     /**
+     * Used when a newer same-day session for the same exercise takes over
+     * as "today's note" - see SessionRecorder::finish().
+     */
+    public function clearNote(): void
+    {
+        $this->note = null;
+    }
+
+    /**
      * Marks the point a round stopped being "just configured" and became
      * something the visitor actually did - see each controller's own
      * definition of "first real interaction". Governs whether an

@@ -95,12 +95,4 @@
     {% if exercise.note %}
         <p class="mt-1.5 text-xs text-base-content/50">{{ exercise.note|length > 80 ? exercise.note|slice(0, 80) ~ '…' : exercise.note }}</p>
     {% endif %}
-
-    {% if isToday and not row.checked %}
-        <details class="relative z-10 mt-1.5">
-            <summary class="cursor-pointer text-xs text-primary hover:underline">{{ 'diary.item.add_note'|trans }}</summary>
-            <textarea form="mark-done-{{ exercise.id }}" name="note" rows="2" maxlength="2000" class="textarea textarea-bordered textarea-xs mt-1.5 w-full" placeholder="{{ 'diary.item.note_placeholder'|trans }}"></textarea>
-        </details>
-    {% endif %}
-
 </li>

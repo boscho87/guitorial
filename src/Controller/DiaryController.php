@@ -503,8 +503,7 @@ final class DiaryController extends AbstractController
         $exercise = $exercises->findForVisitor($id, $visitorId);
         if ($exercise !== null) {
             $version = $versions->currentFor($exercise, new \DateTimeImmutable('today'));
-            $note = mb_substr(trim((string) $request->request->get('note')), 0, self::NOTE_MAX_LENGTH);
-            $sessionRecorder->completeManually($visitorId, $exercise, $version?->getTargetMinutes(), $note !== '' ? $note : null);
+            $sessionRecorder->completeManually($visitorId, $exercise, $version?->getTargetMinutes());
         }
 
         // Marking an exercise done from a Routine's own "starten" page

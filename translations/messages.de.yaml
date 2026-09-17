@@ -344,8 +344,6 @@ diary:
     start: Start
     resume: Fortsetzen
     mark_done: "Als erledigt markieren"
-    add_note: "+ Notiz hinzufügen"
-    note_placeholder: "Wie lief's? (optional)…"
     history: Verlauf
     edit: Bearbeiten
     archive: Archivieren

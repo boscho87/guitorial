@@ -45,16 +45,18 @@ final class SessionRecorder
      * exactly creditMinutes (backdating startedAt) so a minute-target
      * exercise is satisfied immediately, the same as genuinely practicing
      * that long would. creditMinutes null (no target) just needs to exist
-     * at all, so an instant 0-minute session is fine as-is.
+     * at all, so an instant 0-minute session is fine as-is. Never carries a
+     * note - notes are only ever entered via a real exercise session's
+     * finish() (see there for the "one note per exercise per day" rule).
      */
-    public function completeManually(string $visitorId, Exercise $exercise, ?int $creditMinutes, ?string $note = null): PracticeSession
+    public function completeManually(string $visitorId, Exercise $exercise, ?int $creditMinutes): PracticeSession
     {
         $session = new PracticeSession($visitorId, $this->generateClientSessionId(), null, $exercise);
         if ($creditMinutes !== null && $creditMinutes > 0) {
             $session->backdateStart($creditMinutes);
         }
         $this->em->persist($session);
-        $session->finish(note: $note);
+        $session->finish();
         $this->em->flush();
 
         return $session;
@@ -72,8 +74,26 @@ final class SessionRecorder
         $this->em->flush();
     }
 
+    /**
+     * At most one note per exercise per day - a note here isn't a log of
+     * every single run, just "what's worth remembering about today". If a
+     * note is being set and an earlier session today (for the same
+     * exercise) already carries one, that older one is cleared first so
+     * there's exactly one, and re-finishing the exercise later the same
+     * day effectively "edits" today's note rather than piling up a second
+     * one next to it.
+     */
     public function finish(PracticeSession $session, ?string $learningState = null, ?int $points = null, ?int $timeBonusPoints = null, ?string $note = null): void
     {
+        $exercise = $session->getExercise();
+        if ($note !== null && $exercise !== null) {
+            foreach ($this->sessions->finishedForExerciseOnDate($exercise, new \DateTimeImmutable('today')) as $other) {
+                if ($other !== $session && $other->getNote() !== null) {
+                    $other->clearNote();
+                }
+            }
+        }
+
         $session->finish($learningState, $points, $timeBonusPoints, $note);
         $this->em->flush();
     }
