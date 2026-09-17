@@ -27,11 +27,16 @@
     >
         {# Wall-clock elapsed time (never a JS countdown) - anchored on the
            session's creditable elapsed time (see creditableSecondsElapsed()),
-           not raw startedAt, so time spent away from this page (back to
-           Heute, then Fortsetzen) doesn't look like it kept running. #}
+           not raw startedAt, so a fresh page load after time away doesn't
+           look like it kept running. data-timer-pause-when-hidden-value
+           additionally freezes the display itself while this tab/app isn't
+           the visible one - switching away without ever navigating out of
+           Guitorial triggers no request at all, so nothing server-side ever
+           gets a chance to recompute anything. #}
         <span
                 class="font-mono text-5xl font-semibold text-primary"
                 data-controller="timer" data-timer-start-value="{{ startedAtMs }}"
+                data-timer-pause-when-hidden-value="true"
                 {% if targetSeconds %}data-timer-target-seconds-value="{{ targetSeconds }}"{% endif %}
         >0:00</span>
         {% if targetSeconds %}

@@ -24,21 +24,47 @@ import { Controller } from '@hotwired/stimulus';
  */
 export default class extends Controller {
     static targets = ['clock', 'progress', 'progressLabel'];
-    static values = { start: Number, targetSeconds: Number, progressStartSeconds: Number, progressLabelTemplate: String };
+    static values = { start: Number, targetSeconds: Number, progressStartSeconds: Number, progressLabelTemplate: String, pauseWhenHidden: Boolean };
 
     connect() {
         this.beeped = false;
         this.connectedAtMs = Date.now();
+        // Opt-in only (pauseWhenHiddenValue) - the 5 tools' rounds
+        // deliberately keep counting real wall-clock time regardless of tab
+        // visibility (see the class docblock). The exercise-session running
+        // page opts in: switching tabs/apps without ever navigating away in
+        // Guitorial itself doesn't trigger any request at all - no server
+        // recalculation, no Turbo/bfcache reload - so the display has to
+        // freeze itself via the Page Visibility API instead of just
+        // computing Date.now() - startValue, or it visibly counts the whole
+        // time spent elsewhere once the tab is foregrounded again.
+        this.hiddenMs = 0;
+        this.hiddenSince = this.pauseWhenHiddenValue && document.hidden ? Date.now() : null;
+        if (this.pauseWhenHiddenValue) {
+            this.onVisibilityChange = () => {
+                if (document.hidden) {
+                    this.hiddenSince = Date.now();
+                } else if (this.hiddenSince !== null) {
+                    this.hiddenMs += Date.now() - this.hiddenSince;
+                    this.hiddenSince = null;
+                }
+            };
+            document.addEventListener('visibilitychange', this.onVisibilityChange);
+        }
         this.tick();
         this.interval = setInterval(() => this.tick(), 1000);
     }
 
     disconnect() {
         clearInterval(this.interval);
+        if (this.onVisibilityChange) {
+            document.removeEventListener('visibilitychange', this.onVisibilityChange);
+        }
     }
 
     tick() {
-        const elapsed = Math.max(0, Math.floor((Date.now() - this.startValue) / 1000));
+        const pausedMs = this.hiddenMs + (this.hiddenSince !== null ? Date.now() - this.hiddenSince : 0);
+        const elapsed = Math.max(0, Math.floor((Date.now() - this.startValue - pausedMs) / 1000));
         const minutes = Math.floor(elapsed / 60);
         const seconds = elapsed % 60;
         const clock = this.hasClockTarget ? this.clockTarget : this.element;

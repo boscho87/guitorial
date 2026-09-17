@@ -42,6 +42,22 @@ export default class extends Controller {
             }
         };
         window.addEventListener('pageshow', this.onPageShow);
+
+        // Switching tabs/apps without ever navigating away inside Guitorial
+        // triggers neither a reload nor any request at all - the interval
+        // above keeps running in the background regardless (browsers just
+        // throttle it), which would keep updatedAt fresh the whole time and
+        // defeat the server-side cap entirely. Stop pinging while hidden so
+        // "away" means the same thing here as it does for a real
+        // navigation, and ping immediately on return (same reasoning as the
+        // initial ping above) so the next cap calculation is accurate right
+        // away instead of up to intervalMsValue stale.
+        this.onVisibilityChange = () => {
+            if (!document.hidden) {
+                this.ping();
+            }
+        };
+        document.addEventListener('visibilitychange', this.onVisibilityChange);
     }
 
     disconnect() {
@@ -49,9 +65,13 @@ export default class extends Controller {
             clearInterval(this.timer);
         }
         window.removeEventListener('pageshow', this.onPageShow);
+        document.removeEventListener('visibilitychange', this.onVisibilityChange);
     }
 
     ping() {
+        if (document.hidden) {
+            return;
+        }
         fetch(this.urlValue, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
