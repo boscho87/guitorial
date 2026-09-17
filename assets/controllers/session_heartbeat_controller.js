@@ -16,6 +16,15 @@ export default class extends Controller {
     };
 
     connect() {
+        // setInterval's first tick only fires after a full intervalMsValue,
+        // not immediately - leaving within that first ~20s (e.g. straight
+        // back to Heute right after starting) would otherwise mean zero
+        // heartbeats ever landed, and PracticeSession::cappedFinishTimestamp()
+        // can't tell that apart from "JS never ran at all", so it falls back
+        // to the loose 180-minute safety net instead of the tight 90s grace -
+        // the away-gap goes completely uncapped. Pinging immediately closes
+        // that window down to a network round-trip instead of ~20 seconds.
+        this.ping();
         this.timer = setInterval(() => this.ping(), this.intervalMsValue);
 
         // The browser's own back-forward cache can freeze this whole page -
