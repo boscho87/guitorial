@@ -92,7 +92,18 @@ final class ExerciseSessionController extends AbstractController
         $exercise = $session->getExercise();
         $title = $exercise !== null ? $this->currentVersionTitle($exercise) : null;
         $target = $this->returnRoute->resolveFromQuery($request);
-        $previousNote = $exercise !== null ? $this->sessions->mostRecentNoteForExercise($exercise) : null;
+
+        // At most one note per exercise per day (see SessionRecorder::
+        // finish()), so the most recent note-bearing session, if it's from
+        // today, *is* today's note - prefill the (editable) note field with
+        // it instead of only showing it as inert reference text, so it
+        // stays visible/buildable-on all day. An older note stays reference-
+        // only - starting fresh today shouldn't silently inherit stale text.
+        $mostRecentNoteSession = $exercise !== null ? $this->sessions->mostRecentNoteForExercise($exercise) : null;
+        $isNoteFromToday = $mostRecentNoteSession !== null
+            && $mostRecentNoteSession->getFinishedAt()?->format('Y-m-d') === (new \DateTimeImmutable('today'))->format('Y-m-d');
+        $todayNote = $isNoteFromToday ? $mostRecentNoteSession->getNote() : null;
+        $previousNote = !$isNoteFromToday ? $mostRecentNoteSession : null;
 
         return $this->render('exercise_session/running.html.twig', [
             'session' => $session,
@@ -113,7 +124,8 @@ final class ExerciseSessionController extends AbstractController
             'learningStates' => PracticeSession::LEARNING_STATES,
             'csrfIntention' => self::CSRF_INTENTION,
             'previousNote' => $previousNote?->getNote(),
-            'previousNoteDate' => $previousNote?->getStartedAt(),
+            'previousNoteDate' => $previousNote?->getFinishedAt(),
+            'todayNote' => $todayNote,
             'returnRouteId' => $target['id'] ?? null,
             'hideChromeOnMobile' => true,
         ]);

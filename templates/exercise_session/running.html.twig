@@ -2,6 +2,15 @@
 
 {% block title %}{{ 'exercise_session.title'|trans }} – Guitorial{% endblock %}
 
+{# The elapsed-time clock is only correct as of the moment this page was
+   rendered (see ExerciseSessionController::running() /
+   creditableSecondsElapsed()) - Turbo Drive's page cache would otherwise
+   instantly restore a stale snapshot (with the old, pre-departure clock
+   anchor still ticking away client-side) when navigating back here,
+   completely bypassing that server-side recalculation. Forces a fresh
+   fetch every time instead of ever serving this page from cache. #}
+{% block head_extra %}<meta name="turbo-cache-control" content="no-cache">{% endblock %}
+
 {% block body %}
     <a href="{{ returnRouteId ? path('routine_show', {id: returnRouteId}) : path('diary_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -66,7 +75,11 @@
             </div>
             <label class="mt-4 block">
                 <span class="block text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'exercise_session.finish.note_label'|trans }}</span>
-                <textarea name="note" rows="2" maxlength="2000" class="textarea textarea-bordered mt-2 w-full" placeholder="{{ 'exercise_session.finish.note_placeholder'|trans }}"></textarea>
+                {# Prefilled with today's note (there's at most one per
+                   exercise per day, see SessionRecorder::finish()) so it
+                   stays visible/editable all day instead of starting blank
+                   every time and silently overwriting what's already there. #}
+                <textarea name="note" rows="2" maxlength="2000" class="textarea textarea-bordered mt-2 w-full" placeholder="{{ 'exercise_session.finish.note_placeholder'|trans }}">{{ todayNote }}</textarea>
             </label>
             <button type="submit" class="btn btn-primary btn-block mt-3">{{ 'exercise_session.finish.submit'|trans }}</button>
         </form>
