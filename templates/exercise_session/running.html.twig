@@ -16,8 +16,10 @@
             data-session-heartbeat-url-value="{{ path('exercise_session_heartbeat', {id: session.id}) }}"
             data-session-heartbeat-token-value="{{ csrf_token(csrfIntention) }}"
     >
-        {# Wall-clock elapsed time (from the session's real startedAt, never a JS
-           countdown) - stays correct across a closed tab/standby, unlike setInterval counting. #}
+        {# Wall-clock elapsed time (never a JS countdown) - anchored on the
+           session's creditable elapsed time (see creditableSecondsElapsed()),
+           not raw startedAt, so time spent away from this page (back to
+           Heute, then Fortsetzen) doesn't look like it kept running. #}
         <span
                 class="font-mono text-5xl font-semibold text-primary"
                 data-controller="timer" data-timer-start-value="{{ startedAtMs }}"
@@ -27,6 +29,13 @@
             <p class="text-xs text-base-content/60">{{ 'exercise_session.target'|trans({'%minutes%': (targetSeconds / 60)|round}) }}</p>
         {% endif %}
     </div>
+
+    {% if previousNote %}
+        <div class="mt-4 rounded-box border border-base-300 bg-base-200/40 px-4 py-3">
+            <p class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'exercise_session.previous_note.label'|trans({'%date%': previousNoteDate|date('d.m.Y')}) }}</p>
+            <p class="mt-1 text-sm text-base-content/80">{{ previousNote }}</p>
+        </div>
+    {% endif %}
 
     {% if resource and not resource.isInternalTool %}
         <a href="{{ resource.externalUrl }}" target="_blank" rel="noopener" class="btn btn-outline btn-block mt-6">

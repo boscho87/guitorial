@@ -346,6 +346,7 @@ diary:
     mark_done: "Als erledigt markieren"
     add_note: "+ Notiz hinzufügen"
     note_placeholder: "Wie lief's? (optional)…"
+    history: Verlauf
     edit: Bearbeiten
     archive: Archivieren
     delete: Löschen
@@ -439,6 +440,8 @@ exercise_session:
   untitled: Übung
   target: "Ziel: %minutes% Min."
   reopen_resource: "Ressource öffnen"
+  previous_note:
+    label: "Letzte Notiz (%date%)"
   finish:
     title: "Wie lief's?"
     note_label: "Notiz (optional)"

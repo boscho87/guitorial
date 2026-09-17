@@ -82,6 +82,23 @@ class PracticeSessionRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    /**
+     * The most recent session for this exercise that actually has a note -
+     * shown on the running page as a reminder of what was noted last time,
+     * regardless of how long ago or which session that was.
+     */
+    public function mostRecentNoteForExercise(Exercise $exercise): ?PracticeSession
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.exercise = :exercise')
+            ->andWhere('s.note IS NOT NULL')
+            ->setParameter('exercise', $exercise)
+            ->orderBy('s.startedAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function countForVisitor(string $visitorId): int
     {
         return (int) $this->createQueryBuilder('s')

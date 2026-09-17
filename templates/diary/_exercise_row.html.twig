@@ -74,9 +74,14 @@
             </span>
             {% if groupName %}<span class="badge badge-sm badge-ghost">{{ groupName }}</span>{% endif %}
         </div>
-        <a href="{{ path('diary_setup', returnRouteId ? {id: exercise.id, return_route: 'routine_show', return_route_id: returnRouteId} : {id: exercise.id}) }}" class="btn btn-ghost btn-xs btn-square relative z-10 shrink-0 text-base-content/60" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}: {{ version.title }}">
-            {{ icons.icon('edit') }}
-        </a>
+        <div class="flex shrink-0 gap-0.5">
+            <a href="{{ path('history_exercise_detail', {id: exercise.id}) }}" class="btn btn-ghost btn-xs btn-square relative z-10 text-base-content/60" title="{{ 'diary.item.history'|trans }}" aria-label="{{ 'diary.item.history'|trans }}: {{ version.title }}">
+                {{ icons.icon('history') }}
+            </a>
+            <a href="{{ path('diary_setup', returnRouteId ? {id: exercise.id, return_route: 'routine_show', return_route_id: returnRouteId} : {id: exercise.id}) }}" class="btn btn-ghost btn-xs btn-square relative z-10 text-base-content/60" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}: {{ version.title }}">
+                {{ icons.icon('edit') }}
+            </a>
+        </div>
     </div>
     {% if row.sessionCount > 1 %}
         <p class="mt-1.5 text-xs text-base-content/50">{{ 'diary.item.session_count'|trans({'%count%': row.sessionCount}) }}</p>

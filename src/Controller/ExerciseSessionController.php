@@ -92,6 +92,7 @@ final class ExerciseSessionController extends AbstractController
         $exercise = $session->getExercise();
         $title = $exercise !== null ? $this->currentVersionTitle($exercise) : null;
         $target = $this->returnRoute->resolveFromQuery($request);
+        $previousNote = $exercise !== null ? $this->sessions->mostRecentNoteForExercise($exercise) : null;
 
         return $this->render('exercise_session/running.html.twig', [
             'session' => $session,
@@ -103,10 +104,16 @@ final class ExerciseSessionController extends AbstractController
             'openableResources' => $session->getResource() === null && $exercise !== null
                 ? array_values(array_filter($this->resources->forExercise($exercise), static fn (ExerciseResource $r): bool => !$r->isInternalTool()))
                 : [],
-            'startedAtMs' => $session->getStartedAt()->getTimestamp() * 1000,
+            // Anchored on creditable (capped) elapsed time, not raw
+            // startedAt - so a session left open in the background while
+            // browsing back to Heute and resumed later doesn't show the
+            // away-time as if it had kept running the whole time.
+            'startedAtMs' => (time() - $session->creditableSecondsElapsed()) * 1000,
             'targetSeconds' => $this->targetSeconds($session),
             'learningStates' => PracticeSession::LEARNING_STATES,
             'csrfIntention' => self::CSRF_INTENTION,
+            'previousNote' => $previousNote?->getNote(),
+            'previousNoteDate' => $previousNote?->getStartedAt(),
             'returnRouteId' => $target['id'] ?? null,
             'hideChromeOnMobile' => true,
         ]);

@@ -318,6 +318,20 @@ class PracticeSession
     }
 
     /**
+     * How many seconds of this session are creditable right now, capped
+     * exactly the way finish() ultimately caps the persisted duration -
+     * but callable at any time, not just at finish(). Lets the running
+     * page's live clock anchor itself on real practiced time instead of
+     * raw wall-clock since the original start, so navigating away (back
+     * to Heute) and returning later doesn't make the clock look like it
+     * kept running the whole time you were gone.
+     */
+    public function creditableSecondsElapsed(): int
+    {
+        return $this->cappedFinishTimestamp()->getTimestamp() - $this->startedAt->getTimestamp();
+    }
+
+    /**
      * Never credits a session past whichever is most trustworthy - a tab
      * abandoned for hours (closed laptop, forgotten background tab, ...)
      * and only finished much later must not credit that entire real-world
