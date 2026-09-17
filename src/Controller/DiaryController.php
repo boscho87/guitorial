@@ -13,10 +13,12 @@ use App\Domain\History\HistoryStatsBuilder;
 use App\Domain\Quiz\ToolRegistry;
 use App\Domain\Session\ReturnRouteResolver;
 use App\Domain\Session\SessionRecorder;
+use App\Entity\DayNote;
 use App\Entity\Exercise;
 use App\Entity\ExerciseGroup;
 use App\Entity\ExerciseResource;
 use App\Entity\ExerciseVersion;
+use App\Repository\DayNoteRepository;
 use App\Repository\ExerciseGroupRepository;
 use App\Repository\ExerciseRepository;
 use App\Repository\ExerciseResourceRepository;
@@ -42,6 +44,7 @@ final class DiaryController extends AbstractController
     private const RECENT_DAYS = 7;
     private const TITLE_MAX_LENGTH = 120;
     private const NOTE_MAX_LENGTH = 2000;
+    private const DAY_NOTE_MAX_LENGTH = 200;
     private const GROUP_NAME_MAX_LENGTH = 24;
     private const MAX_MINUTES = 180;
     private const MAX_REPEAT_COUNT = 14;
@@ -64,11 +67,13 @@ final class DiaryController extends AbstractController
         ExerciseVersionRepository $versions,
         ExerciseResourceRepository $resources,
         PracticeSessionRepository $sessions,
+        DayNoteRepository $dayNotes,
     ): Response {
         $visitorId = $this->requireVisitorId($request);
         $today = new \DateTimeImmutable('today');
         $viewDate = $this->readViewDate($request, $today);
         $isToday = $viewDate->format('Y-m-d') === $today->format('Y-m-d');
+        $dayNote = $visitorId !== '' ? $dayNotes->forVisitorOnDate($visitorId, $viewDate) : null;
 
         $allVersions = $visitorId !== '' ? $versions->forVisitor($visitorId) : [];
         $allSessions = $visitorId !== '' ? $sessions->forVisitor($visitorId, 300) : [];
@@ -77,9 +82,14 @@ final class DiaryController extends AbstractController
         // a visitor with none yet legitimately has no routine either.
         $activeRoutine = $visitorId !== '' ? $this->routineProvisioner->ensureActiveRoutine($visitorId) : null;
 
-        $rows = $activeRoutine !== null
+        // A past day shows everything that was actually active/practiced
+        // then, not just today's routine's membership - the routine
+        // someone follows today says nothing about what they did
+        // yesterday, and switching or editing a routine shouldn't rewrite
+        // history.
+        $rows = $isToday && $activeRoutine !== null
             ? $this->dayViewBuilder->buildDayForRoutine($activeRoutine, $allVersions, $allSessions, $viewDate)
-            : [];
+            : ($isToday ? [] : $this->dayViewBuilder->buildDay($allVersions, $allSessions, $viewDate));
         $recentRatios = $this->dayViewBuilder->buildRecentRatios($allVersions, $allSessions, $today, self::RECENT_DAYS);
 
         $resourcesByExerciseId = [];
@@ -103,7 +113,9 @@ final class DiaryController extends AbstractController
             'previousDate' => $viewDate->modify('-1 day'),
             'nextDate' => $isToday ? null : $viewDate->modify('+1 day'),
             'activeRoutine' => $activeRoutine,
-            'routineRows' => $rows,
+            'dayRows' => $rows,
+            'dayNote' => $dayNote?->getNote(),
+            'dayNoteMaxLength' => self::DAY_NOTE_MAX_LENGTH,
             'resourcesByExerciseId' => $resourcesByExerciseId,
             'toolTitles' => $toolTitles,
             'toolSettingsRoutes' => $toolSettingsRoutes,
@@ -510,6 +522,34 @@ final class DiaryController extends AbstractController
         // should keep you there, not bounce you to Heute - the exact same
         // partial is shared between both pages (see _exercise_row.html.twig).
         return $this->redirectAfterReturnRoute($request);
+    }
+
+    #[Route('/notiz', name: 'diary_note_save', methods: ['POST'])]
+    public function saveNote(Request $request, DayNoteRepository $dayNotes, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $visitorId = $this->requireVisitorId($request);
+        $today = new \DateTimeImmutable('today');
+        $date = $this->readViewDate($request, $today);
+        $note = mb_substr(trim((string) $request->request->get('note')), 0, self::DAY_NOTE_MAX_LENGTH);
+
+        if ($visitorId !== '') {
+            $existing = $dayNotes->forVisitorOnDate($visitorId, $date);
+            if ($note === '') {
+                if ($existing !== null) {
+                    $em->remove($existing);
+                    $em->flush();
+                }
+            } elseif ($existing !== null) {
+                $existing->setNote($note);
+                $em->flush();
+            } else {
+                $em->persist(new DayNote($visitorId, $date, $note));
+                $em->flush();
+            }
+        }
+
+        return $this->redirectToRoute('diary_index', $date->format('Y-m-d') === $today->format('Y-m-d') ? [] : ['datum' => $date->format('Y-m-d')]);
     }
 
     /**

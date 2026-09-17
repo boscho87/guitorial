@@ -313,6 +313,10 @@ diary:
   active_routine:
     label: "Aktuelle Routine:"
     change: "Wechseln"
+  day_note:
+    label: "Notiz zum Tag"
+    placeholder: "Wie lief's? (optional)"
+    save: Speichern
   pager:
     today: Heute
     previous: "Vorheriger Tag"
