@@ -28,7 +28,9 @@
                         {% if previousSession is null or session.startedAt|date('Y-m-d') != previousSession.startedAt|date('Y-m-d') %}
                             <tr>
                                 <td colspan="3" class="pt-4 pb-1 text-xs font-semibold uppercase tracking-wide text-base-content/50">
-                                    {{ session.startedAt|date('Y-m-d') == "now"|date('Y-m-d') ? 'diary.pager.today'|trans : session.startedAt|date('d.m.Y') }}
+                                    <a href="{{ path('diary_index', {datum: session.startedAt|date('Y-m-d')}) }}" class="hover:text-primary hover:underline">
+                                        {{ session.startedAt|date('Y-m-d') == "now"|date('Y-m-d') ? 'diary.pager.today'|trans : session.startedAt|date('d.m.Y') }}
+                                    </a>
                                 </td>
                             </tr>
                         {% endif %}

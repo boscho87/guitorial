@@ -524,17 +524,22 @@ final class DiaryController extends AbstractController
         return $this->redirectAfterReturnRoute($request);
     }
 
+    /**
+     * Today only, by design - like the rest of the diary ("Änderungen ...
+     * vergangene Tage bleiben unverändert"), a past day's note is a fixed
+     * historical record once the day is over, not something to revise
+     * later from the history view.
+     */
     #[Route('/notiz', name: 'diary_note_save', methods: ['POST'])]
     public function saveNote(Request $request, DayNoteRepository $dayNotes, EntityManagerInterface $em): Response
     {
         $this->assertValidCsrf($request);
         $visitorId = $this->requireVisitorId($request);
         $today = new \DateTimeImmutable('today');
-        $date = $this->readViewDate($request, $today);
         $note = mb_substr(trim((string) $request->request->get('note')), 0, self::DAY_NOTE_MAX_LENGTH);
 
         if ($visitorId !== '') {
-            $existing = $dayNotes->forVisitorOnDate($visitorId, $date);
+            $existing = $dayNotes->forVisitorOnDate($visitorId, $today);
             if ($note === '') {
                 if ($existing !== null) {
                     $em->remove($existing);
@@ -544,12 +549,12 @@ final class DiaryController extends AbstractController
                 $existing->setNote($note);
                 $em->flush();
             } else {
-                $em->persist(new DayNote($visitorId, $date, $note));
+                $em->persist(new DayNote($visitorId, $today, $note));
                 $em->flush();
             }
         }
 
-        return $this->redirectToRoute('diary_index', $date->format('Y-m-d') === $today->format('Y-m-d') ? [] : ['datum' => $date->format('Y-m-d')]);
+        return $this->redirectToRoute('diary_index');
     }
 
     /**

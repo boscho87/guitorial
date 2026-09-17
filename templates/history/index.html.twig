@@ -86,7 +86,9 @@
                     {% for session in sessions %}
                         <tr>
                             <td class="font-medium">{{ session.title|trans }}</td>
-                            <td class="font-mono text-xs text-base-content/60">{{ session.startedAt|date('d.m.Y, H:i') }}</td>
+                            <td class="font-mono text-xs text-base-content/60">
+                                <a href="{{ path('diary_index', {datum: session.startedAt|date('Y-m-d')}) }}" class="hover:text-primary hover:underline">{{ session.startedAt|date('d.m.Y, H:i') }}</a>
+                            </td>
                             <td class="text-right font-mono text-sm font-semibold text-primary">
                                 {% if session.finishedAt %}
                                     {% if session.toolId == 'skalen-generator' %}
@@ -97,7 +99,9 @@
                                 {% endif %}
                             </td>
                             <td class="text-right text-xs text-base-content/60">
-                                {% if session.status == 'abgeschlossen' %}
+                                {% if session.learningState %}
+                                    {{ ('exercise_session.learning_state.' ~ session.learningState)|trans }}
+                                {% elseif session.status == 'abgeschlossen' %}
                                     {{ 'history.finished'|trans }}
                                 {% elseif session.status == 'verworfen' %}
                                     {{ 'history.discarded'|trans }}
@@ -114,6 +118,11 @@
                                 {% endif %}
                             </td>
                         </tr>
+                        {% if session.note %}
+                            <tr>
+                                <td colspan="5" class="pt-0 pb-2 text-xs text-base-content/50">{{ session.note }}</td>
+                            </tr>
+                        {% endif %}
                     {% endfor %}
                 </tbody>
             </table>

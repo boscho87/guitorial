@@ -66,6 +66,8 @@ final class HistoryController extends AbstractController
                 'questionIndex' => $session->getQuestionIndex(),
                 'totalQuestions' => $session->getTotalQuestions(),
                 'correctCount' => $session->getCorrectCount(),
+                'learningState' => $session->getLearningState(),
+                'note' => $session->getNote(),
                 'promotable' => $session->getTool() !== null && $session->getExercise() === null && $session->isFinished(),
             ];
         }, $pageSessions);
