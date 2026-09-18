@@ -90,6 +90,14 @@ final class DiaryController extends AbstractController
         $rows = $isToday && $activeRoutine !== null
             ? $this->dayViewBuilder->buildDayForRoutine($activeRoutine, $allVersions, $allSessions, $viewDate)
             : ($isToday ? [] : $this->dayViewBuilder->buildDay($allVersions, $allSessions, $viewDate));
+        if (!$isToday) {
+            // A past day is a closed record, not a to-do list - what got
+            // done that day is the interesting part, so it leads; today
+            // keeps the routine's own deliberate order instead, since
+            // completed items jumping to the front while you're still
+            // working through the list would be disorienting.
+            usort($rows, static fn (array $a, array $b): int => $b['checked'] <=> $a['checked']);
+        }
         $recentRatios = $this->dayViewBuilder->buildRecentRatios($allVersions, $allSessions, $today, self::RECENT_DAYS);
 
         $resourcesByExerciseId = [];

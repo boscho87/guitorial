@@ -78,21 +78,34 @@
             <a href="{{ path('history_exercise_detail', {id: exercise.id}) }}" class="btn btn-ghost btn-xs btn-square text-base-content/60" title="{{ 'diary.item.history'|trans }}" aria-label="{{ 'diary.item.history'|trans }}: {{ version.title }}">
                 {{ icons.icon('history') }}
             </a>
-            <a href="{{ path('diary_setup', returnRouteId ? {id: exercise.id, return_route: 'routine_show', return_route_id: returnRouteId} : {id: exercise.id}) }}" class="btn btn-ghost btn-xs btn-square text-base-content/60" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}: {{ version.title }}">
-                {{ icons.icon('edit') }}
-            </a>
+            {% if isToday %}
+                <a href="{{ path('diary_setup', returnRouteId ? {id: exercise.id, return_route: 'routine_show', return_route_id: returnRouteId} : {id: exercise.id}) }}" class="btn btn-ghost btn-xs btn-square text-base-content/60" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}: {{ version.title }}">
+                    {{ icons.icon('edit') }}
+                </a>
+            {% endif %}
         </div>
     </div>
     {% if row.sessionCount > 1 %}
         <p class="mt-1.5 text-xs text-base-content/50">{{ 'diary.item.session_count'|trans({'%count%': row.sessionCount}) }}</p>
     {% endif %}
-    {% if version.targetMinutes %}
+    {% if version.targetMinutes and row.sessionCount > 0 %}
         <div class="mt-1.5">
-            <progress class="progress progress-primary h-1 w-full" value="{{ row.practicedMinutes }}" max="{{ version.targetMinutes }}"></progress>
+            {% if isToday %}
+                {# Warm-to-cool progress: still-orange reads as "keep going",
+                   settling into green as the target is reached - a smooth
+                   hue sweep rather than a hard color swap at some threshold. #}
+                {% set percent = min(100, (row.practicedMinutes / version.targetMinutes * 100)|round) %}
+                {% set hue = (30 + (148 - 30) * percent / 100)|round %}
+                <div class="h-1.5 w-full overflow-hidden rounded-full bg-base-300">
+                    <div class="h-full rounded-full transition-[width,background-color] duration-700 ease-out" style="width: {{ percent }}%; background-color: hsl({{ hue }} 75% 48%);"></div>
+                </div>
+            {% else %}
+                <progress class="progress progress-primary h-1 w-full" value="{{ row.practicedMinutes }}" max="{{ version.targetMinutes }}"></progress>
+            {% endif %}
             <span class="text-xs text-base-content/60">{{ duration.minutes(row.practicedMinutes) }} {{ 'diary.item.of_target'|trans({'%target%': version.targetMinutes}) }}</span>
         </div>
     {% endif %}
-    {% if exercise.note %}
+    {% if isToday and exercise.note %}
         <p class="mt-1.5 text-xs text-base-content/50">{{ exercise.note|length > 80 ? exercise.note|slice(0, 80) ~ '…' : exercise.note }}</p>
     {% endif %}
 </li>
