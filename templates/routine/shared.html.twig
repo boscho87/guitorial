@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ routine.name }} – Guitorial{% endblock %}
+
+{% block body %}
+    <h1 class="font-display text-2xl font-semibold sm:text-3xl">{{ routine.name }}</h1>
+    <p class="mt-2 text-base-content/70">{{ 'routine.shared.intro'|trans }}</p>
+
+    {% if versions is empty %}
+        <p class="mt-8 text-sm text-base-content/60">{{ 'routine.show.empty'|trans }}</p>
+    {% else %}
+        <ul class="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
+            {% for version in versions %}
+                <li class="rounded-box border border-base-300 p-4">
+                    <p class="text-sm font-medium">{{ version.title }}</p>
+                    <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                        <span class="badge badge-sm badge-outline">{{ ('diary.rhythm.' ~ version.repeatRhythm)|trans }}</span>
+                        {% if version.targetMinutes %}
+                            <span class="badge badge-sm badge-ghost">{{ 'diary.item.of_target'|trans({'%target%': version.targetMinutes}) }}</span>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <div class="mt-8">
+        {% if app.user %}
+            <form method="post" action="{{ path('routine_shared_import', {token: token}) }}" data-controller="submit-loading" data-action="submit->submit-loading#submit">
+                <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                <button type="submit" class="btn btn-primary">{{ 'routine.share.import_submit'|trans }}</button>
+            </form>
+        {% else %}
+            <p class="rounded-box border border-base-300 bg-base-200/40 px-4 py-3 text-sm text-base-content/70">
+                {{ 'routine.share.login_required'|trans }}
+                <a href="{{ path('app_login') }}" class="font-medium text-primary hover:underline">{{ 'nav.login'|trans }}</a>
+            </p>
+        {% endif %}
+    </div>
+{% endblock %}

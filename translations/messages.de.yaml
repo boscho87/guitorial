@@ -436,6 +436,15 @@ routine:
   show:
     all_done: "Routine heute abgeschlossen."
     empty: "Diese Routine enthält keine aktiven Übungen mehr."
+  share:
+    button: Teilen
+    label: "Link zum Teilen:"
+    copy: Kopieren
+    import_submit: "Zu meinen Routinen übernehmen"
+    import_flash: "Routine übernommen."
+    login_required: "Melde dich an, um diese Routine zu übernehmen: "
+  shared:
+    intro: "Diese Routine wurde mit dir geteilt. Melde dich an, um sie als eigene Kopie zu übernehmen."
 
 exercise_session:
   title: Übungssitzung

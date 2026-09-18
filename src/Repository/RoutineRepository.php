@@ -40,4 +40,9 @@ class RoutineRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['visitorId' => $visitorId, 'isActive' => true]);
     }
+
+    public function findByShareToken(string $token): ?Routine
+    {
+        return $this->findOneBy(['shareToken' => $token]);
+    }
 }

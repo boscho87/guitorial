@@ -44,6 +44,14 @@ class Routine
     #[ORM\Column]
     private bool $isActive = false;
 
+    /**
+     * Generated lazily (ensureShareToken()) only once someone actually
+     * clicks "Teilen" - null until then, rather than every Routine getting
+     * a guessable public link the moment it's created.
+     */
+    #[ORM\Column(length: 20, unique: true, nullable: true)]
+    private ?string $shareToken = null;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
 
@@ -99,6 +107,20 @@ class Routine
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function getShareToken(): ?string
+    {
+        return $this->shareToken;
+    }
+
+    public function ensureShareToken(): string
+    {
+        if ($this->shareToken === null) {
+            $this->shareToken = bin2hex(random_bytes(8));
+        }
+
+        return $this->shareToken;
     }
 
     /**
