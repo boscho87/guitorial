@@ -67,7 +67,7 @@
 
     <div class="mt-8">
         <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'exercise_session.finish.title'|trans }}</h2>
-        <form method="post" action="{{ path('exercise_session_finish', {id: session.id}) }}" class="mt-3">
+        <form method="post" action="{{ path('exercise_session_finish', {id: session.id}) }}" class="mt-3" data-controller="submit-loading" data-action="submit->submit-loading#submit">
             <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
             {% if returnRouteId %}
                 <input type="hidden" name="return_route" value="routine_show">
@@ -92,8 +92,8 @@
 
     <form
             method="post" action="{{ path('exercise_session_discard', {id: session.id}) }}" class="mt-4"
-            data-controller="confirm-submit" data-confirm-submit-message-value="{{ 'exercise_session.discard.confirm'|trans }}"
-            data-action="submit->confirm-submit#submit"
+            data-controller="confirm-submit submit-loading" data-confirm-submit-message-value="{{ 'exercise_session.discard.confirm'|trans }}"
+            data-action="submit->confirm-submit#submit submit->submit-loading#submit"
     >
         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
         {% if returnRouteId %}
