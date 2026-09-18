@@ -40,6 +40,18 @@
                             <a href="{{ path('routine_edit_form', {id: routine.id}) }}" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}">
                                 {{ icons.icon('edit') }}
                             </a>
+                            {% if routine.shareToken %}
+                                <a href="{{ path('routine_show', {id: routine.id}) }}" class="btn btn-ghost btn-xs btn-square" title="{{ 'routine.share.button'|trans }}" aria-label="{{ 'routine.share.button'|trans }}">
+                                    {{ icons.icon('share') }}
+                                </a>
+                            {% else %}
+                                <form method="post" action="{{ path('routine_share', {id: routine.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
+                                    <button type="submit" class="btn btn-ghost btn-xs btn-square" title="{{ 'routine.share.button'|trans }}" aria-label="{{ 'routine.share.button'|trans }}">
+                                        {{ icons.icon('share') }}
+                                    </button>
+                                </form>
+                            {% endif %}
                             {% if not routine.isActive %}
                                 <form
                                         method="post" action="{{ path('routine_delete', {id: routine.id}) }}"

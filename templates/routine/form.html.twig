@@ -12,6 +12,24 @@
     <h1 class="mt-3 font-display text-2xl font-semibold sm:text-3xl">{{ (routine ? 'routine.edit.title' : 'routine.add.title')|trans }}</h1>
 
     {% if routine %}
+        {% if routine.shareToken %}
+            <div class="mt-3 flex flex-wrap items-center gap-2 rounded-box border border-base-300 bg-base-200/40 px-4 py-2.5" data-controller="copy-link">
+                <p class="text-sm text-base-content/70 shrink-0">{{ 'routine.share.label'|trans }}</p>
+                <input
+                        type="text" readonly value="{{ url('routine_shared_show', {token: routine.shareToken}) }}"
+                        class="input input-bordered input-sm min-w-0 flex-1 font-mono text-xs"
+                        data-copy-link-target="input"
+                        data-action="click->copy-link#select"
+                >
+                <button type="button" class="btn btn-ghost btn-sm" data-action="copy-link#copy">{{ 'routine.share.copy'|trans }}</button>
+            </div>
+        {% else %}
+            <form method="post" action="{{ path('routine_share', {id: routine.id}) }}" class="mt-3">
+                <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                <button type="submit" class="btn btn-outline btn-sm">{{ icons.icon('share') }}{{ 'routine.share.button'|trans }}</button>
+            </form>
+        {% endif %}
+
         <section class="mt-8">
             <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'routine.edit.order_heading'|trans }}</h2>
             {% if routine.items is empty %}
