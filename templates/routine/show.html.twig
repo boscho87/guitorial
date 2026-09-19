@@ -17,7 +17,7 @@
         <h1 class="font-display text-2xl font-semibold sm:text-3xl">{{ routine.name }}</h1>
         <div class="flex items-center gap-2">
             {% if routine.isActive %}
-                <span class="badge badge-primary">{{ 'routine.active_badge'|trans }}</span>
+                <span class="badge badge-primary badge-sm">{{ 'routine.active_badge'|trans }}</span>
             {% else %}
                 <form method="post" action="{{ path('routine_activate', {id: routine.id}) }}">
                     <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">

@@ -40,10 +40,10 @@
                         <div class="flex items-start justify-between gap-2">
                             <p class="min-w-0 flex-1 text-sm font-medium sm:text-base">{{ entry.version.title }}</p>
                             <div class="flex shrink-0 gap-0.5">
-                                <a href="{{ path('history_exercise_detail', {id: entry.exercise.id}) }}" data-turbo-frame="_top" class="btn btn-ghost btn-xs btn-square" title="{{ 'history.title'|trans }}" aria-label="{{ 'history.title'|trans }}">
+                                <a href="{{ path('history_exercise_detail', {id: entry.exercise.id}) }}" data-turbo-frame="_top" class="btn btn-ghost btn-xs btn-square text-base-content/60" title="{{ 'history.title'|trans }}" aria-label="{{ 'history.title'|trans }}">
                                     {{ icons.icon('history') }}
                                 </a>
-                                <a href="{{ path('diary_setup', {id: entry.exercise.id}) }}" data-turbo-frame="_top" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}">
+                                <a href="{{ path('diary_setup', {id: entry.exercise.id}) }}" data-turbo-frame="_top" class="btn btn-ghost btn-xs btn-square text-base-content/60" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}">
                                     {{ icons.icon('edit') }}
                                 </a>
                                 <form method="post" action="{{ path('diary_archive', {id: entry.exercise.id}) }}" data-controller="submit-loading" data-submit-loading-spinner-value="false" data-action="submit->submit-loading#submit">

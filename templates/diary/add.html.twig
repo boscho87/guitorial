@@ -24,7 +24,7 @@
                         <input type="hidden" name="resource_tool_id[]" value="{{ s.linkedTool }}">
                         <input type="hidden" name="target_minutes" value="{{ s.targetMinutes }}">
                     {% endif %}
-                    <button type="submit" class="chip-toggle border border-base-300">{{ s.label|trans }}</button>
+                    <button type="submit" class="rounded-md border border-base-300 px-3 py-1.5 font-mono text-sm text-base-content/70 transition-colors hover:border-primary hover:text-primary">{{ s.label|trans }}</button>
                 </form>
             {% endfor %}
         </div>

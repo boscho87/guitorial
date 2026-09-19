@@ -45,7 +45,7 @@
                                 <p class="mt-1 text-xs text-base-content/60">{{ 'routine.item_count'|trans({'%count%': routine.items|length}) }}</p>
                             </div>
                             <div class="flex shrink-0 gap-0.5">
-                                <a href="{{ path('routine_edit_form', {id: routine.id}) }}" data-turbo-frame="_top" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}">
+                                <a href="{{ path('routine_edit_form', {id: routine.id}) }}" data-turbo-frame="_top" class="btn btn-ghost btn-xs btn-square text-base-content/60" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}">
                                     {{ icons.icon('edit') }}
                                 </a>
                                 {% if routine.shareToken %}

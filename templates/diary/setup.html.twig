@@ -39,7 +39,7 @@
                             {% for tool in tools %}<option value="{{ tool.id }}" {{ resource.internalToolId == tool.id ? 'selected' : '' }}>{{ tool.title|trans }}</option>{% endfor %}
                         </select>
                         <input type="url" name="resource_url[]" value="{{ resource.externalUrl }}" class="input input-sm input-bordered flex-1 {{ resource.isInternalTool ? 'hidden' : '' }}" placeholder="https://…" data-resource-row-target="urlField">
-                        <button type="button" class="btn btn-ghost btn-xs text-error" data-action="exercise-form#removeResource">✕</button>
+                        <button type="button" class="btn btn-ghost btn-xs text-base-content/60" data-action="exercise-form#removeResource">✕</button>
                     </div>
                 {% endfor %}
             </div>
@@ -54,7 +54,7 @@
                         {% for tool in tools %}<option value="{{ tool.id }}">{{ tool.title|trans }}</option>{% endfor %}
                     </select>
                     <input type="url" name="resource_url[]" class="input input-sm input-bordered flex-1 hidden" placeholder="https://…" data-resource-row-target="urlField">
-                    <button type="button" class="btn btn-ghost btn-xs text-error" data-action="exercise-form#removeResource">✕</button>
+                    <button type="button" class="btn btn-ghost btn-xs text-base-content/60" data-action="exercise-form#removeResource">✕</button>
                 </div>
             </template>
             <button type="button" class="btn btn-ghost btn-xs mt-2" data-action="exercise-form#addResource">{{ 'diary.form.add_resource'|trans }}</button>
