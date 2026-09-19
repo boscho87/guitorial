@@ -64,6 +64,12 @@ final class RoutineShareController extends AbstractController
             return $this->redirectToRoute('home_index');
         }
 
+        if ($routine->getVisitorId() === $this->requireVisitorId($request)) {
+            // Your own share link, visited by yourself - nothing to import,
+            // just go straight to the routine itself.
+            return $this->redirectToRoute('routine_show', ['id' => $routine->getId()]);
+        }
+
         $today = new \DateTimeImmutable('today');
         $items = [];
         foreach ($routine->getItems() as $item) {
@@ -116,6 +122,13 @@ final class RoutineShareController extends AbstractController
         }
 
         $visitorId = $this->requireVisitorId($request);
+        if ($sourceRoutine->getVisitorId() === $visitorId) {
+            // Own routine, own share link - would otherwise clone a full
+            // duplicate set of exercises (see cloneExercise() below) with
+            // nothing to distinguish them from the originals in the picker.
+            return $this->redirectToRoute('routine_show', ['id' => $sourceRoutine->getId()]);
+        }
+
         $today = new \DateTimeImmutable('today');
 
         $targetRoutine = $routines->findImportedFrom($visitorId, $sourceRoutine);
