@@ -260,6 +260,29 @@
    * (labels, answers); lower alpha is reserved for genuinely decorative
    * hints (keycaps) where illegibility just means "no shortcut shown".
    */
+  /*
+   * Small uppercase section/field label ("eyebrow") - was hand-typed as
+   * the same 5-class string in 30+ places (settings pages, card sections,
+   * list headings); centralized so it reads as one deliberate pattern
+   * instead of copy-paste drift. Deliberately NOT used on the 5 tools'
+   * practice-screen prompts, which use a distinct tracking-widest
+   * variant for that specific in-round-focus context.
+   */
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-wide text-base-content/70;
+  }
+
+  /*
+   * The "browsable card in a grid" recipe (exercise row, routine card,
+   * manage-list card) - was independently re-typed with drifting padding
+   * and inconsistent hover treatment across those three. Deliberately
+   * NOT used for compact utility rows (e.g. the reorderable routine-item
+   * list), which are a denser list-editing UI, not a browsable card.
+   */
+  .card-tile {
+    @apply rounded-box border border-base-300 p-4 transition-shadow duration-200 hover:shadow-md hover:border-base-content/20;
+  }
+
   .chip-toggle {
     @apply cursor-pointer select-none rounded-md px-3 py-1.5 font-mono text-sm text-base-content/70 transition-colors;
   }
@@ -276,6 +299,16 @@
     @apply bg-secondary/10 text-secondary;
   }
 
+  /*
+   * The real focusable element is the sr-only checkbox, not the label -
+   * without this, tabbing through key/mode/tone chips on every tool's
+   * settings page (and the history chart tabs) has no visible focus
+   * indicator at all.
+   */
+  input:focus-visible + .chip-toggle {
+    @apply outline outline-2 outline-offset-2 outline-primary;
+  }
+
   .answer-btn {
     @apply flex items-center justify-center rounded-md px-4 py-3 font-mono text-base font-medium text-base-content/80 transition-colors sm:whitespace-nowrap;
     min-width: var(--answer-min-w, 6rem);
@@ -288,6 +321,16 @@
 
   .answer-btn.quiz-answer-chosen {
     @apply bg-primary/10 text-primary;
+  }
+
+  /*
+   * A plain custom class, not a .btn - it never inherited the app-wide
+   * .btn-ghost:focus-visible treatment, so keyboard users tabbing to an
+   * answer got the raw browser default (or nothing, in some browsers)
+   * instead of a visible ring.
+   */
+  .answer-btn:focus-visible {
+    @apply outline outline-2 outline-offset-2 outline-primary;
   }
 
   .keycap {

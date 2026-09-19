@@ -14,7 +14,7 @@
 #}
 {% import '_components/icons.html.twig' as icons %}
 {% import '_components/duration.html.twig' as duration %}
-<li class="relative rounded-box border border-base-300 p-4 transition-shadow duration-200 hover:shadow-md hover:border-base-content/20">
+<li class="card-tile relative">
     <div class="flex items-start gap-2">
         {% if isToday and row.runningSessionId %}
             {% if row.runningSessionTool %}

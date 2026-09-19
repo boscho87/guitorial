@@ -65,11 +65,14 @@
             </svg>
             Guitorial
         </a>
-        <nav class="hidden items-center gap-x-4 gap-y-1.5 text-sm sm:flex">
-            <a href="{{ path('home_index') }}" class="{{ isStartActive ? 'font-medium text-primary' : 'text-base-content/70 hover:text-primary' }}" {% if isStartActive %}aria-current="page"{% endif %}>{{ 'nav.start'|trans }}</a>
-            <a href="{{ path('training_index') }}" class="{{ isToolsActive ? 'font-medium text-primary' : 'text-base-content/70 hover:text-primary' }}" {% if isToolsActive %}aria-current="page"{% endif %}>{{ 'nav.training'|trans }}</a>
-            <a href="{{ path('diary_index') }}" class="{{ isMyExercisesActive ? 'font-medium text-primary' : 'text-base-content/70 hover:text-primary' }}" {% if isMyExercisesActive %}aria-current="page"{% endif %}>{{ 'nav.diary'|trans }}</a>
-            <a href="{{ path('practice_guide_index') }}" class="{{ isTipsActive ? 'font-medium text-primary' : 'text-base-content/70 hover:text-primary' }}" {% if isTipsActive %}aria-current="page"{% endif %}>{{ 'nav.practice_guide'|trans }}</a>
+        <nav class="hidden items-center gap-x-1 gap-y-1.5 text-sm sm:flex">
+            {# Same "current page" idiom as the mobile drawer below
+               (background pill + primary color), not just a color swap -
+               the two used to disagree on how "active" looks. #}
+            <a href="{{ path('home_index') }}" class="rounded-box px-2.5 py-1.5 transition-colors {{ isStartActive ? 'bg-base-200 font-medium text-primary' : 'text-base-content/70 hover:bg-base-200/60 hover:text-primary' }}" {% if isStartActive %}aria-current="page"{% endif %}>{{ 'nav.start'|trans }}</a>
+            <a href="{{ path('training_index') }}" class="rounded-box px-2.5 py-1.5 transition-colors {{ isToolsActive ? 'bg-base-200 font-medium text-primary' : 'text-base-content/70 hover:bg-base-200/60 hover:text-primary' }}" {% if isToolsActive %}aria-current="page"{% endif %}>{{ 'nav.training'|trans }}</a>
+            <a href="{{ path('diary_index') }}" class="rounded-box px-2.5 py-1.5 transition-colors {{ isMyExercisesActive ? 'bg-base-200 font-medium text-primary' : 'text-base-content/70 hover:bg-base-200/60 hover:text-primary' }}" {% if isMyExercisesActive %}aria-current="page"{% endif %}>{{ 'nav.diary'|trans }}</a>
+            <a href="{{ path('practice_guide_index') }}" class="rounded-box px-2.5 py-1.5 transition-colors {{ isTipsActive ? 'bg-base-200 font-medium text-primary' : 'text-base-content/70 hover:bg-base-200/60 hover:text-primary' }}" {% if isTipsActive %}aria-current="page"{% endif %}>{{ 'nav.practice_guide'|trans }}</a>
             <div class="flex items-center gap-4 border-l border-primary/30 pl-4">
                 {% if app.user %}
                     <span class="inline-flex items-center gap-1.5 font-medium text-base-content/90" title="{{ 'nav.logged_in_as'|trans({'%email%': app.user.email}) }}">
@@ -190,6 +193,7 @@
         <p class="text-xs text-footer-content/50">
             <span class="font-display font-medium text-footer-content/70">Guitorial</span> &ndash; {{ 'app.tagline'|trans }}
             &middot; &copy; {{ "now"|date("Y") }} <a href="mailto:simon.d.mueller@itscoding.ch" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">boscho87</a>
+            &middot; v{{ app_version }}
         </p>
         <nav class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-xs text-footer-content/50">
             <a href="{{ path('privacy_index') }}" class="underline decoration-footer-content/30 underline-offset-2 transition-colors hover:text-primary hover:decoration-primary">{{ 'footer.privacy'|trans }}</a>

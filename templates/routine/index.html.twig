@@ -8,7 +8,7 @@
 
 {% block body %}
     <a href="{{ path('diary_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{ icons.icon('back') }}
         {{ 'nav.back_home'|trans }}
     </a>
 
@@ -22,7 +22,7 @@
     {{ include('diary/_area_nav.html.twig', {active: 'routines'}) }}
 
     <div class="flex items-center justify-between gap-3">
-        <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'routine.list_heading'|trans }}</h2>
+        <h2 class="eyebrow">{{ 'routine.list_heading'|trans }}</h2>
         <a href="{{ path('routine_add_form') }}" class="btn btn-primary btn-sm">{{ 'routine.new_button'|trans }}</a>
     </div>
 
@@ -38,7 +38,7 @@
         {% else %}
             <ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {% for routine in routines %}
-                    <li class="rounded-box border {{ routine.isActive ? 'border-primary' : 'border-base-300' }} p-4 transition-shadow duration-200 hover:shadow-md">
+                    <li class="card-tile {{ routine.isActive ? 'border-primary' : '' }}">
                         <div class="flex items-start justify-between gap-2">
                             <div class="min-w-0 flex-1">
                                 <p class="text-sm font-medium sm:text-base">{{ routine.name }}</p>
@@ -53,7 +53,7 @@
                                         {{ icons.icon('share') }}
                                     </a>
                                 {% else %}
-                                    <form method="post" action="{{ path('routine_share', {id: routine.id}) }}" data-turbo-frame="_top">
+                                    <form method="post" action="{{ path('routine_share', {id: routine.id}) }}" data-turbo-frame="_top" data-controller="submit-loading" data-submit-loading-spinner-value="false" data-action="submit->submit-loading#submit">
                                         <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
                                         <button type="submit" class="btn btn-ghost btn-xs btn-square" title="{{ 'routine.share.button'|trans }}" aria-label="{{ 'routine.share.button'|trans }}">
                                             {{ icons.icon('share') }}
@@ -79,7 +79,7 @@
                                 <span class="badge badge-primary badge-sm">{{ 'routine.active_badge'|trans }}</span>
                             </div>
                         {% else %}
-                            <form method="post" action="{{ path('routine_activate', {id: routine.id}) }}" class="mt-2" data-turbo-frame="_top">
+                            <form method="post" action="{{ path('routine_activate', {id: routine.id}) }}" class="mt-2" data-turbo-frame="_top" data-controller="submit-loading" data-action="submit->submit-loading#submit">
                                 <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
                                 <button type="submit" class="btn btn-ghost btn-xs w-full text-primary">{{ 'routine.set_active'|trans }}</button>
                             </form>

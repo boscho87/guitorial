@@ -1,11 +1,12 @@
 {% extends 'base.html.twig' %}
 {% import '_components/confirm_modal.html.twig' as confirmModal %}
+{% import '_components/icons.html.twig' as icons %}
 
 {% block title %}{{ version ? version.title : 'exercise_session.untitled'|trans }} – Guitorial{% endblock %}
 
 {% block body %}
     <a href="{{ path('history_groups') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M11 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        {{ icons.icon('back') }}
         {{ 'history.exercise_detail.back'|trans }}
     </a>
 
