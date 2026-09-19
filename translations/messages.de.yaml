@@ -15,7 +15,7 @@ home:
   hero_title: "Gitarre üben, mit System"
   hero_subtitle: "Theorie-Tools, eigene Übungen und dein Fortschritt an einem Ort - kurz und regelmässig üben."
   hero_cta: "Jetzt üben"
-  hero_secondary_cta: "Wie übe ich richtig?"
+  hero_secondary_cta: "Tools entdecken"
   benefits_title: Nutzen
   benefit_recall_title: "Theorie schneller abrufen"
   benefit_recall_text: "Tonarten und Funktionen nicht nur verstehen, sondern beim Spielen sofort erkennen."
@@ -54,7 +54,6 @@ nav:
   back_home: Zurück
   start: Start
   training: Tools
-  history: Verlauf
   diary: "Meine Übungen"
   practice_guide: Tipps
   login: Anmelden
@@ -311,6 +310,7 @@ diary:
     history: Verlauf
     progress: Fortschritt
   empty: "Noch keine Übungen im Plan."
+  empty_cta: "Jetzt eine Übung anlegen"
   empty_past: "An diesem Tag gab es noch keine Übungen im Plan."
   manage_link: "Übungen verwalten"
   active_routine:

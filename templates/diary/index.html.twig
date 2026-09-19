@@ -98,8 +98,17 @@
         </ul>
     {% elseif isToday and activeRoutine %}
         <p class="mt-8 text-sm text-base-content/60">{{ 'routine.show.empty'|trans }}</p>
+    {% elseif isToday %}
+        {# Past days stay read-only text-only (nothing to add retroactively
+           - see the diary's own "vergangene Tage bleiben unverändert" rule)
+           - only today's empty state gets a direct next step, same pattern
+           as progress.empty_cta. #}
+        <p class="mt-8 text-sm text-base-content/60">
+            {{ 'diary.empty'|trans }}
+            <a href="{{ path('diary_add_form') }}" class="font-medium text-primary hover:underline">{{ 'diary.empty_cta'|trans }}</a>
+        </p>
     {% else %}
-        <p class="mt-8 text-sm text-base-content/60">{{ isToday ? 'diary.empty'|trans : 'diary.empty_past'|trans }}</p>
+        <p class="mt-8 text-sm text-base-content/60">{{ 'diary.empty_past'|trans }}</p>
     {% endif %}
 
     <div class="mt-10">

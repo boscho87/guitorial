@@ -21,8 +21,12 @@
         <h1 class="font-display text-4xl font-semibold sm:text-5xl">{{ 'home.hero_title'|trans }}</h1>
         <p class="mx-auto mt-4 max-w-md text-base-content/70 sm:text-lg">{{ 'home.hero_subtitle'|trans }}</p>
         <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <a href="#trainer" class="btn btn-primary">{{ 'home.hero_cta'|trans }}</a>
-            <a href="{{ path('practice_guide_index') }}" class="btn btn-outline">{{ 'home.hero_secondary_cta'|trans }}</a>
+            {# "Meine Übungen" is the practice hub the nav treats as
+               co-equal with Tools - it gets the primary hero action now,
+               matching the app's actual focus (üben, dranbleiben,
+               Fortschritt sehen) instead of leading with the tool grid. #}
+            <a href="{{ path('diary_index') }}" class="btn btn-primary">{{ 'home.hero_cta'|trans }}</a>
+            <a href="#trainer" class="btn btn-outline">{{ 'home.hero_secondary_cta'|trans }}</a>
         </div>
     </section>
 
