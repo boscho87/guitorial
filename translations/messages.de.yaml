@@ -442,9 +442,12 @@ routine:
     copy: Kopieren
     import_submit: "Zu meinen Routinen übernehmen"
     import_flash: "Routine übernommen."
+    nothing_new: "Du hattest bereits alle Übungen dieser Routine übernommen."
     login_required: "Melde dich an, um diese Routine zu übernehmen: "
   shared:
     intro: "Diese Routine wurde mit dir geteilt. Melde dich an, um sie als eigene Kopie zu übernehmen."
+    already_imported: "Du hast diese Routine bereits übernommen."
+    open_mine: "Zu meiner Kopie"
 
 exercise_session:
   title: Übungssitzung

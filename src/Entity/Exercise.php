@@ -42,6 +42,15 @@ class Exercise
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $archivedAt = null;
 
+    /**
+     * Set only by RoutineShareController::import() - lets a re-import
+     * reuse this exact copy instead of cloning a duplicate, and survives
+     * the copy being renamed (unlike matching by title).
+     */
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[ORM\JoinColumn(name: 'imported_from_exercise_id', nullable: true, onDelete: 'SET NULL')]
+    private ?self $importedFromExercise = null;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
 
@@ -69,6 +78,16 @@ class Exercise
     public function getArchivedAt(): ?\DateTimeImmutable
     {
         return $this->archivedAt;
+    }
+
+    public function getImportedFromExercise(): ?self
+    {
+        return $this->importedFromExercise;
+    }
+
+    public function markImportedFrom(self $source): void
+    {
+        $this->importedFromExercise = $source;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

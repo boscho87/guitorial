@@ -30,4 +30,14 @@ class ExerciseRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['id' => $id, 'visitorId' => $visitorId]);
     }
+
+    /**
+     * This visitor's own copy of $source, if they already imported it via
+     * a shared routine before - lets a re-import reuse it instead of
+     * cloning a duplicate.
+     */
+    public function findImportedFrom(string $visitorId, Exercise $source): ?Exercise
+    {
+        return $this->findOneBy(['visitorId' => $visitorId, 'importedFromExercise' => $source]);
+    }
 }

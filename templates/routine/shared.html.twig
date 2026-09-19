@@ -26,6 +26,12 @@
 
     <div class="mt-8">
         {% if app.user %}
+            {% if alreadyImportedRoutineId %}
+                <p class="mb-3 rounded-box border border-primary/30 bg-primary/5 px-4 py-3 text-sm">
+                    {{ 'routine.shared.already_imported'|trans }}
+                    <a href="{{ path('routine_show', {id: alreadyImportedRoutineId}) }}" class="font-medium text-primary hover:underline">{{ 'routine.shared.open_mine'|trans }}</a>
+                </p>
+            {% endif %}
             <form method="post" action="{{ path('routine_shared_import', {token: token}) }}" data-controller="submit-loading" data-action="submit->submit-loading#submit">
                 <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
                 <button type="submit" class="btn btn-primary">{{ 'routine.share.import_submit'|trans }}</button>

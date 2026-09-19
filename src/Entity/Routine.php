@@ -52,6 +52,15 @@ class Routine
     #[ORM\Column(length: 20, unique: true, nullable: true)]
     private ?string $shareToken = null;
 
+    /**
+     * Set only by RoutineShareController::import() - a re-import of the
+     * same shared link reuses this exact copy instead of creating a
+     * second one.
+     */
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[ORM\JoinColumn(name: 'imported_from_routine_id', nullable: true, onDelete: 'SET NULL')]
+    private ?self $importedFromRoutine = null;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
 
@@ -121,6 +130,16 @@ class Routine
         }
 
         return $this->shareToken;
+    }
+
+    public function getImportedFromRoutine(): ?self
+    {
+        return $this->importedFromRoutine;
+    }
+
+    public function markImportedFrom(self $source): void
+    {
+        $this->importedFromRoutine = $source;
     }
 
     /**

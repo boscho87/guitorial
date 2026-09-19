@@ -45,4 +45,13 @@ class RoutineRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['shareToken' => $token]);
     }
+
+    /**
+     * This visitor's own copy of $source, if they already imported it
+     * before - a re-import reuses this instead of creating a second one.
+     */
+    public function findImportedFrom(string $visitorId, Routine $source): ?Routine
+    {
+        return $this->findOneBy(['visitorId' => $visitorId, 'importedFromRoutine' => $source]);
+    }
 }

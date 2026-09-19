@@ -10,6 +10,7 @@ use App\Entity\ExerciseResource;
 use App\Entity\ExerciseVersion;
 use App\Entity\Routine;
 use App\Entity\RoutineItem;
+use App\Repository\ExerciseRepository;
 use App\Repository\ExerciseResourceRepository;
 use App\Repository\ExerciseVersionRepository;
 use App\Repository\RoutineRepository;
@@ -56,7 +57,7 @@ final class RoutineShareController extends AbstractController
     }
 
     #[Route('/r/{token}', name: 'routine_shared_show', methods: ['GET'])]
-    public function show(string $token, RoutineRepository $routines, ExerciseVersionRepository $versions): Response
+    public function show(string $token, Request $request, RoutineRepository $routines, ExerciseVersionRepository $versions): Response
     {
         $routine = $routines->findByShareToken($token);
         if ($routine === null) {
@@ -72,19 +73,34 @@ final class RoutineShareController extends AbstractController
             }
         }
 
+        // Shown before the click, not just after - so re-visiting an
+        // already-imported link doesn't look like nothing would happen.
+        $alreadyImported = $this->getUser() !== null
+            ? $routines->findImportedFrom($this->requireVisitorId($request), $routine)
+            : null;
+
         return $this->render('routine/shared.html.twig', [
             'routine' => $routine,
             'versions' => $items,
             'token' => $token,
+            'alreadyImportedRoutineId' => $alreadyImported?->getId(),
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
     }
 
+    /**
+     * Reuses a previously-imported copy (routine and/or individual
+     * exercises, tracked via markImportedFrom()) rather than blindly
+     * re-cloning - re-clicking "Übernehmen" on the same link, or on a
+     * routine that shares some exercises with one already imported
+     * before, never creates duplicates.
+     */
     #[Route('/r/{token}/uebernehmen', name: 'routine_shared_import', methods: ['POST'])]
     public function import(
         string $token,
         Request $request,
         RoutineRepository $routines,
+        ExerciseRepository $exercises,
         ExerciseVersionRepository $versions,
         ExerciseResourceRepository $resources,
         EntityManagerInterface $em,
@@ -102,44 +118,83 @@ final class RoutineShareController extends AbstractController
         $visitorId = $this->requireVisitorId($request);
         $today = new \DateTimeImmutable('today');
 
-        $newRoutine = new Routine($visitorId, $sourceRoutine->getName(), $routines->countForVisitor($visitorId));
-        $em->persist($newRoutine);
+        $targetRoutine = $routines->findImportedFrom($visitorId, $sourceRoutine);
+        $isNewRoutine = $targetRoutine === null;
+        if ($targetRoutine === null) {
+            $targetRoutine = new Routine($visitorId, $sourceRoutine->getName(), $routines->countForVisitor($visitorId));
+            $targetRoutine->markImportedFrom($sourceRoutine);
+            $em->persist($targetRoutine);
+        }
 
-        $sortIndex = 0;
+        $existingExerciseIds = [];
+        $maxSortIndex = -1;
+        foreach ($targetRoutine->getItems() as $existingItem) {
+            $existingExerciseIds[] = $existingItem->getExercise()->getId();
+            $maxSortIndex = max($maxSortIndex, $existingItem->getSortIndex());
+        }
+
+        $addedAny = false;
         foreach ($sourceRoutine->getItems() as $item) {
-            $version = $versions->currentFor($item->getExercise(), $today);
+            $sourceExercise = $item->getExercise();
+            $version = $versions->currentFor($sourceExercise, $today);
             if ($version === null) {
                 continue;
             }
 
-            $sourceResources = $resources->forExercise($item->getExercise());
-
-            $newExercise = new Exercise($visitorId);
-            $em->persist($newExercise);
-
-            $group = $this->groupProvisioner->systemGroupFor($visitorId, $this->hasInternalTool($sourceResources));
-            $em->persist(new ExerciseVersion(
-                $newExercise,
-                $version->getTitle(),
-                $group,
-                $version->getTargetMinutes(),
-                $version->getRepeatRhythm(),
-                $version->getRepeatCount(),
-                $today,
-            ));
-
-            foreach ($sourceResources as $sourceResource) {
-                $em->persist($this->cloneResource($newExercise, $sourceResource));
+            $targetExercise = $exercises->findImportedFrom($visitorId, $sourceExercise);
+            if ($targetExercise === null) {
+                $targetExercise = $this->cloneExercise($visitorId, $sourceExercise, $version, $resources, $em, $today);
             }
 
-            $em->persist(new RoutineItem($newRoutine, $newExercise, $sortIndex++));
+            if (in_array($targetExercise->getId(), $existingExerciseIds, true)) {
+                continue; // already in this routine - nothing to add
+            }
+
+            $em->persist(new RoutineItem($targetRoutine, $targetExercise, ++$maxSortIndex));
+            $addedAny = true;
         }
 
         $em->flush();
 
-        $this->addFlash('success', 'routine.share.import_flash');
+        if ($addedAny || $isNewRoutine) {
+            $this->addFlash('success', 'routine.share.import_flash');
+        } else {
+            $this->addFlash('info', 'routine.share.nothing_new');
+        }
 
-        return $this->redirectToRoute('routine_show', ['id' => $newRoutine->getId()]);
+        return $this->redirectToRoute('routine_show', ['id' => $targetRoutine->getId()]);
+    }
+
+    private function cloneExercise(
+        string $visitorId,
+        Exercise $sourceExercise,
+        ExerciseVersion $sourceVersion,
+        ExerciseResourceRepository $resources,
+        EntityManagerInterface $em,
+        \DateTimeImmutable $today,
+    ): Exercise {
+        $sourceResources = $resources->forExercise($sourceExercise);
+
+        $newExercise = new Exercise($visitorId);
+        $newExercise->markImportedFrom($sourceExercise);
+        $em->persist($newExercise);
+
+        $group = $this->groupProvisioner->systemGroupFor($visitorId, $this->hasInternalTool($sourceResources));
+        $em->persist(new ExerciseVersion(
+            $newExercise,
+            $sourceVersion->getTitle(),
+            $group,
+            $sourceVersion->getTargetMinutes(),
+            $sourceVersion->getRepeatRhythm(),
+            $sourceVersion->getRepeatCount(),
+            $today,
+        ));
+
+        foreach ($sourceResources as $sourceResource) {
+            $em->persist($this->cloneResource($newExercise, $sourceResource));
+        }
+
+        return $newExercise;
     }
 
     /**
