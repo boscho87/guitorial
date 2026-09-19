@@ -13,10 +13,10 @@ home:
   meta_description: "Guitorial: Musiktheorie und Griffbrett für Gitarre (und Bass) gezielt trainieren - Tonarten, Akkordfunktionen, Skalen. Ohne Konto starten."
   cta: Üben
   hero_title: "Gitarre üben, mit System"
-  hero_subtitle: "Theorie-Tools, eigene Übungen und dein Fortschritt an einem Ort - kurz und regelmässig üben."
+  hero_subtitle: "Kurz und regelmässig üben - mit Theorie-Tools, eigenen Übungen und deinem Fortschritt an einem Ort."
   hero_cta: "Jetzt üben"
   hero_secondary_cta: "Tools entdecken"
-  benefits_title: Nutzen
+  benefits_title: "Was du davon hast"
   benefit_recall_title: "Theorie schneller abrufen"
   benefit_recall_text: "Tonarten und Funktionen nicht nur verstehen, sondern beim Spielen sofort erkennen."
   benefit_fretboard_title: "Griffbrett sicherer kennen"
@@ -24,13 +24,13 @@ home:
   benefit_weak_spots_title: "Gezielt an Schwächen arbeiten"
   benefit_weak_spots_text: "Die Tools merken sich, was du oft falsch beantwortest, und fragen das häufiger ab."
   benefit_consistency_title: "Regelmässig dranbleiben"
-  benefit_consistency_text: "Kurze Runden statt langer Sessions - das Tagebuch hilft, den Rhythmus zu halten."
+  benefit_consistency_text: "Kurze Runden statt langer Sitzungen - das Tagebuch hilft, den Rhythmus zu halten."
   benefit_progress_title: "Fortschritt sehen"
   benefit_progress_text: "Serie, Bestleistungen und Verlauf zeigen, dass sich das Üben lohnt."
   trainer_title: Trainer
   trainer_bass_hint: "Tonart erkennen, Funktion bestimmen und der Skalen-Generator sind reine Musiktheorie - funktionieren genauso am Bass."
   diary_title: "Meine Übungen"
-  diary_text: "Hier landet alles: Runden aus den Trainern und alles, was du sonst übst - ein Stück, Akkordwechsel, Timing mit dem Metronom. Stell mehrere Übungen zu einer Routine zusammen, halte Rhythmus und Tagesziel pro Übung fest, und sieh im Verlauf, was du bereits geschafft hast."
+  diary_text: "Sieh auf einen Blick, was du bereits geschafft hast: Runden aus den Trainern und alles, was du sonst übst - ein Stück, Akkordwechsel, Timing mit dem Metronom - landen hier an einem Ort. Stell mehrere Übungen zu einer Routine zusammen und halte Rhythmus und Zielzeit pro Übung fest."
   diary_examples: "Zum Beispiel: Pentatonik, ein Song, Alternate Picking, Akkordwechsel, Metronom-Timing"
   diary_cta: "Meine Übungen öffnen"
   progress_title: Fortschritt
@@ -289,11 +289,11 @@ progress:
     longest_streak: "Längste Serie"
     practice_days: Übungstage
     total_duration: Übungszeit
-    completed_sessions: "Abgeschlossene Einheiten"
+    completed_sessions: "Abgeschlossene Sitzungen"
   milestones:
     title: Meilensteine
     days_title: Übungstage
-    sessions_title: "Abgeschlossene Einheiten"
+    sessions_title: "Abgeschlossene Sitzungen"
     achieved: "Erreicht: %value%"
     next: "Nächstes Ziel: %value%"
   records:
@@ -461,7 +461,7 @@ routine:
 exercise_session:
   title: Übungssitzung
   untitled: Übung
-  target: "Ziel: %minutes% Min."
+  target: "Zielzeit: %minutes% Min."
   reopen_resource: "Ressource öffnen"
   previous_note:
     label: "Letzte Notiz (%date%)"
@@ -532,7 +532,7 @@ practice_guide:
     motivation:
       title: "Motivation und Dranbleiben"
       problem: "Nach ein paar Tagen ohne Übung fällt es schwer, wieder anzufangen."
-      explanation: "Kurze, regelmässige Einheiten bringen mehr als eine lange Session einmal pro Woche – und sichtbarer Fortschritt hält den Antrieb aufrecht."
+      explanation: "Kurze, regelmässige Einheiten bringen mehr als eine lange Sitzung einmal pro Woche – und sichtbarer Fortschritt hält den Antrieb aufrecht."
       exercise: "Leg dir eine minimale tägliche Grösse fest, die du fast immer schaffst, und schau danach kurz im Fortschritt vorbei, wie sich deine Serie entwickelt."
       duration: "5–10 Min."
       tool_label: "Fortschritt ansehen"
