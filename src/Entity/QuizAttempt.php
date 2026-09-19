@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: QuizAttemptRepository::class)]
 #[ORM\Index(columns: ['tool', 'question_key'])]
+#[ORM\Index(columns: ['tool', 'visitor_id'])]
 class QuizAttempt
 {
     #[ORM\Id]
@@ -26,14 +27,18 @@ class QuizAttempt
     #[ORM\Column]
     private bool $correct;
 
+    #[ORM\Column(length: 36)]
+    private string $visitorId;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
 
-    public function __construct(string $tool, string $questionKey, bool $correct)
+    public function __construct(string $tool, string $questionKey, bool $correct, string $visitorId)
     {
         $this->tool = $tool;
         $this->questionKey = $questionKey;
         $this->correct = $correct;
+        $this->visitorId = $visitorId;
         $this->createdAt = new \DateTimeImmutable();
     }
 
@@ -55,6 +60,11 @@ class QuizAttempt
     public function isCorrect(): bool
     {
         return $this->correct;
+    }
+
+    public function getVisitorId(): string
+    {
+        return $this->visitorId;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

@@ -18,26 +18,29 @@ class QuizAttemptRepository extends ServiceEntityRepository
         parent::__construct($registry, QuizAttempt::class);
     }
 
-    public function record(string $tool, string $questionKey, bool $correct): void
+    public function record(string $tool, string $questionKey, bool $correct, string $visitorId): void
     {
         $em = $this->getEntityManager();
-        $em->persist(new QuizAttempt($tool, $questionKey, $correct));
+        $em->persist(new QuizAttempt($tool, $questionKey, $correct, $visitorId));
         $em->flush();
     }
 
     /**
-     * Number of wrong attempts per question key, for the given tool -
-     * used to weight which questions come up more often.
+     * Number of wrong attempts per question key, for the given tool and
+     * visitor - used to weight which questions come up more often, so each
+     * visitor's own mistakes shape their own practice.
      *
      * @return array<string, int>
      */
-    public function wrongCountsByQuestionKey(string $tool): array
+    public function wrongCountsByQuestionKey(string $tool, string $visitorId): array
     {
         $rows = $this->createQueryBuilder('a')
             ->select('a.questionKey AS questionKey', 'COUNT(a.id) AS wrongCount')
             ->andWhere('a.tool = :tool')
+            ->andWhere('a.visitorId = :visitorId')
             ->andWhere('a.correct = false')
             ->setParameter('tool', $tool)
+            ->setParameter('visitorId', $visitorId)
             ->groupBy('a.questionKey')
             ->getQuery()
             ->getArrayResult();

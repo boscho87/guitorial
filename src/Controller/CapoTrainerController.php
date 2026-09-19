@@ -127,6 +127,9 @@ final class CapoTrainerController extends AbstractController
     {
         $this->assertValidCsrf($request);
 
+        $rawVisitorId = $request->attributes->get('visitorId');
+        $visitorId = is_string($rawVisitorId) ? $rawVisitorId : '';
+
         $session = $request->getSession();
         $round = $this->currentRound($request);
         if ($round === null) {
@@ -145,7 +148,7 @@ final class CapoTrainerController extends AbstractController
         $toast = null;
         if ($current !== null) {
             $questionKey = $current['mode'] . ':' . $current['shapeId'] . ':' . $current['fret'];
-            $this->attempts->record(self::TOOL, $questionKey, $isCorrect);
+            $this->attempts->record(self::TOOL, $questionKey, $isCorrect, $visitorId);
             if ($isCorrect) {
                 $round['correctCount']++;
             }
@@ -167,9 +170,8 @@ final class CapoTrainerController extends AbstractController
             $round['current'] = null;
             $session->set(self::SESSION_ROUND, $round);
             if ($practiceSession !== null) {
-                $visitorId = $request->attributes->get('visitorId');
                 $points = $this->personalRecords->pointsForFinishedRound(
-                    is_string($visitorId) ? $visitorId : '',
+                    $visitorId,
                     self::TOOL,
                     $practiceSession,
                     $round['correctCount'],
@@ -331,7 +333,8 @@ final class CapoTrainerController extends AbstractController
             }
         }
 
-        $allWrongCounts = $this->attempts->wrongCountsByQuestionKey(self::TOOL);
+        $rawVisitorId = $request->attributes->get('visitorId');
+        $allWrongCounts = $this->attempts->wrongCountsByQuestionKey(self::TOOL, is_string($rawVisitorId) ? $rawVisitorId : '');
         $prefix = $mode . ':';
         $wrongCounts = [];
         foreach ($allWrongCounts as $key => $count) {

@@ -120,6 +120,9 @@ final class HarmonicFunctionController extends AbstractController
     {
         $this->assertValidCsrf($request);
 
+        $rawVisitorId = $request->attributes->get('visitorId');
+        $visitorId = is_string($rawVisitorId) ? $rawVisitorId : '';
+
         $session = $request->getSession();
         $round = $this->currentRound($request);
         if ($round === null) {
@@ -137,7 +140,7 @@ final class HarmonicFunctionController extends AbstractController
 
         $toast = null;
         if ($current !== null) {
-            $this->attempts->record(self::TOOL, $current['questionKey'], $isCorrect);
+            $this->attempts->record(self::TOOL, $current['questionKey'], $isCorrect, $visitorId);
             if ($isCorrect) {
                 $round['correctCount']++;
             }
@@ -153,9 +156,8 @@ final class HarmonicFunctionController extends AbstractController
             $round['current'] = null;
             $session->set(self::SESSION_ROUND, $round);
             if ($practiceSession !== null) {
-                $visitorId = $request->attributes->get('visitorId');
                 $points = $this->personalRecords->pointsForFinishedRound(
-                    is_string($visitorId) ? $visitorId : '',
+                    $visitorId,
                     self::TOOL,
                     $practiceSession,
                     $round['correctCount'],
@@ -294,7 +296,8 @@ final class HarmonicFunctionController extends AbstractController
             }
         }
 
-        $wrongCounts = $this->attempts->wrongCountsByQuestionKey(self::TOOL);
+        $rawVisitorId = $request->attributes->get('visitorId');
+        $wrongCounts = $this->attempts->wrongCountsByQuestionKey(self::TOOL, is_string($rawVisitorId) ? $rawVisitorId : '');
         $questionKey = WeightedQuestionPicker::pick($candidates, $wrongCounts);
         [$keyId, $degreeText] = explode(':', $questionKey, 2);
         $degree = (int) $degreeText;

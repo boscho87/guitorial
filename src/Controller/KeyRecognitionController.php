@@ -120,6 +120,9 @@ final class KeyRecognitionController extends AbstractController
     {
         $this->assertValidCsrf($request);
 
+        $rawVisitorId = $request->attributes->get('visitorId');
+        $visitorId = is_string($rawVisitorId) ? $rawVisitorId : '';
+
         $session = $request->getSession();
         $round = $this->currentRound($request);
         if ($round === null) {
@@ -137,7 +140,7 @@ final class KeyRecognitionController extends AbstractController
 
         $toast = null;
         if ($correctPairId !== null) {
-            $this->attempts->record(self::TOOL, $correctPairId, $isCorrect);
+            $this->attempts->record(self::TOOL, $correctPairId, $isCorrect, $visitorId);
             if ($isCorrect) {
                 $round['correctCount']++;
             }
@@ -153,9 +156,8 @@ final class KeyRecognitionController extends AbstractController
             $round['current'] = null;
             $session->set(self::SESSION_ROUND, $round);
             if ($practiceSession !== null) {
-                $visitorId = $request->attributes->get('visitorId');
                 $points = $this->personalRecords->pointsForFinishedRound(
-                    is_string($visitorId) ? $visitorId : '',
+                    $visitorId,
                     self::TOOL,
                     $practiceSession,
                     $round['correctCount'],
@@ -284,7 +286,8 @@ final class KeyRecognitionController extends AbstractController
             return;
         }
 
-        $wrongCounts = $this->attempts->wrongCountsByQuestionKey(self::TOOL);
+        $rawVisitorId = $request->attributes->get('visitorId');
+        $wrongCounts = $this->attempts->wrongCountsByQuestionKey(self::TOOL, is_string($rawVisitorId) ? $rawVisitorId : '');
         $pairId = WeightedQuestionPicker::pick($round['pairs'], $wrongCounts);
 
         $pair = null;

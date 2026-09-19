@@ -26,9 +26,10 @@ use Doctrine\ORM\Mapping as ORM;
  *    optionally linked to a plan Exercise/ExerciseResource, carrying an
  *    immutable snapshot of whatever tool config or resource was actually
  *    used.
- * 3. Still NOT: the per-question-answer weighting heuristic - that's the
- *    separate, visitor-independent QuizAttempt/WeightedQuestionPicker,
- *    deliberately left untouched by any of this.
+ * 3. Still a separate concept: the per-question-answer weighting heuristic -
+ *    that's QuizAttempt/WeightedQuestionPicker, which now scopes by
+ *    visitorId too (each visitor's own wrong answers shape their own
+ *    practice) but stays its own entity/table, untouched by any of this.
  */
 #[ORM\Entity(repositoryClass: PracticeSessionRepository::class)]
 #[ORM\UniqueConstraint(columns: ['visitor_id', 'client_session_id'])]
