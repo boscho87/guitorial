@@ -195,10 +195,14 @@ final class DiaryController extends AbstractController
         $name = mb_substr(trim((string) $request->request->get('name')), 0, self::GROUP_NAME_MAX_LENGTH);
 
         if ($visitorId !== '' && $name !== '') {
-            $customCount = $groups->countCustomForVisitor($visitorId);
-            if ($customCount < ExerciseGroupRepository::MAX_GROUPS_PER_VISITOR) {
-                $em->persist(new ExerciseGroup($visitorId, $name, $groups->countForVisitor($visitorId)));
-                $em->flush();
+            if ($this->groupProvisioner->isReservedLabel($name)) {
+                $this->addFlash('frame_toast', 'diary.groups.reserved_name');
+            } else {
+                $customCount = $groups->countCustomForVisitor($visitorId);
+                if ($customCount < ExerciseGroupRepository::MAX_GROUPS_PER_VISITOR) {
+                    $em->persist(new ExerciseGroup($visitorId, $name, $groups->countForVisitor($visitorId)));
+                    $em->flush();
+                }
             }
         }
 
@@ -213,8 +217,12 @@ final class DiaryController extends AbstractController
         $name = mb_substr(trim((string) $request->request->get('name')), 0, self::GROUP_NAME_MAX_LENGTH);
 
         if ($group !== null && $name !== '') {
-            $group->rename($name);
-            $em->flush();
+            if ($this->groupProvisioner->isReservedLabel($name, $group->getKind())) {
+                $this->addFlash('frame_toast', 'diary.groups.reserved_name');
+            } else {
+                $group->rename($name);
+                $em->flush();
+            }
         }
 
         return $this->redirectToRoute('diary_groups');

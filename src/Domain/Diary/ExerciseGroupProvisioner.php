@@ -30,6 +30,27 @@ final class ExerciseGroupProvisioner
     ) {
     }
 
+    /**
+     * True if $name (trimmed, case-insensitive) collides with a system
+     * group's reserved label - a custom group must never be allowed this
+     * name, since it would then look indistinguishable from the real system
+     * group in the UI (and deleting either one re-provisions a fresh
+     * "Praxis"/"Theorie", which looks like the deletion silently failed).
+     * $exceptKind lets a system group keep/reclaim its own label when
+     * renaming.
+     */
+    public function isReservedLabel(string $name, ?string $exceptKind = null): bool
+    {
+        $normalized = mb_strtolower(trim($name));
+        foreach (self::LABELS as $kind => $label) {
+            if ($kind !== $exceptKind && mb_strtolower($label) === $normalized) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function systemGroupFor(string $visitorId, bool $isToolLinked): ExerciseGroup
     {
         $kind = $isToolLinked ? ExerciseGroup::KIND_THEORY : ExerciseGroup::KIND_PRACTICE;

@@ -344,6 +344,7 @@ diary:
     remove_confirm: "Gruppe wirklich entfernen? Enthaltene Übungen bleiben erhalten, verlieren aber diese Gruppenzuordnung."
     remove_flash: "Gruppe entfernt."
     max_reached: "Maximal 6 Gruppen erreicht."
+    reserved_name: "„Theorie“ und „Praxis“ sind feste Gruppen – dieser Name ist nicht verfügbar."
   manage:
     title: "Übungen verwalten"
     intro: "Deine bestehenden Übungen – bearbeiten, archivieren oder löschen. Änderungen wirken ab heute."
