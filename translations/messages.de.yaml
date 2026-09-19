@@ -1,6 +1,9 @@
 app:
   tagline: "Tonarten und Akkorde üben"
 
+common:
+  cancel: Abbrechen
+
 error:
   title: "Etwas ist schiefgelaufen"
   message: "Da ist leider ein Fehler passiert. Versuch es nochmal, oder komm später wieder vorbei."
@@ -334,6 +337,7 @@ diary:
     move_up: "Nach oben"
     move_down: "Nach unten"
     remove_confirm: "Gruppe wirklich entfernen? Enthaltene Übungen bleiben erhalten, verlieren aber diese Gruppenzuordnung."
+    remove_flash: "Gruppe entfernt."
     max_reached: "Maximal 6 Gruppen erreicht."
   manage:
     title: "Übungen verwalten"
@@ -418,6 +422,7 @@ routine:
   active_badge: "Aktuelle Routine"
   set_active: "Als aktuelle Routine festlegen"
   delete_confirm: "Routine wirklich löschen? Die enthaltenen Übungen selbst bleiben unter Meine Übungen erhalten."
+  delete_flash: "Routine gelöscht."
   delete_active_error: "Die aktuelle Routine kann nicht gelöscht werden. Aktiviere zuerst eine andere Routine."
   back_to_list: "Zurück zu Routinen"
   add:

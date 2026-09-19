@@ -164,7 +164,12 @@
     </div>
 </header>
 <main class="mx-auto w-full max-w-3xl flex-grow px-4 py-6 sm:px-6 sm:py-10 {{ hideChromeOnMobile is defined and hideChromeOnMobile ? 'max-sm:flex max-sm:min-h-dvh max-sm:flex-col max-sm:justify-center max-sm:py-4' : '' }}">
-    {% for label, messages in app.flashes %}
+    {# Explicit type list on purpose - frame_toast is a separate bucket
+       read inside frame-scoped content instead (see _frame_toast.html.twig),
+       so a frame-scoped navigation (whose response discards everything
+       outside the matching turbo-frame) doesn't have this block silently
+       consume-and-drop it first. #}
+    {% for label, messages in app.flashes(['success', 'error', 'info']) %}
         {% for message in messages %}
             <div class="alert alert-{{ label }} mb-4 animate-[toast-in_0.25s_ease-out]">{{ message|trans }}</div>
         {% endfor %}

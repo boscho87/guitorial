@@ -279,6 +279,7 @@ final class DiaryController extends AbstractController
                 $version->reassignGroup($this->groupProvisioner->systemGroupFor($visitorId, $isToolLinked[$index]));
             }
             $em->flush();
+            $this->addFlash('frame_toast', 'diary.groups.remove_flash');
         }
 
         return $this->redirectToRoute('diary_groups');

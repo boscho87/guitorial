@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_components/confirm_modal.html.twig' as confirmModal %}
 
 {% block title %}{{ 'diary.groups.title'|trans }} – Guitorial{% endblock %}
 
@@ -11,45 +12,48 @@
     <h1 class="font-display mt-3 text-2xl font-semibold sm:text-3xl">{{ 'diary.groups.title'|trans }}</h1>
     <p class="mt-2 text-base-content/70">{{ 'diary.groups.intro'|trans }}</p>
 
-    <ul class="mt-6 space-y-2">
-        {% for group in groups %}
-            <li class="flex flex-wrap items-center gap-2 rounded-box border border-base-300 p-3">
-                <form method="post" action="{{ path('diary_group_rename', {id: group.id}) }}" class="flex flex-1 items-center gap-2">
-                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                    <input type="text" name="name" value="{{ group.name }}" maxlength="{{ groupNameMaxLength }}" class="input input-sm input-bordered flex-1">
-                    <button type="submit" class="btn btn-ghost btn-xs">{{ 'diary.form.save'|trans }}</button>
-                </form>
-                <form method="post" action="{{ path('diary_group_move', {id: group.id}) }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                    <input type="hidden" name="direction" value="up">
-                    <button type="submit" class="btn btn-ghost btn-xs" {{ loop.first ? 'disabled' : '' }} aria-label="{{ 'diary.groups.move_up'|trans }}">&uarr;</button>
-                </form>
-                <form method="post" action="{{ path('diary_group_move', {id: group.id}) }}">
-                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                    <input type="hidden" name="direction" value="down">
-                    <button type="submit" class="btn btn-ghost btn-xs" {{ loop.last ? 'disabled' : '' }} aria-label="{{ 'diary.groups.move_down'|trans }}">&darr;</button>
-                </form>
-                <form
-                        method="post" action="{{ path('diary_group_remove', {id: group.id}) }}"
-                        data-controller="confirm-submit" data-confirm-submit-message-value="{{ 'diary.groups.remove_confirm'|trans }}"
-                        data-action="submit->confirm-submit#submit"
-                >
-                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                    <button type="submit" class="btn btn-ghost btn-xs text-error">{{ 'diary.item.remove'|trans }}</button>
-                </form>
-            </li>
-        {% else %}
-            <p class="text-sm text-base-content/60">{{ 'diary.groups.empty'|trans }}</p>
-        {% endfor %}
-    </ul>
+    <turbo-frame id="group-list" class="block">
+        {{ include('_components/_frame_toast.html.twig') }}
 
-    {% if customGroupCount < maxGroups %}
-        <form method="post" action="{{ path('diary_group_add') }}" class="mt-4 flex items-center gap-2">
-            <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-            <input type="text" name="name" maxlength="{{ groupNameMaxLength }}" required class="input input-sm input-bordered" placeholder="{{ 'diary.groups.add_placeholder'|trans }}">
-            <button type="submit" class="btn btn-primary btn-sm">{{ 'diary.groups.add_submit'|trans }}</button>
-        </form>
-    {% else %}
-        <p class="mt-4 text-xs text-base-content/50">{{ 'diary.groups.max_reached'|trans }}</p>
-    {% endif %}
+        <ul class="mt-6 space-y-2">
+            {% for group in groups %}
+                <li class="flex flex-wrap items-center gap-2 rounded-box border border-base-300 p-3">
+                    <form method="post" action="{{ path('diary_group_rename', {id: group.id}) }}" class="flex flex-1 items-center gap-2">
+                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                        <input type="text" name="name" value="{{ group.name }}" maxlength="{{ groupNameMaxLength }}" class="input input-sm input-bordered flex-1">
+                        <button type="submit" class="btn btn-ghost btn-xs">{{ 'diary.form.save'|trans }}</button>
+                    </form>
+                    <form method="post" action="{{ path('diary_group_move', {id: group.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                        <input type="hidden" name="direction" value="up">
+                        <button type="submit" class="btn btn-ghost btn-xs" {{ loop.first ? 'disabled' : '' }} aria-label="{{ 'diary.groups.move_up'|trans }}">&uarr;</button>
+                    </form>
+                    <form method="post" action="{{ path('diary_group_move', {id: group.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                        <input type="hidden" name="direction" value="down">
+                        <button type="submit" class="btn btn-ghost btn-xs" {{ loop.last ? 'disabled' : '' }} aria-label="{{ 'diary.groups.move_down'|trans }}">&darr;</button>
+                    </form>
+                    <form id="group-remove-{{ group.id }}" method="post" action="{{ path('diary_group_remove', {id: group.id}) }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                    </form>
+                    <div class="contents" data-controller="confirm-modal">
+                        <button type="button" class="btn btn-ghost btn-xs text-error" data-action="confirm-modal#open">{{ 'diary.item.remove'|trans }}</button>
+                        {{ confirmModal.dialog('group-remove-' ~ group.id, 'diary.groups.remove_confirm'|trans, 'diary.item.remove'|trans) }}
+                    </div>
+                </li>
+            {% else %}
+                <p class="text-sm text-base-content/60">{{ 'diary.groups.empty'|trans }}</p>
+            {% endfor %}
+        </ul>
+
+        {% if customGroupCount < maxGroups %}
+            <form method="post" action="{{ path('diary_group_add') }}" class="mt-4 flex items-center gap-2">
+                <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                <input type="text" name="name" maxlength="{{ groupNameMaxLength }}" required class="input input-sm input-bordered" placeholder="{{ 'diary.groups.add_placeholder'|trans }}">
+                <button type="submit" class="btn btn-primary btn-sm">{{ 'diary.groups.add_submit'|trans }}</button>
+            </form>
+        {% else %}
+            <p class="mt-4 text-xs text-base-content/50">{{ 'diary.groups.max_reached'|trans }}</p>
+        {% endif %}
+    </turbo-frame>
 {% endblock %}

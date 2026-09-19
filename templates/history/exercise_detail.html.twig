@@ -1,4 +1,5 @@
 {% extends 'base.html.twig' %}
+{% import '_components/confirm_modal.html.twig' as confirmModal %}
 
 {% block title %}{{ version ? version.title : 'exercise_session.untitled'|trans }} – Guitorial{% endblock %}
 
@@ -61,13 +62,12 @@
             </table>
         </div>
 
-        <form
-                method="post" action="{{ path('history_exercise_delete', {id: exercise.id}) }}" class="mt-4"
-                data-controller="confirm-submit" data-confirm-submit-message-value="{{ 'history.exercise_detail.delete_confirm'|trans }}"
-                data-action="submit->confirm-submit#submit"
-        >
+        <form id="exercise-history-delete" method="post" action="{{ path('history_exercise_delete', {id: exercise.id}) }}">
             <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-            <button type="submit" class="btn btn-ghost btn-xs text-error">{{ 'history.exercise_detail.delete'|trans }}</button>
         </form>
+        <div class="contents" data-controller="confirm-modal">
+            <button type="button" class="btn btn-ghost btn-xs text-error mt-4" data-action="confirm-modal#open">{{ 'history.exercise_detail.delete'|trans }}</button>
+            {{ confirmModal.dialog('exercise-history-delete', 'history.exercise_detail.delete_confirm'|trans, 'history.exercise_detail.delete'|trans) }}
+        </div>
     {% endif %}
 {% endblock %}

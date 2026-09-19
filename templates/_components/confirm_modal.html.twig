@@ -1,0 +1,21 @@
+{#
+    Paired with confirm-modal (Stimulus) and a trigger button elsewhere in
+    the same data-controller="confirm-modal" scope
+    (data-action="confirm-modal#open"). formId is the id of the actual
+    delete/destructive <form> living outside this dialog - the confirm
+    button submits it via the form="" attribute rather than nesting a
+    second <form> inside this one (dialogs can't contain a form the
+    button belongs to AND a "method=dialog" backdrop-close form at once).
+#}
+{% macro dialog(formId, message, confirmLabel) %}
+    <dialog class="modal" data-confirm-modal-target="dialog">
+        <div class="modal-box">
+            <p class="text-sm">{{ message }}</p>
+            <div class="modal-action">
+                <button type="button" class="btn btn-ghost btn-sm" data-action="confirm-modal#close">{{ 'common.cancel'|trans }}</button>
+                <button type="submit" form="{{ formId }}" class="btn btn-error btn-sm">{{ confirmLabel }}</button>
+            </div>
+        </div>
+        <div class="modal-backdrop" data-action="click->confirm-modal#close"></div>
+    </dialog>
+{% endmacro %}

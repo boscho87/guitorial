@@ -1,5 +1,6 @@
 {% extends 'base.html.twig' %}
 {% import '_components/icons.html.twig' as icons %}
+{% import '_components/confirm_modal.html.twig' as confirmModal %}
 
 {% block title %}{{ 'routine.title'|trans }} – Guitorial{% endblock %}
 
@@ -25,60 +26,67 @@
         <a href="{{ path('routine_add_form') }}" class="btn btn-primary btn-sm">{{ 'routine.new_button'|trans }}</a>
     </div>
 
-    {% if routines is empty %}
-        <p class="mt-4 text-sm text-base-content/60">{{ 'routine.empty'|trans }}</p>
-    {% else %}
-        <ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-            {% for routine in routines %}
-                <li class="rounded-box border {{ routine.isActive ? 'border-primary' : 'border-base-300' }} p-4 transition-shadow duration-200 hover:shadow-md">
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="min-w-0 flex-1">
-                            <p class="text-sm font-medium sm:text-base">{{ routine.name }}</p>
-                            <p class="mt-1 text-xs text-base-content/60">{{ 'routine.item_count'|trans({'%count%': routine.items|length}) }}</p>
-                        </div>
-                        <div class="flex shrink-0 gap-0.5">
-                            <a href="{{ path('routine_edit_form', {id: routine.id}) }}" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}">
-                                {{ icons.icon('edit') }}
-                            </a>
-                            {% if routine.shareToken %}
-                                <a href="{{ path('routine_show', {id: routine.id}) }}" class="btn btn-ghost btn-xs btn-square" title="{{ 'routine.share.button'|trans }}" aria-label="{{ 'routine.share.button'|trans }}">
-                                    {{ icons.icon('share') }}
+    {# Deleting a routine stays inside this frame - the redirect Turbo
+       receives back is scoped to just this content, so the list updates
+       in place instead of a full-page reload that jumps the scroll
+       position back to the top. #}
+    <turbo-frame id="routine-list" class="block">
+        {{ include('_components/_frame_toast.html.twig') }}
+
+        {% if routines is empty %}
+            <p class="mt-4 text-sm text-base-content/60">{{ 'routine.empty'|trans }}</p>
+        {% else %}
+            <ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {% for routine in routines %}
+                    <li class="rounded-box border {{ routine.isActive ? 'border-primary' : 'border-base-300' }} p-4 transition-shadow duration-200 hover:shadow-md">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0 flex-1">
+                                <p class="text-sm font-medium sm:text-base">{{ routine.name }}</p>
+                                <p class="mt-1 text-xs text-base-content/60">{{ 'routine.item_count'|trans({'%count%': routine.items|length}) }}</p>
+                            </div>
+                            <div class="flex shrink-0 gap-0.5">
+                                <a href="{{ path('routine_edit_form', {id: routine.id}) }}" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}">
+                                    {{ icons.icon('edit') }}
                                 </a>
-                            {% else %}
-                                <form method="post" action="{{ path('routine_share', {id: routine.id}) }}">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
-                                    <button type="submit" class="btn btn-ghost btn-xs btn-square" title="{{ 'routine.share.button'|trans }}" aria-label="{{ 'routine.share.button'|trans }}">
+                                {% if routine.shareToken %}
+                                    <a href="{{ path('routine_show', {id: routine.id}) }}" class="btn btn-ghost btn-xs btn-square" title="{{ 'routine.share.button'|trans }}" aria-label="{{ 'routine.share.button'|trans }}">
                                         {{ icons.icon('share') }}
-                                    </button>
-                                </form>
-                            {% endif %}
-                            {% if not routine.isActive %}
-                                <form
-                                        method="post" action="{{ path('routine_delete', {id: routine.id}) }}"
-                                        data-controller="confirm-submit" data-confirm-submit-message-value="{{ 'routine.delete_confirm'|trans }}"
-                                        data-action="submit->confirm-submit#submit"
-                                >
-                                    <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
-                                    <button type="submit" class="btn btn-ghost btn-xs btn-square text-error" title="{{ 'diary.item.delete'|trans }}" aria-label="{{ 'diary.item.delete'|trans }}">
-                                        {{ icons.icon('trash') }}
-                                    </button>
-                                </form>
-                            {% endif %}
+                                    </a>
+                                {% else %}
+                                    <form method="post" action="{{ path('routine_share', {id: routine.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
+                                        <button type="submit" class="btn btn-ghost btn-xs btn-square" title="{{ 'routine.share.button'|trans }}" aria-label="{{ 'routine.share.button'|trans }}">
+                                            {{ icons.icon('share') }}
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                {% if not routine.isActive %}
+                                    <form id="routine-delete-{{ routine.id }}" method="post" action="{{ path('routine_delete', {id: routine.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
+                                    </form>
+                                    <div class="contents" data-controller="confirm-modal">
+                                        <button type="button" class="btn btn-ghost btn-xs btn-square text-error" data-action="confirm-modal#open" title="{{ 'diary.item.delete'|trans }}" aria-label="{{ 'diary.item.delete'|trans }}">
+                                            {{ icons.icon('trash') }}
+                                        </button>
+                                        {{ confirmModal.dialog('routine-delete-' ~ routine.id, 'routine.delete_confirm'|trans, 'diary.item.delete'|trans) }}
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
-                    </div>
-                    <a href="{{ path('routine_show', {id: routine.id}) }}" class="btn btn-outline btn-sm mt-3 w-full">{{ icons.icon('play') }}{{ 'routine.start'|trans }}</a>
-                    {% if routine.isActive %}
-                        <div class="mt-2 flex items-center justify-center gap-2">
-                            <span class="badge badge-primary badge-sm">{{ 'routine.active_badge'|trans }}</span>
-                        </div>
-                    {% else %}
-                        <form method="post" action="{{ path('routine_activate', {id: routine.id}) }}" class="mt-2">
-                            <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
-                            <button type="submit" class="btn btn-ghost btn-xs w-full text-primary">{{ 'routine.set_active'|trans }}</button>
-                        </form>
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+                        <a href="{{ path('routine_show', {id: routine.id}) }}" class="btn btn-outline btn-sm mt-3 w-full">{{ icons.icon('play') }}{{ 'routine.start'|trans }}</a>
+                        {% if routine.isActive %}
+                            <div class="mt-2 flex items-center justify-center gap-2">
+                                <span class="badge badge-primary badge-sm">{{ 'routine.active_badge'|trans }}</span>
+                            </div>
+                        {% else %}
+                            <form method="post" action="{{ path('routine_activate', {id: routine.id}) }}" class="mt-2">
+                                <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
+                                <button type="submit" class="btn btn-ghost btn-xs w-full text-primary">{{ 'routine.set_active'|trans }}</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </turbo-frame>
 {% endblock %}

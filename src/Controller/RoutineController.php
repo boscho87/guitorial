@@ -238,13 +238,19 @@ final class RoutineController extends AbstractController
             // the UI never offers this button for it, this is just the
             // defense-in-depth backstop.
             if ($routine->isActive()) {
-                $this->addFlash('error', 'routine.delete_active_error');
+                // frame_toast, not the usual error/success buckets - the
+                // delete form lives inside the routine-list turbo-frame, so
+                // this redirect is frame-scoped and never reaches
+                // base.html.twig's own flash block at all (see
+                // _frame_toast.html.twig for why this needs its own bucket).
+                $this->addFlash('frame_toast', 'routine.delete_active_error');
 
                 return $this->redirectToRoute('routine_index');
             }
 
             $em->remove($routine);
             $em->flush();
+            $this->addFlash('frame_toast', 'routine.delete_flash');
         }
 
         return $this->redirectToRoute('routine_index');
