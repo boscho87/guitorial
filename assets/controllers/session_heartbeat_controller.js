@@ -7,6 +7,11 @@ import { Controller } from '@hotwired/stimulus';
  * PracticeSession::finish() cap the credited duration once the tab stops
  * sending these (closed, backgrounded, laptop asleep, ...) long before an
  * eventual, much later finish/discard click.
+ *
+ * Also stops pinging while timer_controller.js's "are you still there?"
+ * check-in is unconfirmed past its grace period (timer:pause/timer:resume,
+ * dispatched from the shared element) - a tab can stay open and visible,
+ * which the document.hidden check below never catches on its own.
  */
 export default class extends Controller {
     static values = {
@@ -16,6 +21,7 @@ export default class extends Controller {
     };
 
     connect() {
+        this.checkinPaused = false;
         // setInterval's first tick only fires after a full intervalMsValue,
         // not immediately - leaving within that first ~20s (e.g. straight
         // back to Heute right after starting) would otherwise mean zero
@@ -69,7 +75,7 @@ export default class extends Controller {
     }
 
     ping() {
-        if (document.hidden) {
+        if (document.hidden || this.checkinPaused) {
             return;
         }
         fetch(this.urlValue, {
@@ -80,5 +86,14 @@ export default class extends Controller {
         }).catch(() => {
             // Best-effort - a missed heartbeat just means a slightly tighter cap later.
         });
+    }
+
+    pauseForCheckin() {
+        this.checkinPaused = true;
+    }
+
+    resumeFromCheckin() {
+        this.checkinPaused = false;
+        this.ping();
     }
 }

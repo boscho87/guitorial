@@ -25,9 +25,20 @@
             data-controller="session-heartbeat timer"
             data-session-heartbeat-url-value="{{ path('exercise_session_heartbeat', {id: session.id}) }}"
             data-session-heartbeat-token-value="{{ csrf_token(csrfIntention) }}"
+            data-action="timer:pause->session-heartbeat#pauseForCheckin timer:resume->session-heartbeat#resumeFromCheckin"
             data-timer-start-value="{{ startedAtMs }}"
             data-timer-pause-when-hidden-value="true"
-            {% if targetSeconds %}data-timer-target-seconds-value="{{ targetSeconds }}"{% endif %}
+            {% if targetSeconds %}
+                data-timer-target-seconds-value="{{ targetSeconds }}"
+                {# Once overtime starts, check in every 10 minutes that
+                   someone's still actually there - a tab can stay open and
+                   visible, heartbeats still firing, long after someone
+                   walked away, which the hidden-tab pause above never
+                   catches on its own. #}
+                data-timer-checkin-interval-minutes-value="10"
+                data-timer-checkin-flash-title-value="{{ 'exercise_session.checkin.flash_title'|trans }}"
+                data-timer-checkin-notification-body-value="{{ 'exercise_session.checkin.notification_body'|trans }}"
+            {% endif %}
     >
         {# Wall-clock elapsed time (never a JS countdown) - anchored on the
            session's creditable elapsed time (see creditableSecondsElapsed()),
@@ -47,6 +58,18 @@
             <div class="h-1.5 w-40 max-w-full overflow-hidden rounded-full bg-base-300">
                 <div class="h-full rounded-full transition-[width,background-color] duration-700 ease-out" data-timer-target="bar" style="width: 0%; background-color: hsl(30 75% 48%);"></div>
             </div>
+            {# No backdrop click-to-close, and Escape is explicitly blocked
+               (cancel->timer#preventCancel) - the whole point is requiring
+               the actual confirm click, not just any dismissal. #}
+            <dialog class="modal" data-timer-target="checkinDialog" data-action="cancel->timer#preventCancel">
+                <div class="modal-box">
+                    <p class="text-base font-semibold">{{ 'exercise_session.checkin.title'|trans }}</p>
+                    <p class="mt-2 text-sm text-base-content/70">{{ 'exercise_session.checkin.message'|trans }}</p>
+                    <div class="modal-action">
+                        <button type="button" class="btn btn-primary" data-action="timer#confirmCheckin">{{ 'exercise_session.checkin.confirm'|trans }}</button>
+                    </div>
+                </div>
+            </dialog>
         {% endif %}
     </div>
 
