@@ -30,6 +30,24 @@
         {% endif %}
 
         <div>
+            <h2 class="eyebrow">{{ 'scale_generator.settings.mode_label'|trans }}</h2>
+            <div class="mt-3 flex flex-wrap gap-2">
+                <input
+                        type="radio" class="sr-only" id="sg-mode-tones" name="mode" value="tones"
+                        {{ mode == 'tones' ? 'checked' : '' }}
+                        data-key-settings-target="modeRadio" data-action="change->key-settings#persist change->key-settings#togglePanels"
+                >
+                <label class="chip-toggle" for="sg-mode-tones">{{ 'scale_generator.settings.mode_tones'|trans }}</label>
+                <input
+                        type="radio" class="sr-only" id="sg-mode-scale" name="mode" value="scale"
+                        {{ mode == 'scale' ? 'checked' : '' }}
+                        data-key-settings-target="modeRadio" data-action="change->key-settings#persist change->key-settings#togglePanels"
+                >
+                <label class="chip-toggle" for="sg-mode-scale">{{ 'scale_generator.settings.mode_scale'|trans }}</label>
+            </div>
+        </div>
+
+        <div data-key-settings-target="panel" data-mode="tones" class="{{ mode == 'tones' ? '' : 'hidden' }}">
             <h2 class="eyebrow">{{ 'scale_generator.settings.tones_label'|trans }}</h2>
             <div class="mt-3 flex flex-wrap gap-2">
                 {% for tone in allTones %}
@@ -40,6 +58,22 @@
                     >
                     <label class="chip-toggle font-mono" for="sg-tone-{{ loop.index }}">{{ tone }}</label>
                 {% endfor %}
+            </div>
+        </div>
+
+        <div data-key-settings-target="panel" data-mode="scale" class="{{ mode == 'scale' ? '' : 'hidden' }}">
+            <h2 class="eyebrow">{{ 'scale_generator.settings.scale_label'|trans }}</h2>
+            <div class="mt-3 flex flex-wrap items-center gap-2">
+                <select name="scale_tonic" class="select select-sm select-bordered font-mono">
+                    {% for tonic in allTones %}
+                        <option value="{{ tonic }}" {{ tonic == scaleTonic ? 'selected' : '' }}>{{ tonic }}</option>
+                    {% endfor %}
+                </select>
+                <select name="scale_type" class="select select-sm select-bordered">
+                    {% for typeId, label in scaleTypes %}
+                        <option value="{{ typeId }}" {{ typeId == scaleType ? 'selected' : '' }}>{{ label }}</option>
+                    {% endfor %}
+                </select>
             </div>
         </div>
 

@@ -202,7 +202,11 @@ scale_generator:
   description: "Zufälliger Ton zum Üben – zum Improvisieren, Auswendiglernen oder für Fingersätze."
   settings:
     intro: "Wähle, welche Töne vorkommen sollen. Der Generator zieht danach zufällig einen Ton – ohne Wiederholung, bis alle einmal dran waren. Optional wechselt er nach einer festen Zeit von selbst weiter."
+    mode_label: "Was wird geübt?"
+    mode_tones: "Einzelne Töne"
+    mode_scale: "Eine Skala"
     tones_label: Töne
+    scale_label: Skala
     auto_advance_label: "Automatisch weiter nach"
     auto_advance_hint: "Sekunden (0 = manuell)"
     continue: "Los geht's"

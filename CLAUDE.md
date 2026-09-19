@@ -22,9 +22,9 @@ settings → bounded practice round → summary, minimal chrome.
 5. **Skalen-Generator** (`/skalen-generator`) - random-tone practice generator (no grading; bounded round, optional auto-advance timer)
 
 Domain logic lives in `src/Domain/Theory/` (Note, MusicKey, CapoTransposer, GuitarString, Scale) - pure PHP,
-no framework/DB coupling, covered by `tests/Domain/Theory/`. `Scale.php`/`ScaleType` (Dur/Moll/Harmonisch/Melodisch)
-is built and tested but **not yet wired into the Skalen-Generator controller** - v1 only draws single tones,
-scale types are the planned next step.
+no framework/DB coupling, covered by `tests/Domain/Theory/`. `Scale.php` (tonic + Dur/Moll/Harmonisch/Melodisch,
+48 scales total) is wired into the Skalen-Generator: settings offers a mode switch between raw chromatic
+tones (original v1 behaviour) and a single chosen scale, whose 7 notes then become the draw pool.
 
 ### Shared pattern (tools 1-4, graded)
 

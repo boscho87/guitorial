@@ -51,8 +51,15 @@
             </section>
         {% else %}
             <section class="mt-16 text-center sm:mt-24">
-                <p class="text-xs uppercase tracking-widest text-base-content/70">{{ 'scale_generator.practice.prompt'|trans }}</p>
+                {% if mode == 'scale' and scaleLabel %}
+                    <p class="text-xs uppercase tracking-widest text-base-content/70">{{ scaleLabel }}</p>
+                {% else %}
+                    <p class="text-xs uppercase tracking-widest text-base-content/70">{{ 'scale_generator.practice.prompt'|trans }}</p>
+                {% endif %}
                 <p class="font-display mt-4 text-7xl font-semibold text-primary sm:text-8xl">{{ tone }}</p>
+                {% if mode == 'scale' and scaleLabel %}
+                    <p class="mt-3 text-sm text-base-content/70">{{ 'scale_generator.practice.prompt'|trans }}</p>
+                {% endif %}
 
                 <div class="mt-10 flex flex-wrap justify-center gap-3">
                     <form

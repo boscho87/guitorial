@@ -53,8 +53,8 @@ final class ToolConfigSnapshot
     /**
      * @param string[] $tones
      */
-    public static function scaleGenerator(array $tones, int $autoAdvanceSeconds): array
+    public static function scaleGenerator(array $tones, int $autoAdvanceSeconds, string $mode = 'tones', ?string $scaleId = null): array
     {
-        return ['schemaVersion' => self::SCHEMA_VERSION, 'tones' => $tones, 'autoAdvanceSeconds' => $autoAdvanceSeconds];
+        return ['schemaVersion' => self::SCHEMA_VERSION, 'tones' => $tones, 'autoAdvanceSeconds' => $autoAdvanceSeconds, 'mode' => $mode, 'scaleId' => $scaleId];
     }
 }

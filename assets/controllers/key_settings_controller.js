@@ -7,11 +7,12 @@ import { Controller } from '@hotwired/stimulus';
  * barrier to start. storageKeyValue keeps each tool's memory separate.
  */
 export default class extends Controller {
-    static targets = ['checkbox', 'questionCount', 'modeRadio'];
+    static targets = ['checkbox', 'questionCount', 'modeRadio', 'panel'];
     static values = { storageKey: { type: String, default: 'guitorial:key-recognition:settings' } };
 
     connect() {
         this.restore();
+        this.togglePanels();
     }
 
     restore() {
@@ -53,6 +54,17 @@ export default class extends Controller {
         } catch {
             // localStorage unavailable (private mode, quota) - just skip remembering.
         }
+    }
+
+    togglePanels() {
+        if (!this.hasPanelTarget || !this.hasModeRadioTarget) {
+            return;
+        }
+        const checked = this.modeRadioTargets.find((r) => r.checked);
+        const mode = checked ? checked.value : null;
+        this.panelTargets.forEach((panel) => {
+            panel.classList.toggle('hidden', panel.dataset.mode !== mode);
+        });
     }
 
     applyPreset(event) {
