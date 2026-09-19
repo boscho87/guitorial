@@ -558,9 +558,11 @@ final class DiaryController extends AbstractController
             } elseif ($existing !== null) {
                 $existing->setNote($note);
                 $em->flush();
+                $this->addFlash('success', 'diary.day_note.saved_flash');
             } else {
                 $em->persist(new DayNote($visitorId, $today, $note));
                 $em->flush();
+                $this->addFlash('success', 'diary.day_note.saved_flash');
             }
         }
 

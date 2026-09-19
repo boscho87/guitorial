@@ -107,6 +107,7 @@ final class RoutineController extends AbstractController
         }
 
         $em->flush();
+        $this->addFlash('success', 'routine.save_flash');
 
         return $this->redirectToRoute('routine_index');
     }
@@ -191,6 +192,7 @@ final class RoutineController extends AbstractController
         }
 
         $em->flush();
+        $this->addFlash('success', 'routine.save_flash');
 
         return $this->redirectToRoute('routine_index');
     }

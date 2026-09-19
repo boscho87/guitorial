@@ -168,12 +168,20 @@
        read inside frame-scoped content instead (see _frame_toast.html.twig),
        so a frame-scoped navigation (whose response discards everything
        outside the matching turbo-frame) doesn't have this block silently
-       consume-and-drop it first. #}
-    {% for label, messages in app.flashes(['success', 'error', 'info']) %}
-        {% for message in messages %}
-            <div class="alert alert-{{ label }} mb-4 animate-[toast-in_0.25s_ease-out]">{{ message|trans }}</div>
-        {% endfor %}
-    {% endfor %}
+       consume-and-drop it first. Floating + auto-dismissing, same
+       bottom-toast treatment as _frame_toast.html.twig, rather than an
+       inline banner that shifted the page layout and never went away on
+       its own. #}
+    {% set flashes = app.flashes(['success', 'error', 'info']) %}
+    {% if flashes is not empty %}
+        <div class="fixed inset-x-0 bottom-4 z-50 flex flex-col items-center gap-2 pointer-events-none px-4" data-controller="toast">
+            {% for label, messages in flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label }} animate-[toast-in-bottom_0.25s_ease-out]">{{ message|trans }}</div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    {% endif %}
     {% block body %}{% endblock %}
 </main>
 {% if hide_footer is not defined or not hide_footer %}

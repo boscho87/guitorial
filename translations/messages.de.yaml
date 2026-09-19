@@ -320,6 +320,7 @@ diary:
     label: "Notiz zum Tag"
     placeholder: "Wie lief's? (optional)"
     save: Speichern
+    saved_flash: "Notiz gespeichert."
   pager:
     today: Heute
     previous: "Vorheriger Tag"
@@ -422,6 +423,7 @@ routine:
   start: Starten
   active_badge: "Aktuelle Routine"
   set_active: "Als aktuelle Routine festlegen"
+  save_flash: "Routine gespeichert."
   delete_confirm: "Routine wirklich löschen? Die enthaltenen Übungen selbst bleiben unter Meine Übungen erhalten."
   delete_flash: "Routine gelöscht."
   delete_active_error: "Die aktuelle Routine kann nicht gelöscht werden. Aktiviere zuerst eine andere Routine."
