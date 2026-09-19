@@ -45,15 +45,15 @@
                                 <p class="mt-1 text-xs text-base-content/60">{{ 'routine.item_count'|trans({'%count%': routine.items|length}) }}</p>
                             </div>
                             <div class="flex shrink-0 gap-0.5">
-                                <a href="{{ path('routine_edit_form', {id: routine.id}) }}" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}">
+                                <a href="{{ path('routine_edit_form', {id: routine.id}) }}" data-turbo-frame="_top" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}">
                                     {{ icons.icon('edit') }}
                                 </a>
                                 {% if routine.shareToken %}
-                                    <a href="{{ path('routine_show', {id: routine.id}) }}" class="btn btn-ghost btn-xs btn-square" title="{{ 'routine.share.button'|trans }}" aria-label="{{ 'routine.share.button'|trans }}">
+                                    <a href="{{ path('routine_show', {id: routine.id}) }}" data-turbo-frame="_top" class="btn btn-ghost btn-xs btn-square" title="{{ 'routine.share.button'|trans }}" aria-label="{{ 'routine.share.button'|trans }}">
                                         {{ icons.icon('share') }}
                                     </a>
                                 {% else %}
-                                    <form method="post" action="{{ path('routine_share', {id: routine.id}) }}">
+                                    <form method="post" action="{{ path('routine_share', {id: routine.id}) }}" data-turbo-frame="_top">
                                         <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
                                         <button type="submit" class="btn btn-ghost btn-xs btn-square" title="{{ 'routine.share.button'|trans }}" aria-label="{{ 'routine.share.button'|trans }}">
                                             {{ icons.icon('share') }}
@@ -73,13 +73,13 @@
                                 {% endif %}
                             </div>
                         </div>
-                        <a href="{{ path('routine_show', {id: routine.id}) }}" class="btn btn-outline btn-sm mt-3 w-full">{{ icons.icon('play') }}{{ 'routine.start'|trans }}</a>
+                        <a href="{{ path('routine_show', {id: routine.id}) }}" data-turbo-frame="_top" class="btn btn-outline btn-sm mt-3 w-full">{{ icons.icon('play') }}{{ 'routine.start'|trans }}</a>
                         {% if routine.isActive %}
                             <div class="mt-2 flex items-center justify-center gap-2">
                                 <span class="badge badge-primary badge-sm">{{ 'routine.active_badge'|trans }}</span>
                             </div>
                         {% else %}
-                            <form method="post" action="{{ path('routine_activate', {id: routine.id}) }}" class="mt-2">
+                            <form method="post" action="{{ path('routine_activate', {id: routine.id}) }}" class="mt-2" data-turbo-frame="_top">
                                 <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
                                 <button type="submit" class="btn btn-ghost btn-xs w-full text-primary">{{ 'routine.set_active'|trans }}</button>
                             </form>

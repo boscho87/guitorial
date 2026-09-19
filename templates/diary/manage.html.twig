@@ -28,7 +28,7 @@
     <section class="mt-10">
         <div class="flex items-center justify-between gap-3">
             <h2 class="text-xs font-semibold uppercase tracking-wide text-base-content/70">{{ 'diary.manage.active_heading'|trans }}</h2>
-            <a href="{{ path('diary_add_form') }}" class="btn btn-primary btn-sm">{{ 'diary.add.new_button'|trans }}</a>
+            <a href="{{ path('diary_add_form') }}" data-turbo-frame="_top" class="btn btn-primary btn-sm">{{ 'diary.add.new_button'|trans }}</a>
         </div>
 
         {% if activeExercises is empty %}
@@ -40,10 +40,10 @@
                         <div class="flex items-start justify-between gap-2">
                             <p class="min-w-0 flex-1 text-sm font-medium sm:text-base">{{ entry.version.title }}</p>
                             <div class="flex shrink-0 gap-0.5">
-                                <a href="{{ path('history_exercise_detail', {id: entry.exercise.id}) }}" class="btn btn-ghost btn-xs btn-square" title="{{ 'history.title'|trans }}" aria-label="{{ 'history.title'|trans }}">
+                                <a href="{{ path('history_exercise_detail', {id: entry.exercise.id}) }}" data-turbo-frame="_top" class="btn btn-ghost btn-xs btn-square" title="{{ 'history.title'|trans }}" aria-label="{{ 'history.title'|trans }}">
                                     {{ icons.icon('history') }}
                                 </a>
-                                <a href="{{ path('diary_setup', {id: entry.exercise.id}) }}" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}">
+                                <a href="{{ path('diary_setup', {id: entry.exercise.id}) }}" data-turbo-frame="_top" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}">
                                     {{ icons.icon('edit') }}
                                 </a>
                                 <form method="post" action="{{ path('diary_archive', {id: entry.exercise.id}) }}">

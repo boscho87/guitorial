@@ -5,13 +5,24 @@
     success/error/info buckets, so a frame_toast-bucket message never
     gets rendered (and discarded) there first, and survives being read
     from deep inside a frame's own content instead.
+
+    Bottom-anchored (the practice-round correct/incorrect toast keeps the
+    top position - different role, gameplay feedback vs. a quiet
+    confirmation) and solid neutral/neutral-content rather than a
+    translucent primary tint - a low-opacity primary wash was reasonably
+    visible in the light theme but nearly invisible in guitorial-dark
+    (--color-primary there is a muted gold that barely lifts off a dark
+    background at 10% opacity). neutral/neutral-content is DaisyUI's own
+    always-high-contrast pairing, defined per theme specifically so a
+    solid chip like this reads clearly regardless of which of the 4
+    themes is active.
 #}
 {% for message in app.flashes('frame_toast') %}
     <div
-            class="fixed inset-x-0 top-0 z-50 flex justify-center pointer-events-none sm:top-4"
+            class="fixed inset-x-0 bottom-4 z-50 flex justify-center pointer-events-none px-4"
             data-controller="toast"
     >
-        <div class="animate-[toast-in_0.2s_ease-out] flex items-center gap-2 rounded-box border border-primary/40 bg-primary/10 px-4 py-2.5 text-sm shadow-xl backdrop-blur">
+        <div class="animate-[toast-in-bottom_0.25s_ease-out] flex items-center gap-2 rounded-box bg-neutral px-4 py-2.5 text-sm text-neutral-content shadow-xl">
             {{ message|trans }}
         </div>
     </div>
