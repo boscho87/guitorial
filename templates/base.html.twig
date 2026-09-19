@@ -166,7 +166,7 @@
 <main class="mx-auto w-full max-w-3xl flex-grow px-4 py-6 sm:px-6 sm:py-10 {{ hideChromeOnMobile is defined and hideChromeOnMobile ? 'max-sm:flex max-sm:min-h-dvh max-sm:flex-col max-sm:justify-center max-sm:py-4' : '' }}">
     {% for label, messages in app.flashes %}
         {% for message in messages %}
-            <div class="alert alert-{{ label }} mb-4">{{ message|trans }}</div>
+            <div class="alert alert-{{ label }} mb-4 animate-[toast-in_0.25s_ease-out]">{{ message|trans }}</div>
         {% endfor %}
     {% endfor %}
     {% block body %}{% endblock %}

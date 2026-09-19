@@ -440,6 +440,7 @@ routine:
     button: Teilen
     label: "Link zum Teilen:"
     copy: Kopieren
+    copied: "Kopiert!"
     import_submit: "Zu meinen Routinen übernehmen"
     import_flash: "Routine übernommen."
     nothing_new: "Du hattest bereits alle Übungen dieser Routine übernommen."

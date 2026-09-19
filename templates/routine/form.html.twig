@@ -21,7 +21,7 @@
                         data-copy-link-target="input"
                         data-action="click->copy-link#select"
                 >
-                <button type="button" class="btn btn-ghost btn-sm" data-action="copy-link#copy">{{ 'routine.share.copy'|trans }}</button>
+                <button type="button" class="btn btn-ghost btn-sm" data-copy-link-target="button" data-copy-link-confirmed-label="{{ 'routine.share.copied'|trans }}" data-action="copy-link#copy">{{ 'routine.share.copy'|trans }}</button>
             </div>
         {% else %}
             <form method="post" action="{{ path('routine_share', {id: routine.id}) }}" class="mt-3">
