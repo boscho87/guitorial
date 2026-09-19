@@ -506,6 +506,7 @@ final class DiaryController extends AbstractController
             // are all ON DELETE CASCADE - this removes the whole history too.
             $em->remove($exercise);
             $em->flush();
+            $this->addFlash('frame_toast', 'diary.item.delete_flash');
         }
 
         return $this->redirectToRoute('diary_manage');

@@ -198,6 +198,29 @@
     }
   }
 
+  /* A brief "thump" on the running-session progress bar each time a
+     full minute of practice ticks over - restarted from JS on every
+     milestone (see timer_controller.js), not a looping animation. */
+  @keyframes milestone-pulse {
+    0% {
+      transform: scaleY(1);
+      filter: brightness(1);
+    }
+    30% {
+      transform: scaleY(2.2);
+      filter: brightness(1.35);
+    }
+    100% {
+      transform: scaleY(1);
+      filter: brightness(1);
+    }
+  }
+
+  .milestone-pulse {
+    animation: milestone-pulse 0.5s ease-out;
+    transform-origin: center;
+  }
+
   html {
     overflow-x: hidden;
   }

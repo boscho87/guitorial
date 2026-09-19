@@ -1,5 +1,6 @@
 {% extends 'base.html.twig' %}
 {% import '_components/icons.html.twig' as icons %}
+{% import '_components/confirm_modal.html.twig' as confirmModal %}
 
 {% block title %}{{ 'diary.manage.title'|trans }} – Guitorial{% endblock %}
 
@@ -16,6 +17,13 @@
         </div>
         <a href="{{ path('diary_groups') }}" class="btn btn-outline btn-sm shrink-0">{{ 'diary.groups.title'|trans }}</a>
     </div>
+
+    {# One frame spans both sections - archiving/reactivating moves an
+       item between them, so a delete/archive/reactivate response needs
+       to be able to update either list, not just the one the action
+       started in. #}
+    <turbo-frame id="diary-manage-list" class="block">
+    {{ include('_components/_frame_toast.html.twig') }}
 
     <section class="mt-10">
         <div class="flex items-center justify-between gap-3">
@@ -44,16 +52,15 @@
                                         {{ icons.icon('archive') }}
                                     </button>
                                 </form>
-                                <form
-                                        method="post" action="{{ path('diary_delete', {id: entry.exercise.id}) }}"
-                                        data-controller="confirm-submit" data-confirm-submit-message-value="{{ 'diary.item.delete_confirm'|trans }}"
-                                        data-action="submit->confirm-submit#submit"
-                                >
+                                <form id="exercise-delete-{{ entry.exercise.id }}" method="post" action="{{ path('diary_delete', {id: entry.exercise.id}) }}">
                                     <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                                    <button type="submit" class="btn btn-ghost btn-xs btn-square text-error" title="{{ 'diary.item.delete'|trans }}" aria-label="{{ 'diary.item.delete'|trans }}">
+                                </form>
+                                <div class="contents" data-controller="confirm-modal">
+                                    <button type="button" class="btn btn-ghost btn-xs btn-square text-error" data-action="confirm-modal#open" title="{{ 'diary.item.delete'|trans }}" aria-label="{{ 'diary.item.delete'|trans }}">
                                         {{ icons.icon('trash') }}
                                     </button>
-                                </form>
+                                    {{ confirmModal.dialog('exercise-delete-' ~ entry.exercise.id, 'diary.item.delete_confirm'|trans, 'diary.item.delete'|trans) }}
+                                </div>
                             </div>
                         </div>
 
@@ -100,20 +107,20 @@
                                     {{ icons.icon('reactivate') }}
                                 </button>
                             </form>
-                            <form
-                                    method="post" action="{{ path('diary_delete', {id: entry.exercise.id}) }}"
-                                    data-controller="confirm-submit" data-confirm-submit-message-value="{{ 'diary.item.delete_confirm'|trans }}"
-                                    data-action="submit->confirm-submit#submit"
-                            >
+                            <form id="exercise-delete-{{ entry.exercise.id }}" method="post" action="{{ path('diary_delete', {id: entry.exercise.id}) }}">
                                 <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                                <button type="submit" class="btn btn-ghost btn-xs btn-square text-error" title="{{ 'diary.item.delete'|trans }}" aria-label="{{ 'diary.item.delete'|trans }}">
+                            </form>
+                            <div class="contents" data-controller="confirm-modal">
+                                <button type="button" class="btn btn-ghost btn-xs btn-square text-error" data-action="confirm-modal#open" title="{{ 'diary.item.delete'|trans }}" aria-label="{{ 'diary.item.delete'|trans }}">
                                     {{ icons.icon('trash') }}
                                 </button>
-                            </form>
+                                {{ confirmModal.dialog('exercise-delete-' ~ entry.exercise.id, 'diary.item.delete_confirm'|trans, 'diary.item.delete'|trans) }}
+                            </div>
                         </div>
                     </li>
                 {% endfor %}
             </ul>
         </section>
     {% endif %}
+    </turbo-frame>
 {% endblock %}

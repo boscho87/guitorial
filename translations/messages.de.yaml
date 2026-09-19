@@ -357,6 +357,7 @@ diary:
     archive: Archivieren
     delete: Löschen
     delete_confirm: "Übung wirklich löschen? Das entfernt auch ihren gesamten Verlauf unwiderruflich."
+    delete_flash: "Übung gelöscht."
     remove: Entfernen
   form:
     no_group: "Ohne Gruppe"

@@ -21,14 +21,21 @@ import { Controller } from '@hotwired/stimulus';
  * round's original start. Only wired up where a `progress`/`progressLabel`
  * target is actually present - every other usage of this controller is
  * unaffected.
+ *
+ * Separately, an optional `bar` target renders THIS round's own elapsed-
+ * vs-targetSeconds progress as a warm-to-cool gradient fill (same hue
+ * formula as the diary card's), with a brief "pulse" restarted every
+ * time a new full minute ticks over - unrelated to the diary daily-
+ * target progress above.
  */
 export default class extends Controller {
-    static targets = ['clock', 'progress', 'progressLabel'];
+    static targets = ['clock', 'progress', 'progressLabel', 'bar'];
     static values = { start: Number, targetSeconds: Number, progressStartSeconds: Number, progressLabelTemplate: String, pauseWhenHidden: Boolean };
 
     connect() {
         this.beeped = false;
         this.connectedAtMs = Date.now();
+        this.lastMilestoneMinute = 0;
         // Opt-in only (pauseWhenHiddenValue) - the 5 tools' rounds
         // deliberately keep counting real wall-clock time regardless of tab
         // visibility (see the class docblock). The exercise-session running
@@ -79,10 +86,29 @@ export default class extends Controller {
             }
         }
 
+        if (this.hasBarTarget && this.hasTargetSecondsValue && this.targetSecondsValue > 0) {
+            const percent = Math.min(100, Math.round((elapsed / this.targetSecondsValue) * 100));
+            const hue = Math.round(30 + ((148 - 30) * percent) / 100);
+            this.barTarget.style.width = `${percent}%`;
+            this.barTarget.style.backgroundColor = `hsl(${hue} 75% 48%)`;
+
+            const currentMinute = Math.floor(elapsed / 60);
+            if (currentMinute > this.lastMilestoneMinute) {
+                this.lastMilestoneMinute = currentMinute;
+                this.pulseMilestone();
+            }
+        }
+
         if (this.hasTargetSecondsValue && !this.beeped && elapsed >= this.targetSecondsValue) {
             this.beeped = true;
             this.beep();
         }
+    }
+
+    pulseMilestone() {
+        this.barTarget.classList.remove('milestone-pulse');
+        void this.barTarget.offsetWidth; // eslint-disable-line no-unused-expressions -- forces reflow so the animation restarts
+        this.barTarget.classList.add('milestone-pulse');
     }
 
     beep() {
