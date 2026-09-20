@@ -60,10 +60,25 @@ final class ExerciseGroupProvisioner
             return $existing;
         }
 
-        $group = new ExerciseGroup($visitorId, self::LABELS[$kind], $this->groups->countForVisitor($visitorId), $kind);
-        $this->em->persist($group);
-        $this->em->flush();
+        // Two requests can reach this at once (e.g. deleting two groups in
+        // quick succession, both needing the same fallback) - this raced
+        // and created a second "Praxis" row in prod before the unique
+        // (visitor_id, kind) index existed. INSERT IGNORE + re-select
+        // instead of persist()/flush(): a plain insert racing the index
+        // would throw a UniqueConstraintViolationException that closes the
+        // EntityManager for the rest of the request.
+        $this->em->getConnection()->executeStatement(
+            'INSERT IGNORE INTO exercise_group (visitor_id, name, sort_index, kind, created_at) VALUES (:visitorId, :name, :sortIndex, :kind, :createdAt)',
+            [
+                'visitorId' => $visitorId,
+                'name' => self::LABELS[$kind],
+                'sortIndex' => $this->groups->countForVisitor($visitorId),
+                'kind' => $kind,
+                'createdAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            ],
+        );
 
-        return $group;
+        return $this->groups->findByKind($visitorId, $kind)
+            ?? throw new \RuntimeException(sprintf('System group "%s" missing for visitor after insert.', $kind));
     }
 }

@@ -20,9 +20,15 @@ use Doctrine\ORM\Mapping as ORM;
  * identified by `kind` (not by name, which stays renamable) - see
  * ExerciseGroupProvisioner. They exist so "keine Gruppe" is not a state an
  * exercise can be in at all, and don't count against the custom-group cap.
+ * The (visitor_id, kind) unique constraint keeps this to at most one row per
+ * kind per visitor - two concurrent requests both provisioning a missing
+ * system group at once created a duplicate in prod before this existed
+ * (custom groups, kind = NULL, are unaffected: MySQL allows multiple NULLs
+ * in a unique index).
  */
 #[ORM\Entity(repositoryClass: ExerciseGroupRepository::class)]
 #[ORM\Index(columns: ['visitor_id'])]
+#[ORM\UniqueConstraint(columns: ['visitor_id', 'kind'])]
 class ExerciseGroup
 {
     public const KIND_THEORY = 'theorie';
