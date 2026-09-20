@@ -469,6 +469,7 @@ exercise_session:
   target: "Zielzeit: %minutes% Min."
   reopen_resource: "Ressource öffnen"
   play_inline: "Im Player abspielen"
+  close_player: "Player schliessen"
   previous_note:
     label: "Letzte Notiz (%date%)"
   finish:

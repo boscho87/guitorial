@@ -8,7 +8,7 @@ import { Controller } from '@hotwired/stimulus';
  * so its timer keeps counting instead of pausing.
  */
 export default class extends Controller {
-    static targets = ['container', 'loadButton'];
+    static targets = ['container', 'loadButton', 'playerWrapper'];
     static values = { videoId: String };
 
     load() {
@@ -21,7 +21,16 @@ export default class extends Controller {
         iframe.referrerPolicy = 'strict-origin-when-cross-origin';
 
         this.containerTarget.replaceChildren(iframe);
-        this.containerTarget.classList.remove('hidden');
+        this.playerWrapperTarget.classList.remove('hidden');
         this.loadButtonTarget.classList.add('hidden');
+    }
+
+    close() {
+        // Actually remove the iframe, not just hide it - a hidden-but-still-
+        // present embed keeps playing (and stays document-audible) in the
+        // background.
+        this.containerTarget.replaceChildren();
+        this.playerWrapperTarget.classList.add('hidden');
+        this.loadButtonTarget.classList.remove('hidden');
     }
 }
