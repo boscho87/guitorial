@@ -9,6 +9,8 @@ use App\Domain\Diary\ExerciseDayViewBuilder;
 use App\Domain\Diary\ExerciseGroupProvisioner;
 use App\Domain\Diary\NoteLinkExtractor;
 use App\Domain\Diary\RoutineProvisioner;
+use App\Domain\Diary\YouTubeTitleFetcher;
+use App\Domain\Diary\YouTubeUrlParser;
 use App\Domain\History\HistoryStatsBuilder;
 use App\Domain\Quiz\ToolRegistry;
 use App\Domain\Session\ReturnRouteResolver;
@@ -58,6 +60,7 @@ final class DiaryController extends AbstractController
         private readonly ExerciseGroupProvisioner $groupProvisioner,
         private readonly RoutineProvisioner $routineProvisioner,
         private readonly ReturnRouteResolver $returnRoute,
+        private readonly YouTubeTitleFetcher $youtubeTitleFetcher,
     ) {
     }
 
@@ -745,9 +748,18 @@ final class DiaryController extends AbstractController
      */
     private function buildResource(Exercise $exercise, int $sortIndex, array $resource): ExerciseResource
     {
-        return $resource['type'] === ExerciseResource::TYPE_INTERNAL_TOOL
-            ? ExerciseResource::internalTool($exercise, $sortIndex, $resource['toolId'])
-            : ExerciseResource::externalLink($exercise, $sortIndex, $resource['url']);
+        if ($resource['type'] === ExerciseResource::TYPE_INTERNAL_TOOL) {
+            return ExerciseResource::internalTool($exercise, $sortIndex, $resource['toolId']);
+        }
+
+        // Best-effort title lookup so the resource button can show "Reckless
+        // Love - Bethel Music" instead of the raw URL, the same way a
+        // browser bookmark shows a page's <title> on hover - never blocks
+        // saving if YouTube is slow/unreachable (see YouTubeTitleFetcher).
+        $videoId = YouTubeUrlParser::videoId($resource['url']);
+        $title = $videoId !== null ? $this->youtubeTitleFetcher->fetch($videoId) : null;
+
+        return ExerciseResource::externalLink($exercise, $sortIndex, $resource['url'], title: $title);
     }
 
     private function isKnownTool(string $id): bool

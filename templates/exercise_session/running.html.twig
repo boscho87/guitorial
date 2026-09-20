@@ -87,7 +87,7 @@
                 {{ include('exercise_session/_youtube_player.html.twig', {resource: resource, videoId: youtubeVideoIds[resource.id]}) }}
             {% else %}
                 <a href="{{ resource.externalUrl }}" target="_blank" rel="noopener" class="btn btn-outline btn-block">
-                    {{ 'exercise_session.reopen_resource'|trans }} ({{ resource.externalProvider ?? resource.externalUrl }})
+                    <span class="min-w-0 truncate">{{ 'exercise_session.reopen_resource'|trans }} ({{ resource.externalTitle ?? resource.externalProvider ?? resource.externalUrl }})</span>
                 </a>
             {% endif %}
         </div>
@@ -98,7 +98,7 @@
                     {{ include('exercise_session/_youtube_player.html.twig', {resource: openableResource, videoId: youtubeVideoIds[openableResource.id]}) }}
                 {% else %}
                     <a href="{{ openableResource.externalUrl }}" target="_blank" rel="noopener" class="btn btn-outline btn-block">
-                        {{ 'exercise_session.reopen_resource'|trans }} ({{ openableResource.externalProvider ?? openableResource.externalUrl }})
+                        <span class="min-w-0 truncate">{{ 'exercise_session.reopen_resource'|trans }} ({{ openableResource.externalTitle ?? openableResource.externalProvider ?? openableResource.externalUrl }})</span>
                     </a>
                 {% endif %}
             {% endfor %}

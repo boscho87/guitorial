@@ -31,7 +31,7 @@
                     <input type="hidden" name="return_route" value="routine_show">
                     <input type="hidden" name="return_route_id" value="{{ returnRouteId }}">
                 {% endif %}
-                <button type="submit" class="flex h-5 w-5 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer after:absolute after:inset-0 after:content-['']" title="{{ 'diary.item.start'|trans }}: {{ resources[0].externalProvider ?? resources[0].externalUrl }}" aria-label="{{ 'diary.item.start'|trans }}: {{ resources[0].externalProvider ?? resources[0].externalUrl }}">{{ icons.icon('play') }}</button>
+                <button type="submit" class="flex h-5 w-5 items-center justify-center rounded-full border border-success text-success transition-colors hover:bg-success/10 cursor-pointer after:absolute after:inset-0 after:content-['']" title="{{ 'diary.item.start'|trans }}: {{ resources[0].externalTitle ?? resources[0].externalProvider ?? resources[0].externalUrl }}" aria-label="{{ 'diary.item.start'|trans }}: {{ resources[0].externalTitle ?? resources[0].externalProvider ?? resources[0].externalUrl }}">{{ icons.icon('play') }}</button>
             </form>
         {% elseif isToday %}
             {# 0 resources, or 2+ (mixed) resources - either way there's
