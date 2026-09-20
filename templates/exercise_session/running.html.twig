@@ -82,15 +82,25 @@
     {% endif %}
 
     {% if resource and not resource.isInternalTool %}
-        <a href="{{ resource.externalUrl }}" target="_blank" rel="noopener" class="btn btn-outline btn-block mt-6">
-            {{ 'exercise_session.reopen_resource'|trans }} ({{ resource.externalProvider ?? resource.externalUrl }})
-        </a>
+        <div class="mt-6">
+            {% if youtubeVideoIds[resource.id] is defined %}
+                {{ include('exercise_session/_youtube_player.html.twig', {resource: resource, videoId: youtubeVideoIds[resource.id]}) }}
+            {% else %}
+                <a href="{{ resource.externalUrl }}" target="_blank" rel="noopener" class="btn btn-outline btn-block">
+                    {{ 'exercise_session.reopen_resource'|trans }} ({{ resource.externalProvider ?? resource.externalUrl }})
+                </a>
+            {% endif %}
+        </div>
     {% elseif openableResources is not empty %}
         <div class="mt-6 flex flex-col gap-2">
             {% for openableResource in openableResources %}
-                <a href="{{ openableResource.externalUrl }}" target="_blank" rel="noopener" class="btn btn-outline btn-block">
-                    {{ 'exercise_session.reopen_resource'|trans }} ({{ openableResource.externalProvider ?? openableResource.externalUrl }})
-                </a>
+                {% if youtubeVideoIds[openableResource.id] is defined %}
+                    {{ include('exercise_session/_youtube_player.html.twig', {resource: openableResource, videoId: youtubeVideoIds[openableResource.id]}) }}
+                {% else %}
+                    <a href="{{ openableResource.externalUrl }}" target="_blank" rel="noopener" class="btn btn-outline btn-block">
+                        {{ 'exercise_session.reopen_resource'|trans }} ({{ openableResource.externalProvider ?? openableResource.externalUrl }})
+                    </a>
+                {% endif %}
             {% endfor %}
         </div>
     {% endif %}

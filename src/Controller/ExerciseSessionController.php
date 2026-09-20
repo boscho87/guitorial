@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Domain\Diary\YouTubeUrlParser;
 use App\Domain\Session\ReturnRouteResolver;
 use App\Domain\Session\SessionRecorder;
 use App\Entity\Exercise;
@@ -130,16 +131,24 @@ final class ExerciseSessionController extends AbstractController
             }
         }
 
+        $resource = $session->getResource();
+        $openableResources = $resource === null && $exercise !== null
+            ? array_values(array_filter($this->resources->forExercise($exercise), static fn (ExerciseResource $r): bool => !$r->isInternalTool()))
+            : [];
+
         return $this->render('exercise_session/running.html.twig', [
             'session' => $session,
             'title' => $title,
-            'resource' => $session->getResource(),
+            'resource' => $resource,
             // Started generically (2+ resources, or none picked yet) - the
             // choice of what to open lives here on the running page, never
             // as a list of raw-URL "start" buttons on the Heute card.
-            'openableResources' => $session->getResource() === null && $exercise !== null
-                ? array_values(array_filter($this->resources->forExercise($exercise), static fn (ExerciseResource $r): bool => !$r->isInternalTool()))
-                : [],
+            'openableResources' => $openableResources,
+            // Keyed by resource id - a YouTube resource can be played
+            // in-page instead of in a new tab, so watching along doesn't
+            // background this tab and pause the timer (see
+            // timer_controller.js's pauseWhenHidden).
+            'youtubeVideoIds' => $this->youtubeVideoIds(array_filter([$resource, ...$openableResources])),
             // Anchored on this session's own creditable (capped) elapsed
             // time plus whatever's already finished today for this exercise
             // - so a session left open in the background while browsing
@@ -247,6 +256,25 @@ final class ExerciseSessionController extends AbstractController
         }
 
         return $session;
+    }
+
+    /**
+     * @param ExerciseResource[] $resources
+     *
+     * @return array<int, string>
+     */
+    private function youtubeVideoIds(array $resources): array
+    {
+        $ids = [];
+        foreach ($resources as $resource) {
+            $url = $resource->getExternalUrl();
+            $videoId = $url !== null ? YouTubeUrlParser::videoId($url) : null;
+            if ($videoId !== null) {
+                $ids[$resource->getId()] = $videoId;
+            }
+        }
+
+        return $ids;
     }
 
     private function findResource(Exercise $exercise, int $resourceId): ?ExerciseResource

@@ -468,6 +468,7 @@ exercise_session:
   untitled: Übung
   target: "Zielzeit: %minutes% Min."
   reopen_resource: "Ressource öffnen"
+  play_inline: "Im Player abspielen"
   previous_note:
     label: "Letzte Notiz (%date%)"
   finish:
@@ -588,9 +589,12 @@ legal:
     fonts:
       title: "Google Fonts"
       body: "Diese Seite lädt Schriftarten von den Servern von Google (fonts.googleapis.com, fonts.gstatic.com). Dabei kann Google die IP-Adresse des aufrufenden Geräts verarbeiten. Weitere Informationen findest du in der Datenschutzerklärung von Google."
+    youtube:
+      title: "YouTube-Videos"
+      body: "Bei manchen Übungen kannst du ein verlinktes YouTube-Video direkt auf der Seite abspielen, über den Button \"Im Player abspielen\". Dabei wird die datenschutzfreundlichere Variante youtube-nocookie.com eingebunden, aber erst, wenn du aktiv draufklickst - beim blossen Aufrufen der Seite wird nichts von YouTube geladen. Sobald du den Player startest, kann Google (YouTube) die IP-Adresse des aufrufenden Geräts verarbeiten. Weitere Informationen findest du in der Datenschutzerklärung von Google."
     no_tracking:
       title: "Keine Analyse- oder Tracking-Tools"
-      body: "Guitorial setzt keine Analyse-, Marketing- oder Tracking-Dienste ein und zeigt keine Werbung."
+      body: "Guitorial setzt keine eigenen Analyse-, Marketing- oder Tracking-Dienste ein und zeigt keine Werbung. Einzige Ausnahme ist das optionale, per Klick geladene YouTube-Video (siehe oben)."
     rights:
       title: "Deine Rechte"
       body: |

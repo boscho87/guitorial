@@ -1,0 +1,21 @@
+{#
+    Expects: resource (ExerciseResource, external YouTube link), videoId (string)
+
+    Facade pattern - nothing loads from YouTube until "Im Player abspielen"
+    is actually clicked, matching the site's no-tracking-by-default stance
+    (see legal/privacy.html.twig). Playing in-page instead of a new tab also
+    means the exercise-session tab never loses visibility, so its timer
+    keeps running instead of pausing (see timer_controller.js's
+    pauseWhenHidden and youtube_embed_controller.js below).
+#}
+<div data-controller="youtube-embed" data-youtube-embed-video-id-value="{{ videoId }}">
+    <div class="flex flex-col gap-2 sm:flex-row">
+        <a href="{{ resource.externalUrl }}" target="_blank" rel="noopener" class="btn btn-outline flex-1">
+            {{ 'exercise_session.reopen_resource'|trans }} ({{ resource.externalProvider ?? 'YouTube' }})
+        </a>
+        <button type="button" class="btn btn-outline flex-1" data-youtube-embed-target="loadButton" data-action="youtube-embed#load">
+            {{ 'exercise_session.play_inline'|trans }}
+        </button>
+    </div>
+    <div class="mt-3 hidden aspect-video w-full overflow-hidden rounded-box bg-base-300" data-youtube-embed-target="container"></div>
+</div>
