@@ -190,6 +190,24 @@ final class ExerciseSessionController extends AbstractController
         return new Response('', 204);
     }
 
+    /**
+     * Ends a pause (manual "P" or an unconfirmed check-in) - the client
+     * sent one last heartbeat right before stopping, so the gap since
+     * updatedAt is the paused time; see PracticeSession::resumeAfterPause().
+     */
+    #[Route('/sitzung/{id}/fortsetzen', name: 'exercise_session_resume', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function resume(int $id, Request $request, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $session = $this->requireRunningSession($id, $request);
+        if ($session !== null) {
+            $session->resumeAfterPause();
+            $em->flush();
+        }
+
+        return new Response('', 204);
+    }
+
     #[Route('/sitzung/{id}/abschliessen', name: 'exercise_session_finish', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function finish(int $id, Request $request): Response
     {

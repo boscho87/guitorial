@@ -29,6 +29,14 @@
             <path d="M3 4v5h5"/>
         {% elseif name == 'play' %}
             <path d="M7 4.5v15l13-7.5Z" fill="currentColor" stroke="none"/>
+        {% elseif name == 'pause' %}
+            <path d="M8 5v14M16 5v14" stroke-width="3"/>
+        {% elseif name == 'external' %}
+            <path d="M14 4h6v6"/>
+            <path d="M20 4l-9 9"/>
+            <path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>
+        {% elseif name == 'close' %}
+            <path d="M6 6l12 12M18 6L6 18"/>
         {% elseif name == 'key' %}
             <circle cx="7" cy="15" r="4"/>
             <path d="M10 12l10-10"/>

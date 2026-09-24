@@ -16,6 +16,7 @@ import { Controller } from '@hotwired/stimulus';
 export default class extends Controller {
     static values = {
         url: String,
+        resumeUrl: String,
         token: String,
         intervalMs: { type: Number, default: 20000 },
     };
@@ -88,12 +89,31 @@ export default class extends Controller {
         });
     }
 
+    // Shared by the check-in pause and the manual "P" pause (both dispatch
+    // timer:pause/timer:resume). One last ping before stopping pins the
+    // server's updatedAt to ~the moment the pause began, so the resume
+    // endpoint can subtract exactly the paused time
+    // (PracticeSession::resumeAfterPause()).
     pauseForCheckin() {
+        this.ping();
         this.checkinPaused = true;
     }
 
     resumeFromCheckin() {
-        this.checkinPaused = false;
-        this.ping();
+        // Heartbeats stay suppressed until the resume request has landed - a
+        // regular ping racing ahead of it would bump updatedAt first and
+        // leave the server no gap to subtract.
+        fetch(this.resumeUrlValue, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            keepalive: true,
+            body: `_token=${encodeURIComponent(this.tokenValue)}`,
+        })
+            .catch(() => {
+                // Best-effort - worst case the paused gap is credited, same as before.
+            })
+            .finally(() => {
+                this.checkinPaused = false;
+            });
     }
 }

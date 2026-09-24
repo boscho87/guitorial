@@ -14,6 +14,7 @@
 {% block head_extra %}<meta name="turbo-cache-control" content="no-cache">{% endblock %}
 
 {% block body %}
+    <div data-controller="session-shortcuts">
     <a href="{{ returnRouteId ? path('routine_show', {id: returnRouteId}) : path('diary_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
         {{ icons.icon('back') }}
         {{ 'nav.diary'|trans }}
@@ -25,7 +26,10 @@
             class="stat-tile mt-8 flex flex-col items-center gap-2 py-10 text-center"
             data-controller="session-heartbeat timer"
             data-session-heartbeat-url-value="{{ path('exercise_session_heartbeat', {id: session.id}) }}"
+            data-session-heartbeat-resume-url-value="{{ path('exercise_session_resume', {id: session.id}) }}"
             data-session-heartbeat-token-value="{{ csrf_token(csrfIntention) }}"
+            data-timer-pause-text-value="{{ 'exercise_session.pause'|trans }}"
+            data-timer-resume-text-value="{{ 'exercise_session.resume'|trans }}"
             data-action="timer:pause->session-heartbeat#pauseForCheckin timer:resume->session-heartbeat#resumeFromCheckin"
             data-timer-start-value="{{ startedAtMs }}"
             data-timer-pause-when-hidden-value="true"
@@ -72,6 +76,16 @@
                 </div>
             </dialog>
         {% endif %}
+        {# Real pause, not just a frozen display: see
+           PracticeSession::resumeAfterPause() - the paused time is not
+           credited. "P" triggers this via session-shortcuts. #}
+        <button
+                type="button" class="btn btn-ghost btn-sm mt-2 gap-1.5" aria-pressed="false"
+                data-timer-target="pauseButton" data-session-shortcuts-target="pause" data-action="timer#togglePause"
+        >
+            {{ icons.icon('pause') }}<span data-timer-target="pauseLabel">{{ 'exercise_session.pause'|trans }}</span>
+            <kbd class="hidden font-mono text-xs text-base-content/40 sm:inline">P</kbd>
+        </button>
     </div>
 
     {% if previousNote %}
@@ -83,24 +97,12 @@
 
     {% if resource and not resource.isInternalTool %}
         <div class="mt-6">
-            {% if youtubeVideoIds[resource.id] is defined %}
-                {{ include('exercise_session/_youtube_player.html.twig', {resource: resource, videoId: youtubeVideoIds[resource.id]}) }}
-            {% else %}
-                <a href="{{ resource.externalUrl }}" target="_blank" rel="noopener" class="btn btn-outline btn-block">
-                    <span class="min-w-0 truncate">{{ 'exercise_session.reopen_resource'|trans }} ({{ resource.externalTitle ?? resource.externalProvider ?? resource.externalUrl }})</span>
-                </a>
-            {% endif %}
+            {{ include('exercise_session/_resource_link.html.twig', {resource: resource, videoId: youtubeVideoIds[resource.id] ?? null}) }}
         </div>
     {% elseif openableResources is not empty %}
         <div class="mt-6 flex flex-col gap-2">
             {% for openableResource in openableResources %}
-                {% if youtubeVideoIds[openableResource.id] is defined %}
-                    {{ include('exercise_session/_youtube_player.html.twig', {resource: openableResource, videoId: youtubeVideoIds[openableResource.id]}) }}
-                {% else %}
-                    <a href="{{ openableResource.externalUrl }}" target="_blank" rel="noopener" class="btn btn-outline btn-block">
-                        <span class="min-w-0 truncate">{{ 'exercise_session.reopen_resource'|trans }} ({{ openableResource.externalTitle ?? openableResource.externalProvider ?? openableResource.externalUrl }})</span>
-                    </a>
-                {% endif %}
+                {{ include('exercise_session/_resource_link.html.twig', {resource: openableResource, videoId: youtubeVideoIds[openableResource.id] ?? null}) }}
             {% endfor %}
         </div>
     {% endif %}
@@ -115,7 +117,7 @@
             {% endif %}
             <div class="grid grid-cols-3 gap-2">
                 {% for state in learningStates %}
-                    <button type="submit" name="learning_state" value="{{ state }}" class="btn btn-outline btn-sm w-full">{{ ('exercise_session.learning_state.' ~ state)|trans }}</button>
+                    <button type="submit" name="learning_state" value="{{ state }}" class="btn btn-outline btn-sm w-full" data-session-shortcuts-target="state"><span class="keycap hidden sm:inline">{{ loop.index }}</span>{{ ('exercise_session.learning_state.' ~ state)|trans }}</button>
                 {% endfor %}
             </div>
             <label class="mt-4 block">
@@ -143,5 +145,6 @@
     <div class="contents" data-controller="confirm-modal">
         <button type="button" class="btn btn-ghost btn-block text-error mt-4" data-action="confirm-modal#open">{{ 'exercise_session.discard.submit'|trans }}</button>
         {{ confirmModal.dialog('exercise-session-discard', 'exercise_session.discard.confirm'|trans, 'exercise_session.discard.submit'|trans) }}
+    </div>
     </div>
 {% endblock %}

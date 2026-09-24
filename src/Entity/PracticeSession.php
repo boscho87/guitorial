@@ -332,6 +332,30 @@ class PracticeSession
     }
 
     /**
+     * Ends a manual/check-in pause: the client stops heartbeating while
+     * paused (after one last ping, so updatedAt ~= when the pause began),
+     * so the gap since updatedAt is exactly the paused time. Shifting
+     * startedAt forward by it excludes the pause from everything derived
+     * from finishedAt - startedAt (credited minutes, target progress,
+     * history) without a separate paused-seconds column. Gaps within the
+     * heartbeat grace are ordinary latency, not a pause. An abandoned
+     * session (see rebaseIfAbandoned()) is rebased instead of shifted.
+     */
+    public function resumeAfterPause(): void
+    {
+        if (!$this->rebaseIfAbandoned()) {
+            $now = time();
+            $gap = $now - $this->updatedAt->getTimestamp() - self::HEARTBEAT_GRACE_SECONDS;
+            $shift = min($gap, $now - $this->startedAt->getTimestamp());
+            if ($shift > 0) {
+                $this->startedAt = $this->startedAt->modify(sprintf('+%d seconds', $shift));
+            }
+        }
+
+        $this->touch();
+    }
+
+    /**
      * How many seconds of this session are creditable right now, capped
      * exactly the way finish() ultimately caps the persisted duration -
      * but callable at any time, not just at finish(). Lets the running

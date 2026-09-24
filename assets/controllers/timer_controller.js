@@ -52,8 +52,10 @@ import { Controller } from '@hotwired/stimulus';
  * server-side logic.
  */
 export default class extends Controller {
-    static targets = ['clock', 'progress', 'progressLabel', 'bar', 'checkinDialog'];
+    static targets = ['clock', 'progress', 'progressLabel', 'bar', 'checkinDialog', 'pauseButton', 'pauseLabel'];
     static values = {
+        pauseText: String,
+        resumeText: String,
         start: Number,
         targetSeconds: Number,
         progressStartSeconds: Number,
@@ -82,6 +84,7 @@ export default class extends Controller {
         this.pausedSince = this.pauseWhenHiddenValue && document.hidden ? Date.now() : null;
         this.awaitingCheckin = false;
         this.checkinGraceExpired = false;
+        this.manuallyPaused = false;
         this.nextCheckinAtMs = this.hasCheckinIntervalMinutesValue && this.hasTargetSecondsValue
             ? this.startValue + this.targetSecondsValue * 1000 + this.checkinIntervalMinutesValue * 60000
             : null;
@@ -126,13 +129,44 @@ export default class extends Controller {
      * expired check-in at once) never get counted twice.
      */
     updatePauseState() {
-        const shouldBePaused = (this.pauseWhenHiddenValue && document.hidden) || this.checkinGraceExpired;
+        const shouldBePaused = (this.pauseWhenHiddenValue && document.hidden) || this.checkinGraceExpired || this.manuallyPaused;
         if (shouldBePaused && this.pausedSince === null) {
             this.pausedSince = Date.now();
         } else if (!shouldBePaused && this.pausedSince !== null) {
             this.hiddenMs += Date.now() - this.pausedSince;
             this.pausedSince = null;
         }
+    }
+
+    /**
+     * Explicit user pause ("P" or the pause button). Dispatches
+     * timer:pause/timer:resume only when the overall paused state actually
+     * flips, so a manual resume while a check-in pause (or the reverse) is
+     * still in effect doesn't wrongly restart the heartbeat.
+     */
+    togglePause() {
+        const wasPaused = this.pausedSince !== null;
+        this.manuallyPaused = !this.manuallyPaused;
+        this.updatePauseState();
+        this.renderPauseState();
+        const isPaused = this.pausedSince !== null;
+        if (isPaused && !wasPaused) {
+            this.dispatch('pause');
+        } else if (!isPaused && wasPaused) {
+            this.dispatch('resume');
+        }
+        this.tick();
+    }
+
+    renderPauseState() {
+        if (this.hasPauseLabelTarget) {
+            this.pauseLabelTarget.textContent = this.manuallyPaused ? this.resumeTextValue : this.pauseTextValue;
+        }
+        if (this.hasPauseButtonTarget) {
+            this.pauseButtonTarget.setAttribute('aria-pressed', this.manuallyPaused ? 'true' : 'false');
+        }
+        const clock = this.hasClockTarget ? this.clockTarget : this.element;
+        clock.classList.toggle('opacity-50', this.manuallyPaused);
     }
 
     tick() {
@@ -207,7 +241,7 @@ export default class extends Controller {
         this.stopFlashingTitle();
         const wasPaused = this.pausedSince !== null;
         this.updatePauseState();
-        if (wasPaused) {
+        if (wasPaused && this.pausedSince === null) {
             this.dispatch('resume');
         }
         this.nextCheckinAtMs = Date.now() + this.checkinIntervalMinutesValue * 60000;

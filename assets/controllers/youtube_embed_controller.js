@@ -23,6 +23,16 @@ export default class extends Controller {
         this.containerTarget.replaceChildren(iframe);
         this.playerWrapperTarget.classList.remove('hidden');
         this.loadButtonTarget.classList.add('hidden');
+
+        // Tells every other player on the page (listening on window, see
+        // closeIfOther) to close - only one video plays at a time.
+        this.dispatch('opened');
+    }
+
+    closeIfOther(event) {
+        if (event.target !== this.element) {
+            this.close();
+        }
     }
 
     close() {
