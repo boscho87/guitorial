@@ -61,12 +61,12 @@
     <form method="post" action="{{ routine ? path('routine_edit', {id: routine.id}) : path('routine_add') }}" class="mt-8">
         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
 
-        <label class="block">
+        <label class="block" data-hint-id="routines.name" data-hint="{{ 'hints.routines.name'|trans }}">
             <span class="text-sm font-medium">{{ 'routine.form.name'|trans }}</span>
             <input type="text" name="name" value="{{ routine ? routine.name : '' }}" maxlength="80" required class="input input-bordered mt-1 w-full">
         </label>
 
-        <div class="mt-6" data-controller="routine-picker">
+        <div class="mt-6" data-controller="routine-picker" data-hint-id="routines.pick" data-hint="{{ 'hints.routines.pick'|trans }}">
             <p class="text-sm font-medium">{{ 'routine.form.exercises'|trans }}</p>
             {% if availableExercises is empty %}
                 <p class="mt-2 text-sm text-base-content/60">{{ 'routine.form.no_exercises'|trans }} <a href="{{ path('diary_add_form') }}" class="font-medium text-primary hover:underline">{{ 'routine.form.no_exercises_cta'|trans }}</a></p>
@@ -88,7 +88,7 @@
                         {% endfor %}
                     </ul>
                     <div>
-                        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ 'routine.form.order_preview'|trans }}</p>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50" data-hint-id="routines.order" data-hint="{{ 'hints.routines.order'|trans }}">{{ 'routine.form.order_preview'|trans }}</p>
                         <div class="mt-2 text-sm text-base-content/70" data-routine-picker-target="preview"></div>
                     </div>
                 </div>

@@ -22,10 +22,10 @@
     {% if stats.totalFinishedRounds == 0 %}
         <p class="mt-8 text-sm text-base-content/60">
             {{ 'progress.empty'|trans }}
-            <a href="{{ path('training_index') }}" class="font-medium text-primary hover:underline">{{ 'progress.empty_cta'|trans }}</a>
+            <a href="{{ path('training_index') }}" class="font-medium text-primary hover:underline" data-hint-id="progress.empty_cta" data-hint="{{ 'hints.progress.empty_cta'|trans }}">{{ 'progress.empty_cta'|trans }}</a>
         </p>
     {% else %}
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3" data-hint-id="progress.stats" data-hint="{{ 'hints.progress.stats'|trans }}">
             <div class="stat-tile">
                 <p class="text-sm text-base-content/70">{{ 'progress.stats.current_streak'|trans }}</p>
                 {% if stats.currentStreak > 0 %}
@@ -52,7 +52,7 @@
             </div>
         </div>
 
-        <section class="mt-8">
+        <section class="mt-8" data-hint-id="progress.milestones" data-hint="{{ 'hints.progress.milestones'|trans }}">
             <h2 class="eyebrow">{{ 'progress.milestones.title'|trans }}</h2>
             <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div class="rounded-box border border-base-300 p-4">

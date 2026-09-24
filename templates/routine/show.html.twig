@@ -53,7 +53,7 @@
     {% if rows is empty %}
         <p class="mt-8 text-sm text-base-content/60">{{ 'routine.show.empty'|trans }}</p>
     {% else %}
-        <ul class="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
+        <ul class="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3" data-hint-id="routine_show.list" data-hint="{{ 'hints.routine_show.list'|trans }}">
             {% for row in rows %}
                 {% set exercise = row.version.exercise %}
                 {{ include('diary/_exercise_row.html.twig', {

@@ -28,13 +28,13 @@
     <section class="mt-10">
         <div class="flex items-center justify-between gap-3">
             <h2 class="eyebrow">{{ 'diary.manage.active_heading'|trans }}</h2>
-            <a href="{{ path('diary_add_form') }}" data-turbo-frame="_top" class="btn btn-primary btn-sm">{{ 'diary.add.new_button'|trans }}</a>
+            <a href="{{ path('diary_add_form') }}" data-turbo-frame="_top" class="btn btn-primary btn-sm" data-hint-id="manage.add" data-hint="{{ 'hints.manage.add'|trans }}">{{ 'diary.add.new_button'|trans }}</a>
         </div>
 
         {% if activeExercises is empty %}
             <p class="mt-4 text-sm text-base-content/60">{{ 'diary.empty'|trans }}</p>
         {% else %}
-            <ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2" data-hint-id="manage.list" data-hint="{{ 'hints.manage.list'|trans }}">
                 {% for entry in activeExercises %}
                     <li class="card-tile">
                         <div class="flex items-start justify-between gap-2">

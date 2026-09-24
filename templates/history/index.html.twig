@@ -29,7 +29,7 @@
     {% if sessions is empty %}
         <p class="mt-10 text-sm text-base-content/60">{{ 'history.empty'|trans }}</p>
     {% else %}
-        <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3" data-hint-id="history.stats" data-hint="{{ 'hints.history.stats'|trans }}">
             <div class="stat-tile">
                 <p class="text-sm text-base-content/70">{{ 'history.stats.rounds_label'|trans }}</p>
                 <p class="mt-1 font-mono text-2xl font-semibold text-primary">{{ stats.totalFinishedRounds }}</p>
@@ -53,7 +53,7 @@
         </div>
 
         {% if stats.series is not empty %}
-            <div data-controller="history-tabs">
+            <div data-controller="history-tabs" data-hint-id="history.chart" data-hint="{{ 'hints.history.chart'|trans }}">
                 <div class="mt-8 flex flex-wrap gap-1">
                     {% for key, s in stats.series %}
                         <input type="radio" name="history-chart-tab" id="tab-{{ key }}" value="{{ key }}"
@@ -73,7 +73,7 @@
             <p class="mt-8 text-sm text-base-content/60">{{ 'history.chart.not_enough_data'|trans }}</p>
         {% endif %}
 
-        <div class="mt-8 overflow-x-auto">
+        <div class="mt-8 overflow-x-auto" data-hint-id="history.table" data-hint="{{ 'hints.history.table'|trans }}">
             <table class="table">
                 <thead>
                     <tr class="text-xs uppercase tracking-wide text-base-content/70">

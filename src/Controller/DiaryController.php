@@ -339,6 +339,7 @@ final class DiaryController extends AbstractController
         foreach ($resourceInputs as $sortIndex => $resource) {
             $em->persist($this->buildResource($exercise, $sortIndex, $resource));
         }
+        $this->routineProvisioner->appendToActiveRoutine($visitorId, $exercise);
 
         $em->flush();
 

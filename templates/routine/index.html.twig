@@ -23,7 +23,7 @@
 
     <div class="flex items-center justify-between gap-3">
         <h2 class="eyebrow">{{ 'routine.list_heading'|trans }}</h2>
-        <a href="{{ path('routine_add_form') }}" class="btn btn-primary btn-sm">{{ 'routine.new_button'|trans }}</a>
+        <a href="{{ path('routine_add_form') }}" class="btn btn-primary btn-sm" data-hint-id="routines.new" data-hint="{{ 'hints.routines.new'|trans }}">{{ 'routine.new_button'|trans }}</a>
     </div>
 
     {# Deleting a routine stays inside this frame - the redirect Turbo
@@ -36,7 +36,7 @@
         {% if routines is empty %}
             <p class="mt-4 text-sm text-base-content/60">{{ 'routine.empty'|trans }}</p>
         {% else %}
-            <ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2" data-hint-id="routines.list" data-hint="{{ 'hints.routines.list'|trans }}">
                 {% for routine in routines %}
                     <li class="card-tile {{ routine.isActive ? 'border-primary' : '' }}">
                         <div class="flex items-start justify-between gap-2">

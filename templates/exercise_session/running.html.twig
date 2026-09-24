@@ -23,7 +23,7 @@
     <h1 class="font-display mt-3 text-2xl font-semibold sm:text-3xl">{{ title ?? 'exercise_session.untitled'|trans }}</h1>
 
     <div
-            class="stat-tile mt-8 flex flex-col items-center gap-2 py-10 text-center" data-hint="{{ 'hints.session.timer'|trans }}"
+            class="stat-tile mt-8 flex flex-col items-center gap-2 py-10 text-center" data-hint-id="session.timer" data-hint="{{ 'hints.session.timer'|trans }}"
             data-controller="session-heartbeat timer"
             data-session-heartbeat-url-value="{{ path('exercise_session_heartbeat', {id: session.id}) }}"
             data-session-heartbeat-resume-url-value="{{ path('exercise_session_resume', {id: session.id}) }}"
@@ -82,7 +82,7 @@
            credited. "P" triggers this via session-shortcuts. #}
         <button
                 type="button" class="btn btn-ghost btn-sm mt-2 gap-1.5" aria-pressed="false"
-                data-timer-target="pauseButton" data-session-shortcuts-target="pause" data-hint="{{ 'hints.session.pause'|trans }}" data-action="timer#togglePause"
+                data-timer-target="pauseButton" data-session-shortcuts-target="pause" data-hint-id="session.pause" data-hint="{{ 'hints.session.pause'|trans }}" data-action="timer#togglePause"
         >
             {{ icons.icon('pause') }}<span data-timer-target="pauseLabel">{{ 'exercise_session.pause'|trans }}</span>
             <kbd class="hidden font-mono text-xs text-base-content/40 sm:inline">P</kbd>
@@ -97,11 +97,11 @@
     {% endif %}
 
     {% if resource and not resource.isInternalTool %}
-        <div class="mt-6" data-hint="{{ 'hints.session.resource'|trans }}">
+        <div class="mt-6" data-hint-id="session.resource" data-hint="{{ 'hints.session.resource'|trans }}">
             {{ include('exercise_session/_resource_link.html.twig', {resource: resource, videoId: youtubeVideoIds[resource.id] ?? null}) }}
         </div>
     {% elseif openableResources is not empty %}
-        <div class="mt-6 flex flex-col gap-2" data-hint="{{ 'hints.session.resource'|trans }}">
+        <div class="mt-6 flex flex-col gap-2" data-hint-id="session.resource" data-hint="{{ 'hints.session.resource'|trans }}">
             {% for openableResource in openableResources %}
                 {{ include('exercise_session/_resource_link.html.twig', {resource: openableResource, videoId: youtubeVideoIds[openableResource.id] ?? null}) }}
             {% endfor %}
@@ -116,7 +116,7 @@
                 <input type="hidden" name="return_route" value="routine_show">
                 <input type="hidden" name="return_route_id" value="{{ returnRouteId }}">
             {% endif %}
-            <div class="grid grid-cols-3 gap-2" data-hint="{{ 'hints.session.state'|trans }}">
+            <div class="grid grid-cols-3 gap-2" data-hint-id="session.state" data-hint="{{ 'hints.session.state'|trans }}">
                 {% for state in learningStates %}
                     <button type="submit" name="learning_state" value="{{ state }}" class="btn btn-outline btn-sm w-full" data-session-shortcuts-target="state"><span class="keycap hidden sm:inline">{{ loop.index }}</span>{{ ('exercise_session.learning_state.' ~ state)|trans }}</button>
                 {% endfor %}
@@ -144,7 +144,7 @@
         {% endif %}
     </form>
     <div class="contents" data-controller="confirm-modal">
-        <button type="button" class="btn btn-ghost btn-block text-error mt-4" data-action="confirm-modal#open" data-hint="{{ 'hints.session.discard'|trans }}">{{ 'exercise_session.discard.submit'|trans }}</button>
+        <button type="button" class="btn btn-ghost btn-block text-error mt-4" data-action="confirm-modal#open" data-hint-id="session.discard" data-hint="{{ 'hints.session.discard'|trans }}">{{ 'exercise_session.discard.submit'|trans }}</button>
         {{ confirmModal.dialog('exercise-session-discard', 'exercise_session.discard.confirm'|trans, 'exercise_session.discard.submit'|trans) }}
     </div>
     </div>

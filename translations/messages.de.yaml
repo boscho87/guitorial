@@ -680,6 +680,7 @@ hints:
     auto_advance: "Optional: nach dieser Zeit springt der Generator von selbst zum nächsten Ton (0 = du klickst selbst weiter)."
     start: "Damit startet die Runde."
   diary:
+    empty_cta: "Los geht's: Lege hier deine erste Übung an - ein Song, eine Technikübung oder einer der Trainer."
     manage: "Hier legst du Übungen an, bearbeitest, gruppierst und archivierst sie."
     pager: "Blättere durch die Tage - vergangene Tage bleiben unverändert."
     note: "Eine kurze Notiz zum Tag: wie lief's, was war schwierig?"
@@ -692,3 +693,31 @@ hints:
     resource: "Deine verlinkte Ressource. Bei YouTube spielst du sie direkt hier ab, ohne dass der Timer stoppt."
     state: "Zum Abschluss: wie sicher fühlst du dich? Das speichert die Sitzung (Tasten 1, 2, 3)."
     discard: "Verwirft die Sitzung, ohne sie zu speichern."
+  add:
+    suggestions: "Tippe auf einen Vorschlag, um die Übung sofort anzulegen - die Trainer sind gleich verknüpft."
+    custom: "Oder gib einen eigenen Titel ein, z. B. den Namen eines Songs. Danach richtest du die Details ein."
+  setup:
+    resources: "Womit übst du das? Verknüpfe einen Trainer oder einen Link, z. B. ein YouTube-Video. Beides ist optional."
+    target: "Die Zielzeit: Sobald du an einem Tag so lange geübt hast, gilt die Übung als erledigt."
+    rhythm: "Wie oft gehört die Übung in deinen Plan - täglich, ein paar Mal pro Woche oder ohne Vorgabe?"
+    group: "Gruppen sortieren deine Übungen, z. B. in Theorie und Praxis."
+    done: "Speichern - die Übung steht danach automatisch in deiner aktuellen Routine und erscheint unter Meine Übungen."
+  manage:
+    add: "Hier legst du weitere Übungen an."
+    list: "Deine Übungen. Die Icons öffnen den Verlauf, bearbeiten, archivieren oder löschen; darunter änderst du Gruppe und Rhythmus direkt."
+  routines:
+    new: "Eine Routine ist deine Tagesreihenfolge. Lege hier eine neue an, z. B. \"Bass\" oder \"Gitarre\"."
+    list: "Deine Routinen. Die aktuelle Routine bestimmt, was unter Meine Übungen erscheint - mit \"Starten\" gehst du sie der Reihe nach durch."
+    name: "Gib der Routine einen Namen."
+    pick: "Wähle die Übungen aus - in der Reihenfolge, in der du sie anklickst, kommen sie dran."
+    order: "Hier siehst du die Reihenfolge, die du gewählt hast."
+  routine_show:
+    list: "So sieht die Routine aus: Der Kreis links startet eine Übung, der Haken rechts markiert sie als erledigt."
+  history:
+    stats: "Kennzahlen deiner Tool-Runden: Anzahl, Genauigkeit und aktuelle Serie."
+    chart: "Der Verlauf deiner Ergebnisse - wähle oben ein Tool, um nur dessen Kurve zu sehen."
+    table: "Alle Runden im Einzelnen. Mit \"Als Übung übernehmen\" machst du eine Runde zur wiederkehrenden Übung."
+  progress:
+    empty_cta: "Noch nichts zu zeigen - starte eine Runde, dann erscheinen hier deine Zahlen."
+    stats: "Deine Serie, Übungstage, Gesamtzeit und abgeschlossene Sitzungen - nur im Vergleich mit dir selbst."
+    milestones: "Meilensteine: die nächste Marke, die du erreichen kannst."

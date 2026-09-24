@@ -25,7 +25,7 @@
         </div>
 
         <div>
-            <label class="block eyebrow">{{ 'diary.setup.section.resources'|trans }}</label>
+            <label class="block eyebrow" data-hint-id="setup.resources" data-hint="{{ 'hints.setup.resources'|trans }}">{{ 'diary.setup.section.resources'|trans }}</label>
             <p class="mt-1 text-xs text-base-content/50">{{ 'diary.setup.section.resources_hint'|trans }}</p>
             <div class="mt-3 space-y-2" data-exercise-form-target="resourceList">
                 {% for resource in resources %}
@@ -61,13 +61,13 @@
         </div>
 
         <div>
-            <label for="target_minutes" class="block eyebrow">{{ 'diary.setup.section.target_minutes'|trans }}</label>
+            <label for="target_minutes" class="block eyebrow" data-hint-id="setup.target" data-hint="{{ 'hints.setup.target'|trans }}">{{ 'diary.setup.section.target_minutes'|trans }}</label>
             <p class="mt-1 text-xs text-base-content/50">{{ 'diary.setup.section.target_minutes_hint'|trans }}</p>
             <input type="number" id="target_minutes" name="target_minutes" min="1" max="180" value="{{ version.targetMinutes }}" class="input input-sm input-bordered mt-2 w-28" placeholder="{{ 'diary.form.minutes_placeholder'|trans }}">
         </div>
 
         <div>
-            <label class="block eyebrow">{{ 'diary.setup.section.rhythm'|trans }}</label>
+            <label class="block eyebrow" data-hint-id="setup.rhythm" data-hint="{{ 'hints.setup.rhythm'|trans }}">{{ 'diary.setup.section.rhythm'|trans }}</label>
             <p class="mt-1 text-xs text-base-content/50">{{ 'diary.setup.section.rhythm_hint'|trans }}</p>
             <div class="mt-2 flex flex-wrap items-center gap-2">
                 <select name="rhythm" class="select select-sm select-bordered" data-exercise-form-target="rhythmSelect" data-action="change->exercise-form#syncRepeatVisibility">
@@ -80,7 +80,7 @@
         </div>
 
         <div>
-            <label for="group_id" class="block eyebrow">{{ 'diary.setup.section.group'|trans }}</label>
+            <label for="group_id" class="block eyebrow" data-hint-id="setup.group" data-hint="{{ 'hints.setup.group'|trans }}">{{ 'diary.setup.section.group'|trans }}</label>
             <select id="group_id" name="group_id" class="select select-sm select-bordered mt-2">
                 {% for group in groups %}
                     <option value="{{ group.id }}" {{ version.group and version.group.id == group.id ? 'selected' : '' }}>{{ group.name }}</option>
@@ -93,6 +93,6 @@
             <textarea id="note" name="note" rows="3" maxlength="2000" class="textarea textarea-bordered mt-2 w-full" placeholder="{{ 'diary.form.note_placeholder'|trans }}">{{ exercise.note }}</textarea>
         </div>
 
-        <button type="submit" class="btn btn-primary">{{ 'diary.setup.done'|trans }}</button>
+        <button type="submit" class="btn btn-primary" data-hint-id="setup.done" data-hint="{{ 'hints.setup.done'|trans }}">{{ 'diary.setup.done'|trans }}</button>
     </form>
 {% endblock %}

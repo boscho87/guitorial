@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Diary;
 
+use App\Entity\Exercise;
 use App\Entity\Routine;
 use App\Entity\RoutineItem;
 use App\Repository\ExerciseRepository;
@@ -79,11 +80,43 @@ final class RoutineProvisioner
         $this->em->persist($routine);
 
         foreach ($entries as $sortIndex => $entry) {
-            $this->em->persist(new RoutineItem($routine, $entry['exercise'], $sortIndex));
+            // Also registered on the in-memory collection: the caller renders
+            // this very request from $routine->getItems(), and without it the
+            // freshly created routine looked empty until the next page load
+            // (a newcomer's first Heute after saving their first exercise).
+            $item = new RoutineItem($routine, $entry['exercise'], $sortIndex);
+            $routine->addItem($item);
+            $this->em->persist($item);
         }
 
         $this->em->flush();
 
         return $routine;
+    }
+
+    /**
+     * A newly created exercise joins the end of the active routine, so it
+     * shows up on Heute right away instead of only after being added by
+     * hand in the routine editor (Heute lists the active routine's
+     * members, not every exercise). Without an active routine there is
+     * nothing to append to: ensureActiveRoutine() builds one from all
+     * active exercises - this one included - the next time it's needed.
+     * Persists only; the caller's flush() writes it.
+     */
+    public function appendToActiveRoutine(string $visitorId, Exercise $exercise): void
+    {
+        $routine = $this->routines->findActiveForVisitor($visitorId);
+        if ($routine === null) {
+            return;
+        }
+
+        $nextSortIndex = 0;
+        foreach ($routine->getItems() as $item) {
+            $nextSortIndex = max($nextSortIndex, $item->getSortIndex() + 1);
+        }
+
+        $item = new RoutineItem($routine, $exercise, $nextSortIndex);
+        $routine->addItem($item);
+        $this->em->persist($item);
     }
 }

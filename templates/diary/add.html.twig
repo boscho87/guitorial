@@ -14,7 +14,7 @@
 
     <section class="mt-8">
         <h2 class="eyebrow">{{ 'diary.add.suggestions_label'|trans }}</h2>
-        <div class="mt-3 flex flex-wrap gap-2">
+        <div class="mt-3 flex flex-wrap gap-2" data-hint-id="add.suggestions" data-hint="{{ 'hints.add.suggestions'|trans }}">
             {% for s in suggestions %}
                 <form method="post" action="{{ path('diary_add') }}">
                     <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
@@ -32,7 +32,7 @@
 
     <section class="mt-10">
         <h2 class="eyebrow">{{ 'diary.add.custom_label'|trans }}</h2>
-        <form method="post" action="{{ path('diary_add') }}" class="mt-3 flex flex-wrap items-center gap-2" data-controller="submit-loading" data-action="submit->submit-loading#submit">
+        <form method="post" action="{{ path('diary_add') }}" class="mt-3 flex flex-wrap items-center gap-2" data-hint-id="add.custom" data-hint="{{ 'hints.add.custom'|trans }}" data-controller="submit-loading" data-action="submit->submit-loading#submit">
             <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
             <input type="text" name="title" maxlength="120" required class="input input-bordered flex-1" placeholder="{{ 'diary.form.title_placeholder'|trans }}">
             <button type="submit" class="btn btn-primary">{{ 'diary.add.submit'|trans }}</button>

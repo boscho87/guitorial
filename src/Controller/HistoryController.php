@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Domain\Diary\ExerciseGroupProvisioner;
+use App\Domain\Diary\RoutineProvisioner;
 use App\Domain\History\HistoryGroupStatsBuilder;
 use App\Domain\History\HistoryStatsBuilder;
 use App\Domain\Quiz\ToolRegistry;
@@ -34,6 +35,7 @@ final class HistoryController extends AbstractController
         private readonly HistoryStatsBuilder $statsBuilder,
         private readonly HistoryGroupStatsBuilder $groupStatsBuilder,
         private readonly ExerciseGroupProvisioner $groupProvisioner,
+        private readonly RoutineProvisioner $routineProvisioner,
     ) {
     }
 
@@ -163,6 +165,7 @@ final class HistoryController extends AbstractController
         $em->persist($exercise);
         $em->persist(new ExerciseVersion($exercise, $title, $group, null, ExerciseVersion::RHYTHM_NONE, null, new \DateTimeImmutable('today')));
         $em->persist(ExerciseResource::internalTool($exercise, 0, $practiceSession->getTool(), $practiceSession->getConfigSnapshot()));
+        $this->routineProvisioner->appendToActiveRoutine($visitorId, $exercise);
         $em->flush();
 
         $this->addFlash('success', 'history.promote.flash');

@@ -337,60 +337,105 @@
     @apply mr-2 text-base-content/35;
   }
 
-  /* Guided hints (hints_controller.js): one pulsing ring + one bubble. */
+  /* Guided hints (hints_controller.js): spotlight ring + one bubble. */
   @keyframes hint-ring-pulse {
     0%, 100% {
-      box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-primary) 45%, transparent);
+      outline-color: color-mix(in oklab, var(--color-primary) 70%, transparent);
+      outline-offset: 3px;
     }
     50% {
-      box-shadow: 0 0 0 9px color-mix(in oklab, var(--color-primary) 0%, transparent);
+      outline-color: color-mix(in oklab, var(--color-primary) 0%, transparent);
+      outline-offset: 11px;
     }
   }
 
   @keyframes hint-bubble-in {
-    from {
+    0% {
       opacity: 0;
-      transform: translateY(6px) scale(0.97);
+      transform: translateY(10px) scale(0.94);
     }
-    to {
+    70% {
+      opacity: 1;
+      transform: translateY(-2px) scale(1.01);
+    }
+    100% {
       opacity: 1;
       transform: none;
     }
   }
 
+  /* Dims everything but the target (a huge outside shadow) so it pops. */
   .hint-ring {
     @apply pointer-events-none fixed rounded-box border-2 border-primary;
     z-index: 60;
+    box-shadow: 0 0 0 100vmax color-mix(in oklab, black 50%, transparent);
+    outline: 3px solid color-mix(in oklab, var(--color-primary) 70%, transparent);
     animation: hint-ring-pulse 1.8s ease-in-out infinite;
   }
 
   .hint-bubble {
-    @apply fixed flex flex-col gap-3 rounded-box border border-base-300 bg-base-100 p-4 shadow-xl;
+    @apply fixed flex flex-col gap-4 rounded-box border-2 border-primary/60 bg-base-100 p-5 shadow-2xl;
     z-index: 61;
   }
 
   .hint-bubble-in {
-    animation: hint-bubble-in 0.25s ease-out;
+    animation: hint-bubble-in 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+
+  .hint-arrow {
+    @apply absolute h-3.5 w-3.5 rotate-45 bg-base-100;
+    left: calc(var(--hint-arrow-x, 50%) - 0.4375rem);
+    display: none;
+  }
+
+  .hint-bubble[data-placement="below"] .hint-arrow {
+    @apply block border-l-2 border-t-2 border-primary/60;
+    top: -0.5625rem;
+  }
+
+  .hint-bubble[data-placement="above"] .hint-arrow {
+    @apply block border-b-2 border-r-2 border-primary/60;
+    bottom: -0.5625rem;
   }
 
   .hint-text {
-    @apply text-sm leading-relaxed;
+    @apply text-base leading-relaxed;
   }
 
   .hint-footer {
+    @apply flex items-center justify-between gap-3;
+  }
+
+  .hint-dots {
+    @apply flex items-center gap-1.5;
+  }
+
+  .hint-dot {
+    @apply h-2 w-2 rounded-full bg-base-300 transition-all;
+  }
+
+  .hint-dot-active {
+    @apply w-5 bg-primary;
+  }
+
+  .hint-next {
+    @apply gap-2 px-5 shadow-md;
+  }
+
+  .hint-key {
+    @apply hidden font-mono text-xs opacity-70 sm:inline;
+  }
+
+  .hint-bottom {
     @apply flex items-center justify-between gap-2;
   }
 
-  .hint-counter {
-    @apply font-mono text-xs text-base-content/70;
-  }
-
-  .hint-actions {
+  .hint-secondary {
     @apply flex items-center gap-1;
   }
 
   .hint-off {
-    @apply self-start text-xs text-base-content/70 underline underline-offset-2 hover:text-primary;
+    @apply text-xs text-base-content/70 underline underline-offset-2 hover:text-primary;
   }
 
   @media (prefers-reduced-motion: reduce) {
