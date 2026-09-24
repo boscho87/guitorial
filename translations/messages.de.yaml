@@ -491,6 +491,7 @@ exercise_session:
     title: "Bist du noch dran?"
     message: "Du übst schon länger als geplant - bestätige kurz, dass du noch dabei bist. Sonst pausiert die Zeitmessung, bis du zurück bist."
     confirm: "Ja, weiter"
+    finish: "Übung beenden"
     flash_title: "⏰ Bist du noch da? – Guitorial"
     notification_body: "Bestätige, dass du noch an der Übung dran bist."
   flash:

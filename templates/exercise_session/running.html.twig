@@ -72,6 +72,7 @@
                     <p class="mt-2 text-sm text-base-content/70">{{ 'exercise_session.checkin.message'|trans }}</p>
                     <div class="modal-action">
                         <button type="button" class="btn btn-primary" data-action="timer#confirmCheckin">{{ 'exercise_session.checkin.confirm'|trans }}</button>
+                        <button type="submit" form="exercise-session-finish" class="btn btn-ghost">{{ 'exercise_session.checkin.finish'|trans }}</button>
                     </div>
                 </div>
             </dialog>
@@ -109,7 +110,7 @@
 
     <div class="mt-8">
         <h2 class="eyebrow">{{ 'exercise_session.finish.title'|trans }}</h2>
-        <form method="post" action="{{ path('exercise_session_finish', {id: session.id}) }}" class="mt-3" data-controller="submit-loading" data-action="submit->submit-loading#submit">
+        <form id="exercise-session-finish" method="post" action="{{ path('exercise_session_finish', {id: session.id}) }}" class="mt-3" data-controller="submit-loading" data-action="submit->submit-loading#submit">
             <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
             {% if returnRouteId %}
                 <input type="hidden" name="return_route" value="routine_show">
