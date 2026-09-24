@@ -337,6 +337,69 @@
     @apply mr-2 text-base-content/35;
   }
 
+  /* Guided hints (hints_controller.js): one pulsing ring + one bubble. */
+  @keyframes hint-ring-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-primary) 45%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 9px color-mix(in oklab, var(--color-primary) 0%, transparent);
+    }
+  }
+
+  @keyframes hint-bubble-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .hint-ring {
+    @apply pointer-events-none fixed rounded-box border-2 border-primary;
+    z-index: 60;
+    animation: hint-ring-pulse 1.8s ease-in-out infinite;
+  }
+
+  .hint-bubble {
+    @apply fixed flex flex-col gap-3 rounded-box border border-base-300 bg-base-100 p-4 shadow-xl;
+    z-index: 61;
+  }
+
+  .hint-bubble-in {
+    animation: hint-bubble-in 0.25s ease-out;
+  }
+
+  .hint-text {
+    @apply text-sm leading-relaxed;
+  }
+
+  .hint-footer {
+    @apply flex items-center justify-between gap-2;
+  }
+
+  .hint-counter {
+    @apply font-mono text-xs text-base-content/70;
+  }
+
+  .hint-actions {
+    @apply flex items-center gap-1;
+  }
+
+  .hint-off {
+    @apply self-start text-xs text-base-content/70 underline underline-offset-2 hover:text-primary;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hint-ring,
+    .hint-bubble-in {
+      animation: none;
+    }
+  }
+
   .stat-tile {
     @apply rounded-box border border-base-300 bg-base-200/40 px-4 py-3;
   }

@@ -24,7 +24,7 @@
             <h1 class="font-display text-2xl font-semibold sm:text-3xl">{{ 'diary.title'|trans }}</h1>
             <p class="mt-2 text-base-content/70">{{ 'diary.intro'|trans }}</p>
         </div>
-        <a href="{{ path('diary_manage') }}" class="btn btn-outline btn-sm shrink-0">{{ 'diary.manage_link'|trans }}</a>
+        <a href="{{ path('diary_manage') }}" class="btn btn-outline btn-sm shrink-0" data-hint="{{ 'hints.diary.manage'|trans }}">{{ 'diary.manage_link'|trans }}</a>
     </div>
 
     <div class="mt-4 mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -36,7 +36,7 @@
         {% endif %}
     </div>
 
-    <div class="stat-tile flex items-center justify-between gap-3">
+    <div class="stat-tile flex items-center justify-between gap-3" data-hint="{{ 'hints.diary.pager'|trans }}">
         <a href="{{ path('diary_index', {datum: previousDate|date('Y-m-d')}) }}" class="btn btn-ghost btn-sm" aria-label="{{ 'diary.pager.previous'|trans }}">&larr;</a>
         {% if isToday %}
             <p class="font-mono text-sm font-medium">{{ 'diary.pager.today'|trans }}</p>
@@ -51,7 +51,7 @@
     </div>
 
     {% if isToday %}
-        <form method="post" action="{{ path('diary_note_save') }}" class="mt-3">
+        <form method="post" action="{{ path('diary_note_save') }}" class="mt-3" data-hint="{{ 'hints.diary.note'|trans }}">
             <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
             <label for="day-note" class="eyebrow">{{ 'diary.day_note.label'|trans }}</label>
             <div class="mt-1 flex gap-2">
@@ -67,7 +67,7 @@
     {% endif %}
 
     {% if isToday and activeRoutine %}
-        <div class="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-box border border-primary/30 bg-primary/5 px-4 py-2.5">
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-box border border-primary/30 bg-primary/5 px-4 py-2.5" data-hint="{{ 'hints.diary.routine'|trans }}">
             <p class="text-sm">
                 <span class="text-base-content/60">{{ 'diary.active_routine.label'|trans }}</span>
                 <span class="font-medium">{{ activeRoutine.name }}</span>
@@ -77,7 +77,7 @@
     {% endif %}
 
     {% if dayRows is not empty %}
-        <ul class="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
+        <ul class="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3" data-hint="{{ 'hints.diary.list'|trans }}">
             {% for row in dayRows %}
                 {% set exercise = row.version.exercise %}
                 {{ include('diary/_exercise_row.html.twig', {
@@ -113,7 +113,7 @@
 
     <div class="mt-10">
         <h2 class="eyebrow">{{ 'diary.recent.title'|trans }}</h2>
-        <div class="mt-3 flex gap-1 sm:gap-2">
+        <div class="mt-3 flex gap-1 sm:gap-2" data-hint="{{ 'hints.diary.week'|trans }}">
             {% for day in recentRatios %}
                 {# stat-tile's own px-4/py-3 is sized for a single wide tile,
                    not 7 crammed into one mobile row - min-w-0 lets a flex-1

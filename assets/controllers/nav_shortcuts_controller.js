@@ -22,6 +22,10 @@ export default class extends Controller {
         if (event.metaKey || event.ctrlKey || event.altKey || event.isComposing) {
             return;
         }
+        // A guided hint is open (hints_controller.js) - digits aren't shortcuts then.
+        if (document.querySelector('.hint-bubble')) {
+            return;
+        }
 
         const index = event.key === '0' ? 9 : parseInt(event.key, 10) - 1;
         if (Number.isNaN(index) || index < 0 || index > 9) {

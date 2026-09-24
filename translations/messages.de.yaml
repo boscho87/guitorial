@@ -61,7 +61,8 @@ nav:
   logged_in_as: "Angemeldet als %email%"
   menu_open: "Menü öffnen"
   menu_close: "Menü schliessen"
-  theme_switch: "Theme wechseln"
+  profile: Profil
+  hints_show: "Hilfe zu dieser Seite"
   theme:
     light: "Hell"
     dark: "Dunkel"
@@ -641,3 +642,53 @@ legal:
     changes:
       title: Änderungen
       body: "Diese Nutzungsbestimmungen können bei Bedarf angepasst werden, etwa wenn neue Funktionen dazukommen. Die jeweils aktuelle Fassung ist auf dieser Seite abrufbar."
+
+profile:
+  title: Profil
+  meta_description: "Persönliche Einstellungen bei Guitorial: Darstellung, Hilfen und Konto."
+  intro: "Einstellungen, die für diesen Browser gelten."
+  appearance:
+    title: Darstellung
+  hints:
+    title: Hilfen
+    toggle: "Hilfen anzeigen"
+    description: "Kurze Hinweise erklären dir beim ersten Besuch einer Seite, was die einzelnen Elemente tun – immer nur einer auf einmal."
+    replay: "Hilfen erneut zeigen"
+    replayed: "Fertig – die Hinweise erscheinen wieder auf jeder Seite."
+  account:
+    title: Konto
+    anonymous: "Du nutzt Guitorial ohne Konto. Mit einem Login bleibt dein Fortschritt auch auf einem neuen Gerät erhalten."
+
+hints:
+  ui:
+    next: Weiter
+    back: Zurück
+    done: Fertig
+    skip: Überspringen
+    disable: "Hilfen ausschalten"
+    of: von
+  landing:
+    hero: "Hier geht's los: \"Jetzt üben\" führt dich zu Meine Übungen, deinem persönlichen Übungsplan."
+    trainer: "Die fünf Trainer üben Theorie spielerisch: Tonarten, Kapo, Akkordfunktionen, Griffbrett und Skalen. Tippe auf eine Karte, um zu starten."
+    diary: "In Meine Übungen legst du eigene Übungen an - Songs, Technik, Theorie - und hakst sie Tag für Tag ab."
+    progress: "Hier siehst du deine Serie, deine Übungstage und persönliche Rekorde."
+  training:
+    grid: "Wähle einen Trainer. Jede Runde ist kurz und begrenzt - danach siehst du dein Ergebnis."
+  tool_settings:
+    choose: "Hier legst du fest, was in der Runde vorkommt. Tippe auf einen Eintrag, um ihn an- oder abzuwählen - deine Auswahl wird gemerkt."
+    count: "So viele Fragen dauert eine Runde."
+    auto_advance: "Optional: nach dieser Zeit springt der Generator von selbst zum nächsten Ton (0 = du klickst selbst weiter)."
+    start: "Damit startet die Runde."
+  diary:
+    manage: "Hier legst du Übungen an, bearbeitest, gruppierst und archivierst sie."
+    pager: "Blättere durch die Tage - vergangene Tage bleiben unverändert."
+    note: "Eine kurze Notiz zum Tag: wie lief's, was war schwierig?"
+    routine: "Die aktuelle Routine bestimmt, welche Übungen du hier siehst. Unter Wechseln stellst du eine andere ein."
+    list: "Der Kreis links startet die Übung, der Haken rechts markiert sie als erledigt. Der Balken zeigt deine Zielzeit."
+    week: "Deine letzten 7 Tage: wie viele Übungen du erledigt hast. Tippe auf einen Tag, um ihn anzusehen."
+  session:
+    timer: "Deine Übungszeit läuft mit. Ist eine Zielzeit gesetzt, füllt sich der Balken."
+    pause: "Mit Pause (Taste P) hältst du die Zeit an - pausierte Zeit wird nicht angerechnet."
+    resource: "Deine verlinkte Ressource. Bei YouTube spielst du sie direkt hier ab, ohne dass der Timer stoppt."
+    state: "Zum Abschluss: wie sicher fühlst du dich? Das speichert die Sitzung (Tasten 1, 2, 3)."
+    discard: "Verwirft die Sitzung, ohne sie zu speichern."

@@ -24,7 +24,7 @@ export default class extends Controller {
         if (event.metaKey || event.ctrlKey || event.altKey || event.isComposing || event.repeat) {
             return;
         }
-        if (this.isTypingTarget(event.target) || document.querySelector('dialog[open]')) {
+        if (this.isTypingTarget(event.target) || document.querySelector('dialog[open], .hint-bubble')) {
             return;
         }
 

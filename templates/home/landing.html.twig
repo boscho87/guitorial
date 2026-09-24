@@ -25,7 +25,7 @@
                co-equal with Tools - it gets the primary hero action now,
                matching the app's actual focus (üben, dranbleiben,
                Fortschritt sehen) instead of leading with the tool grid. #}
-            <a href="{{ path('diary_index') }}" class="btn btn-primary">{{ 'home.hero_cta'|trans }}</a>
+            <a href="{{ path('diary_index') }}" class="btn btn-primary" data-hint="{{ 'hints.landing.hero'|trans }}">{{ 'home.hero_cta'|trans }}</a>
             <a href="#trainer" class="btn btn-outline">{{ 'home.hero_secondary_cta'|trans }}</a>
         </div>
     </section>
@@ -54,7 +54,7 @@
     <section id="trainer" class="border-t border-base-300 py-12">
         <h2 class="text-center font-display text-2xl font-semibold">{{ 'home.trainer_title'|trans }}</h2>
         <p class="mx-auto mt-2 max-w-md text-center text-sm text-base-content/60">{{ 'home.trainer_bass_hint'|trans }}</p>
-        <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2" data-controller="nav-shortcuts">
+        <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2" data-controller="nav-shortcuts" data-hint="{{ 'hints.landing.trainer'|trans }}">
             {% for tool in tools %}
                 <a
                         href="{{ path(tool.route) }}"
@@ -87,7 +87,7 @@
             <h2 class="font-display text-2xl font-semibold">{{ 'home.diary_title'|trans }}</h2>
             <p class="mt-3 text-base-content/70">{{ 'home.diary_text'|trans }}</p>
             <p class="mt-2 text-sm text-base-content/50">{{ 'home.diary_examples'|trans }}</p>
-            <a href="{{ path('diary_index') }}" class="btn btn-outline mt-5">{{ 'home.diary_cta'|trans }}</a>
+            <a href="{{ path('diary_index') }}" class="btn btn-outline mt-5" data-hint="{{ 'hints.landing.diary'|trans }}">{{ 'home.diary_cta'|trans }}</a>
         </div>
     </section>
 
@@ -100,7 +100,7 @@
                 <p class="stat-tile font-mono text-sm">{{ 'home.progress_example_record'|trans }}</p>
                 <p class="stat-tile font-mono text-sm">{{ 'home.progress_example_week'|trans }}</p>
             </div>
-            <a href="{{ path('progress_index') }}" class="btn btn-outline mt-5">{{ 'home.progress_cta'|trans }}</a>
+            <a href="{{ path('progress_index') }}" class="btn btn-outline mt-5" data-hint="{{ 'hints.landing.progress'|trans }}">{{ 'home.progress_cta'|trans }}</a>
             <p class="mt-6 text-sm text-base-content/60">
                 {{ 'home.storage_text'|trans }}
                 {% if not app.user %}

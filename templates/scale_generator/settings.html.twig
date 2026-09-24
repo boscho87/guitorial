@@ -30,7 +30,7 @@
         {% endif %}
 
         <div>
-            <h2 class="eyebrow">{{ 'scale_generator.settings.mode_label'|trans }}</h2>
+            <h2 class="eyebrow" data-hint="{{ 'hints.tool_settings.choose'|trans }}">{{ 'scale_generator.settings.mode_label'|trans }}</h2>
             <div class="mt-3 flex flex-wrap gap-2">
                 <input
                         type="radio" class="sr-only" id="sg-mode-tones" name="mode" value="tones"
@@ -77,7 +77,7 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3" data-hint="{{ 'hints.tool_settings.auto_advance'|trans }}">
             <label for="auto_advance_seconds" class="text-sm text-base-content/70">{{ 'scale_generator.settings.auto_advance_label'|trans }}</label>
             <input
                     type="number" min="0" max="120" step="5" name="auto_advance_seconds" id="auto_advance_seconds"
@@ -87,6 +87,6 @@
             <span class="text-xs text-base-content/60">{{ 'scale_generator.settings.auto_advance_hint'|trans }}</span>
         </div>
 
-        <button type="submit" class="btn btn-primary">{{ 'scale_generator.settings.continue'|trans }}</button>
+        <button type="submit" class="btn btn-primary" data-hint="{{ 'hints.tool_settings.start'|trans }}">{{ 'scale_generator.settings.continue'|trans }}</button>
     </form>
 {% endblock %}

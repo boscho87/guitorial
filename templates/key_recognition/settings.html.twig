@@ -47,7 +47,7 @@
         </div>
 
         <div>
-            <h2 class="eyebrow">{{ 'key_recognition.settings.keys_label'|trans }}</h2>
+            <h2 class="eyebrow" data-hint="{{ 'hints.tool_settings.choose'|trans }}">{{ 'key_recognition.settings.keys_label'|trans }}</h2>
             <div class="mt-3 flex flex-wrap gap-2">
                 {% for pair in pairs %}
                     <input
@@ -60,7 +60,7 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3" data-hint="{{ 'hints.tool_settings.count'|trans }}">
             <label for="question_count" class="text-sm text-base-content/70">{{ 'key_recognition.settings.question_count_label'|trans }}</label>
             <input
                     type="number" min="3" max="30" name="question_count" id="question_count"
@@ -69,6 +69,6 @@
             >
         </div>
 
-        <button type="submit" class="btn btn-primary">{{ 'key_recognition.settings.continue'|trans }}</button>
+        <button type="submit" class="btn btn-primary" data-hint="{{ 'hints.tool_settings.start'|trans }}">{{ 'key_recognition.settings.continue'|trans }}</button>
     </form>
 {% endblock %}
