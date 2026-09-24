@@ -12,6 +12,11 @@ export default class extends Controller {
     static values = { videoId: String };
 
     load() {
+        // The card body also triggers this - don't restart an already-playing video.
+        if (this.containerTarget.firstElementChild) {
+            return;
+        }
+
         const iframe = document.createElement('iframe');
         iframe.src = `https://www.youtube-nocookie.com/embed/${this.videoIdValue}?autoplay=1`;
         iframe.title = 'YouTube video player';

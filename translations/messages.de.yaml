@@ -470,6 +470,7 @@ exercise_session:
   reopen_resource: "Ressource öffnen"
   play_inline: Abspielen
   close_player: Schliessen
+  open_external: "In neuem Tab öffnen"
   pause: Pause
   resume: Fortsetzen
   previous_note:
