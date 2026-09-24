@@ -24,12 +24,13 @@ final class ExerciseDayViewBuilder
     /**
      * @param ExerciseVersion[] $allVersions every version this visitor ever had
      * @param PracticeSession[] $sessions this visitor's recent sessions, any status
-     * @return list<array{version: ExerciseVersion, checked: bool, practicedMinutes: ?int, sessionCount: int, runningSessionId: ?int, runningSessionTool: ?string, weeklyDone: ?int, weeklyTarget: ?int}>
+     * @return list<array{version: ExerciseVersion, checked: bool, practicedMinutes: ?int, sessionCount: int, runningSessionId: ?int, runningSessionTool: ?string, weeklyDone: ?int, weeklyTarget: ?int, learningState: ?string, lastPracticedOn: ?DateTimeImmutable}>
      */
     public function buildDay(array $allVersions, array $sessions, \DateTimeImmutable $date): array
     {
         $dailyStats = $this->dailyStatsByExercise($sessions);
         $runningByExercise = $this->runningSessionsByExercise($sessions);
+        $latestByExercise = $this->latestFinishedByExercise($sessions);
 
         $rows = [];
         foreach ($allVersions as $version) {
@@ -62,6 +63,8 @@ final class ExerciseDayViewBuilder
                 'runningSessionTool' => $runningSession?->getTool(),
                 'weeklyDone' => $weeklyDone,
                 'weeklyTarget' => $weeklyTarget,
+                'learningState' => $latestByExercise[$exerciseId]['learningState'] ?? null,
+                'lastPracticedOn' => $latestByExercise[$exerciseId]['lastPracticedOn'] ?? null,
             ];
         }
 
@@ -76,7 +79,7 @@ final class ExerciseDayViewBuilder
      *
      * @param ExerciseVersion[] $allVersions
      * @param PracticeSession[] $sessions
-     * @return list<array{version: ExerciseVersion, checked: bool, practicedMinutes: ?int, sessionCount: int, runningSessionId: ?int, runningSessionTool: ?string, weeklyDone: ?int, weeklyTarget: ?int}>
+     * @return list<array{version: ExerciseVersion, checked: bool, practicedMinutes: ?int, sessionCount: int, runningSessionId: ?int, runningSessionTool: ?string, weeklyDone: ?int, weeklyTarget: ?int, learningState: ?string, lastPracticedOn: ?DateTimeImmutable}>
      */
     public function buildDayForRoutine(Routine $routine, array $allVersions, array $sessions, \DateTimeImmutable $date): array
     {
@@ -233,6 +236,43 @@ final class ExerciseDayViewBuilder
         }
 
         return $stats;
+    }
+
+    /**
+     * Per exercise: the day of the most recent finished session and the
+     * learning state of the most recent finished session that was actually
+     * rated (a later unrated one doesn't erase the last real assessment) -
+     * the inputs ExercisePrioritizer ranks Heute by. Every exercise gets an
+     * entry, with nulls where there's nothing yet.
+     *
+     * @param PracticeSession[] $sessions
+     * @return array<int, array{learningState: ?string, lastPracticedOn: ?\DateTimeImmutable}>
+     */
+    private function latestFinishedByExercise(array $sessions): array
+    {
+        $latestFinish = [];
+        $latestRatedFinish = [];
+        $result = [];
+        foreach ($sessions as $s) {
+            $exercise = $s->getExercise();
+            if ($exercise === null || !$s->isFinished()) {
+                continue;
+            }
+            $exerciseId = $exercise->getId();
+            $finishedAt = $s->getFinishedAt();
+            $result[$exerciseId] ??= ['learningState' => null, 'lastPracticedOn' => null];
+
+            if (!isset($latestFinish[$exerciseId]) || $finishedAt > $latestFinish[$exerciseId]) {
+                $latestFinish[$exerciseId] = $finishedAt;
+                $result[$exerciseId]['lastPracticedOn'] = $finishedAt->setTime(0, 0);
+            }
+            if ($s->getLearningState() !== null && (!isset($latestRatedFinish[$exerciseId]) || $finishedAt > $latestRatedFinish[$exerciseId])) {
+                $latestRatedFinish[$exerciseId] = $finishedAt;
+                $result[$exerciseId]['learningState'] = $s->getLearningState();
+            }
+        }
+
+        return $result;
     }
 
     /**

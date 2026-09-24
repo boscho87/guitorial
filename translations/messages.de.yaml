@@ -317,6 +317,13 @@ diary:
   empty: "Noch keine Übungen im Plan."
   empty_cta: "Jetzt eine Übung anlegen"
   empty_past: "An diesem Tag gab es noch keine Übungen im Plan."
+  priority:
+    note: "Sortiert nach Empfehlung."
+    change: ändern
+    zaeh: "zäh zuletzt"
+    wochenziel: "Wochenziel offen"
+    lange_nicht: "lange nicht geübt"
+    neu: neu
   manage_link: "Übungen verwalten"
   active_routine:
     label: "Aktuelle Routine:"
@@ -655,6 +662,14 @@ profile:
     description: "Kurze Hinweise erklären dir beim ersten Besuch einer Seite, was die einzelnen Elemente tun – immer nur einer auf einmal."
     replay: "Hilfen erneut zeigen"
     replayed: "Fertig – die Hinweise erscheinen wieder auf jeder Seite."
+  sort:
+    title: "Heute: Sortierung"
+    custom:
+      title: "Eigene Sortierung"
+      description: "Die Übungen erscheinen in der Reihenfolge deiner Routine."
+    priority:
+      title: "Empfohlene Prioritäten"
+      description: "Innerhalb deiner Routine kommt Zähes und lange Nicht-Geübtes zuerst, Erledigtes steht unten."
   account:
     title: Konto
     anonymous: "Du nutzt Guitorial ohne Konto. Mit einem Login bleibt dein Fortschritt auch auf einem neuen Gerät erhalten."
@@ -667,11 +682,6 @@ hints:
     skip: Überspringen
     disable: "Hilfen ausschalten"
     of: von
-  landing:
-    hero: "Hier geht's los: \"Jetzt üben\" führt dich zu Meine Übungen, deinem persönlichen Übungsplan."
-    trainer: "Die fünf Trainer üben Theorie spielerisch: Tonarten, Kapo, Akkordfunktionen, Griffbrett und Skalen. Tippe auf eine Karte, um zu starten."
-    diary: "In Meine Übungen legst du eigene Übungen an - Songs, Technik, Theorie - und hakst sie Tag für Tag ab."
-    progress: "Hier siehst du deine Serie, deine Übungstage und persönliche Rekorde."
   training:
     grid: "Wähle einen Trainer. Jede Runde ist kurz und begrenzt - danach siehst du dein Ergebnis."
   tool_settings:

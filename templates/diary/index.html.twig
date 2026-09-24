@@ -74,6 +74,12 @@
             </p>
             <a href="{{ path('routine_index') }}" class="text-xs font-medium text-primary hover:underline">{{ 'diary.active_routine.change'|trans }}</a>
         </div>
+        {% if sortByPriority %}
+            <p class="mt-2 text-xs text-base-content/60">
+                {{ 'diary.priority.note'|trans }}
+                <a href="{{ path('profile_index') }}" class="font-medium text-primary hover:underline">{{ 'diary.priority.change'|trans }}</a>
+            </p>
+        {% endif %}
     {% endif %}
 
     {% if dayRows is not empty %}

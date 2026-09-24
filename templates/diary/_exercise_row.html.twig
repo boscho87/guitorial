@@ -73,6 +73,7 @@
                 {% if row.weeklyTarget %} {{ row.weeklyDone }}/{{ row.weeklyTarget }}{% endif %}
             </span>
             {% if groupName %}<span class="badge badge-sm badge-ghost">{{ groupName }}</span>{% endif %}
+            {% if row.priorityReason is defined and row.priorityReason %}<span class="badge badge-sm badge-outline badge-primary">{{ ('diary.priority.' ~ row.priorityReason)|trans }}</span>{% endif %}
         </div>
         <div class="relative z-10 flex shrink-0 gap-0.5">
             <a href="{{ path('history_exercise_detail', {id: exercise.id}) }}" class="btn btn-ghost btn-xs btn-square text-base-content/60" title="{{ 'diary.item.history'|trans }}" aria-label="{{ 'diary.item.history'|trans }}: {{ version.title }}">

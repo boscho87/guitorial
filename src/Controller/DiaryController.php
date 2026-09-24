@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Domain\Diary\DiarySuggestions;
 use App\Domain\Diary\ExerciseDayViewBuilder;
 use App\Domain\Diary\ExerciseGroupProvisioner;
+use App\Domain\Diary\ExercisePrioritizer;
 use App\Domain\Diary\NoteLinkExtractor;
 use App\Domain\Diary\RoutineProvisioner;
 use App\Domain\Diary\YouTubeTitleFetcher;
@@ -51,6 +52,8 @@ final class DiaryController extends AbstractController
     private const MAX_MINUTES = 180;
     private const MAX_REPEAT_COUNT = 14;
     private const MAX_EXTERNAL_URL_LENGTH = 2048;
+    // Set by the profile page's sort_setting_controller.js.
+    private const SORT_COOKIE = 'guitorial_sort';
 
     public function __construct(
         private readonly ToolRegistry $tools,
@@ -61,6 +64,7 @@ final class DiaryController extends AbstractController
         private readonly RoutineProvisioner $routineProvisioner,
         private readonly ReturnRouteResolver $returnRoute,
         private readonly YouTubeTitleFetcher $youtubeTitleFetcher,
+        private readonly ExercisePrioritizer $exercisePrioritizer,
     ) {
     }
 
@@ -101,6 +105,12 @@ final class DiaryController extends AbstractController
             // working through the list would be disorienting.
             usort($rows, static fn (array $a, array $b): int => $b['checked'] <=> $a['checked']);
         }
+        // Opt-in (profile setting, cookie): reorder today's routine by
+        // recommended priority - still only the routine's own rows.
+        $sortByPriority = $isToday && $activeRoutine !== null && $request->cookies->get(self::SORT_COOKIE) === 'priority';
+        if ($sortByPriority) {
+            $rows = $this->exercisePrioritizer->sort($rows, $today);
+        }
         $recentRatios = $this->dayViewBuilder->buildRecentRatios($allVersions, $allSessions, $today, self::RECENT_DAYS);
 
         $resourcesByExerciseId = [];
@@ -132,6 +142,7 @@ final class DiaryController extends AbstractController
             'toolSettingsRoutes' => $toolSettingsRoutes,
             'toolPracticeRoutes' => $toolPracticeRoutes,
             'recentRatios' => $recentRatios,
+            'sortByPriority' => $sortByPriority,
             'currentStreak' => $this->statsBuilder->build($allSessions)['currentStreak'],
             'csrfIntention' => self::CSRF_INTENTION,
             'sessionCsrfIntention' => 'exercise_session',
