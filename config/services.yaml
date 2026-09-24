@@ -8,7 +8,7 @@ parameters:
     # plain export, not a clone - see deploy.yml/CLAUDE.md), so this can't
     # be read from git at runtime. Bump this by hand in the same commit as
     # each future release tag.
-    app.version: '1.4.1'
+    app.version: '1.4.2'
 
 services:
     # default configuration for services in *this* file
