@@ -132,6 +132,18 @@ class Routine
         return $this->shareToken;
     }
 
+    public function disableSharing(): void
+    {
+        $this->shareToken = null;
+    }
+
+    public function regenerateShareToken(): string
+    {
+        $this->shareToken = bin2hex(random_bytes(8));
+
+        return $this->shareToken;
+    }
+
     public function getImportedFromRoutine(): ?self
     {
         return $this->importedFromRoutine;

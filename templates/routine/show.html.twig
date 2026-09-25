@@ -43,6 +43,14 @@
                     data-action="click->copy-link#select"
             >
             <button type="button" class="btn btn-ghost btn-sm" data-copy-link-target="button" data-copy-link-confirmed-label="{{ 'routine.share.copied'|trans }}" data-action="copy-link#copy">{{ 'routine.share.copy'|trans }}</button>
+            <form method="post" action="{{ path('routine_share_regenerate', {id: routine.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                <button type="submit" class="btn btn-ghost btn-xs">{{ 'routine.share.regenerate'|trans }}</button>
+            </form>
+            <form method="post" action="{{ path('routine_share_disable', {id: routine.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                <button type="submit" class="btn btn-ghost btn-xs text-error">{{ 'routine.share.disable'|trans }}</button>
+            </form>
         </div>
     {% endif %}
 

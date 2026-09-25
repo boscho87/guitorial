@@ -416,11 +416,23 @@ class PracticeSession
         $this->status = self::STATUS_DISCARDED;
     }
 
+    /**
+     * Only ever advances a session that is still running - the server (the
+     * tool controllers via SessionRecorder) is authoritative for finishing
+     * and discarding, so a late or replayed beacon can't roll a finished
+     * round's numbers back or revive a discarded one. Progress values only
+     * move forward within a round, which also makes out-of-order beacons
+     * harmless.
+     */
     public function applySync(int $questionIndex, ?int $totalQuestions, ?int $correctCount, bool $finished): void
     {
-        $this->questionIndex = $questionIndex;
-        $this->totalQuestions = $totalQuestions;
-        $this->correctCount = $correctCount;
+        if (!$this->isRunning()) {
+            return;
+        }
+
+        $this->questionIndex = max($this->questionIndex, $questionIndex);
+        $this->totalQuestions = $totalQuestions ?? $this->totalQuestions;
+        $this->correctCount = $correctCount === null ? $this->correctCount : max($this->correctCount ?? 0, $correctCount);
         $this->updatedAt = new \DateTimeImmutable();
         if ($finished && $this->finishedAt === null) {
             $this->finishedAt = $this->updatedAt;

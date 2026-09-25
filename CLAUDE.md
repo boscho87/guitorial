@@ -110,7 +110,7 @@ the committed `.env`). Obtained from:
   accounts" (matches `tenant: common` in `config/packages/knpu_oauth2_client.yaml`) → redirect URI
   `https://<host>/connect/azure/check` per environment → Certificates & secrets → new client secret.
 
-Current prod version: `v0.4.0`. No formal semantic-release cycle has run yet - tags so far were pushed
+Current prod version: see the footer of guitorial.com (`app.version`). No formal semantic-release cycle has run yet - tags so far were pushed
 manually.
 
 ## Conventions

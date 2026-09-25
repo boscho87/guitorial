@@ -56,12 +56,40 @@ final class RoutineShareController extends AbstractController
         return $this->redirectToRoute('routine_show', ['id' => $id]);
     }
 
+    #[Route('/routinen/{id}/teilen/beenden', name: 'routine_share_disable', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function disable(int $id, Request $request, RoutineRepository $routines, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $routine = $routines->findForVisitor($id, $this->requireVisitorId($request));
+        if ($routine !== null) {
+            $routine->disableSharing();
+            $em->flush();
+            $this->addFlash('success', 'routine.share.disabled_flash');
+        }
+
+        return $this->redirectToRoute('routine_show', ['id' => $id]);
+    }
+
+    #[Route('/routinen/{id}/teilen/erneuern', name: 'routine_share_regenerate', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function regenerate(int $id, Request $request, RoutineRepository $routines, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $routine = $routines->findForVisitor($id, $this->requireVisitorId($request));
+        if ($routine !== null) {
+            $routine->regenerateShareToken();
+            $em->flush();
+            $this->addFlash('success', 'routine.share.regenerated_flash');
+        }
+
+        return $this->redirectToRoute('routine_show', ['id' => $id]);
+    }
+
     #[Route('/r/{token}', name: 'routine_shared_show', methods: ['GET'])]
     public function show(string $token, Request $request, RoutineRepository $routines, ExerciseVersionRepository $versions): Response
     {
         $routine = $routines->findByShareToken($token);
         if ($routine === null) {
-            return $this->redirectToRoute('home_index');
+            return $this->render('routine/shared_invalid.html.twig', [], new Response(status: Response::HTTP_NOT_FOUND));
         }
 
         if ($routine->getVisitorId() === $this->requireVisitorId($request)) {
@@ -114,7 +142,7 @@ final class RoutineShareController extends AbstractController
         $this->assertValidCsrf($request);
         $sourceRoutine = $routines->findByShareToken($token);
         if ($sourceRoutine === null) {
-            return $this->redirectToRoute('home_index');
+            return $this->render('routine/shared_invalid.html.twig', [], new Response(status: Response::HTTP_NOT_FOUND));
         }
 
         if ($this->getUser() === null) {
@@ -147,6 +175,8 @@ final class RoutineShareController extends AbstractController
         }
 
         $addedAny = false;
+        $clonedThisImport = [];
+        $addedExercises = [];
         foreach ($sourceRoutine->getItems() as $item) {
             $sourceExercise = $item->getExercise();
             $version = $versions->currentFor($sourceExercise, $today);
@@ -154,14 +184,16 @@ final class RoutineShareController extends AbstractController
                 continue;
             }
 
-            $targetExercise = $exercises->findImportedFrom($visitorId, $sourceExercise);
+            $targetExercise = $clonedThisImport[$sourceExercise->getId()] ?? $exercises->findImportedFrom($visitorId, $sourceExercise);
             if ($targetExercise === null) {
                 $targetExercise = $this->cloneExercise($visitorId, $sourceExercise, $version, $resources, $em, $today);
+                $clonedThisImport[$sourceExercise->getId()] = $targetExercise;
             }
 
-            if (in_array($targetExercise->getId(), $existingExerciseIds, true)) {
+            if (in_array($targetExercise->getId(), $existingExerciseIds, true) || in_array($targetExercise, $addedExercises, true)) {
                 continue; // already in this routine - nothing to add
             }
+            $addedExercises[] = $targetExercise;
 
             $em->persist(new RoutineItem($targetRoutine, $targetExercise, ++$maxSortIndex));
             $addedAny = true;
