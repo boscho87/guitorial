@@ -25,6 +25,12 @@
             <button type="button" class="btn btn-sm" data-practice-tools-target="metroButton" data-action="practice-tools#toggleMetronome">{{ 'practice_tools.start_stop'|trans }}</button>
         </div>
 
+        <label class="mt-3 flex items-center gap-3 text-sm text-base-content/70">
+            {{ 'practice_tools.volume'|trans }}
+            <input type="range" min="0" max="1" step="0.05" class="range range-xs flex-1" data-practice-tools-target="metroVolume" data-action="input->practice-tools#setMetroVolume">
+        </label>
+        <p class="mt-2 hidden text-xs text-base-content/50 sm:block">{{ 'practice_tools.shortcuts'|trans }}</p>
+
         <h2 class="eyebrow mt-6">{{ 'practice_tools.drone'|trans }}</h2>
         <div class="mt-3 grid grid-cols-6 gap-1.5">
             {% for name in noteNames %}
@@ -32,16 +38,24 @@
             {% endfor %}
         </div>
         <label class="mt-3 flex items-center gap-2 text-sm text-base-content/70">
+            {{ 'practice_tools.octave'|trans }}
+            <select class="select select-sm select-bordered" data-practice-tools-target="octave" data-action="change->practice-tools#setOctave">
+                {% for octave in 2..4 %}
+                    <option value="{{ octave }}">{{ octave }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <label class="mt-3 flex items-center gap-2 text-sm text-base-content/70">
             <input type="checkbox" class="checkbox checkbox-sm" data-practice-tools-target="fifth" data-action="change->practice-tools#toggleFifth">
             {{ 'practice_tools.fifth'|trans }}
         </label>
 
-        <label class="mt-4 flex items-center gap-3 text-sm text-base-content/70">
+        <label class="mt-3 flex items-center gap-3 text-sm text-base-content/70">
             {{ 'practice_tools.volume'|trans }}
-            <input type="range" min="0" max="1" step="0.05" class="range range-xs flex-1" data-practice-tools-target="volume" data-action="input->practice-tools#setVolume">
+            <input type="range" min="0" max="1" step="0.05" class="range range-xs flex-1" data-practice-tools-target="droneVolume" data-action="input->practice-tools#setDroneVolume">
         </label>
     </div>
-    <button type="button" class="btn btn-circle btn-outline bg-base-100 shadow-md" data-action="practice-tools#toggle" aria-label="{{ 'practice_tools.toggle'|trans }}" title="{{ 'practice_tools.toggle'|trans }}">
+    <button type="button" class="btn btn-circle btn-outline bg-base-100 shadow-md" data-action="practice-tools#toggle" data-hint-id="practice_tools.toggle" data-hint-order="900" data-hint="{{ 'hints.practice_tools.toggle'|trans }}" aria-label="{{ 'practice_tools.toggle'|trans }}" title="{{ 'practice_tools.toggle'|trans }}">
         {{ icons.icon('metronome') }}
     </button>
 </div>

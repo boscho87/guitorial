@@ -578,7 +578,9 @@ practice_tools:
   start_stop: Start / Stopp
   drone: Drone
   fifth: mit Quinte
+  octave: Oktave
   volume: Lautstärke
+  shortcuts: "Tasten: M Start/Stopp · T Tap · + / − Tempo (±5)"
 
 footer:
   privacy: Datenschutz
@@ -732,6 +734,8 @@ hints:
     rhythm: "Wie oft gehört die Übung in deinen Plan - täglich, ein paar Mal pro Woche oder ohne Vorgabe?"
     group: "Gruppen sortieren deine Übungen, z. B. in Theorie und Praxis."
     done: "Speichern - die Übung steht danach automatisch in deiner aktuellen Routine und erscheint unter Meine Übungen."
+  practice_tools:
+    toggle: "Der Übungshelfer: ein Metronom mit Tap-Tempo und ein Drone-Ton für jeden der 12 Töne - zum Mitspielen bei jeder Übung. Er läuft beim Seitenwechsel weiter."
   manage:
     add: "Hier legst du weitere Übungen an."
     list: "Deine Übungen. Die Icons öffnen den Verlauf, bearbeiten, archivieren oder löschen; darunter änderst du Gruppe und Rhythmus direkt."

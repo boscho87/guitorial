@@ -6,17 +6,18 @@ const SCHEDULE_AHEAD_S = 0.1;
 const DRONE_OCTAVE_C2 = 65.406;
 
 export default class extends Controller {
-    static targets = ['panel', 'bpm', 'bpmOutput', 'beats', 'metroButton', 'droneNote', 'fifth', 'volume', 'beatDot'];
+    static targets = ['panel', 'bpm', 'bpmOutput', 'beats', 'metroButton', 'droneNote', 'fifth', 'octave', 'metroVolume', 'droneVolume', 'beatDot'];
 
     connect() {
         this.ctx = null;
-        this.master = null;
+        this.metroBus = null;
+        this.droneBus = null;
         this.metroTimer = null;
         this.beatIndex = 0;
         this.nextBeatTime = 0;
         this.taps = [];
         this.drone = null;
-        this.state = { bpm: 100, beats: 4, droneNote: null, fifth: false, volume: 0.6 };
+        this.state = { bpm: 100, beats: 4, droneNote: null, fifth: false, octave: 3, metroVolume: 0.6, droneVolume: 0.6 };
 
         try {
             Object.assign(this.state, JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'));
@@ -27,14 +28,49 @@ export default class extends Controller {
         this.bpmTarget.value = this.state.bpm;
         this.beatsTarget.value = this.state.beats;
         this.fifthTarget.checked = this.state.fifth;
-        this.volumeTarget.value = this.state.volume;
+        this.state.octave = Math.min(4, Math.max(2, Number(this.state.octave) || 3));
+        this.octaveTarget.value = this.state.octave;
+        this.metroVolumeTarget.value = this.state.metroVolume;
+        this.droneVolumeTarget.value = this.state.droneVolume;
         this.renderBpm();
         this.renderDroneButtons();
+
+        this.onKeydown = this.onKeydown.bind(this);
+        document.addEventListener('keydown', this.onKeydown);
     }
 
     disconnect() {
+        document.removeEventListener('keydown', this.onKeydown);
         this.stopMetronome();
         this.stopDrone(true);
+    }
+
+    onKeydown(event) {
+        if (event.metaKey || event.ctrlKey || event.altKey || event.isComposing || event.repeat) {
+            return;
+        }
+        const target = event.target;
+        if (target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))) {
+            return;
+        }
+        if (document.querySelector('dialog[open], .hint-bubble')) {
+            return;
+        }
+
+        const key = event.key.toLowerCase();
+        if (key === 'm') {
+            this.toggleMetronome();
+        } else if (key === 't') {
+            this.tap();
+        } else if (key === '+' || key === '=' || key === '-') {
+            this.state.bpm = this.clampBpm(this.state.bpm + (key === '-' ? -5 : 5));
+            this.bpmTarget.value = this.state.bpm;
+            this.renderBpm();
+            this.persist();
+        } else {
+            return;
+        }
+        event.preventDefault();
     }
 
     toggle() {
@@ -52,9 +88,12 @@ export default class extends Controller {
     audio() {
         if (!this.ctx) {
             this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-            this.master = this.ctx.createGain();
-            this.master.gain.value = this.state.volume;
-            this.master.connect(this.ctx.destination);
+            this.metroBus = this.ctx.createGain();
+            this.metroBus.gain.value = this.state.metroVolume;
+            this.metroBus.connect(this.ctx.destination);
+            this.droneBus = this.ctx.createGain();
+            this.droneBus.gain.value = this.state.droneVolume;
+            this.droneBus.connect(this.ctx.destination);
         }
         if (this.ctx.state === 'suspended') {
             this.ctx.resume();
@@ -63,10 +102,18 @@ export default class extends Controller {
         return this.ctx;
     }
 
-    setVolume() {
-        this.state.volume = Number(this.volumeTarget.value);
-        if (this.master) {
-            this.master.gain.setTargetAtTime(this.state.volume, this.ctx.currentTime, 0.02);
+    setMetroVolume() {
+        this.state.metroVolume = Number(this.metroVolumeTarget.value);
+        if (this.metroBus) {
+            this.metroBus.gain.setTargetAtTime(this.state.metroVolume, this.ctx.currentTime, 0.02);
+        }
+        this.persist();
+    }
+
+    setDroneVolume() {
+        this.state.droneVolume = Number(this.droneVolumeTarget.value);
+        if (this.droneBus) {
+            this.droneBus.gain.setTargetAtTime(this.state.droneVolume, this.ctx.currentTime, 0.02);
         }
         this.persist();
     }
@@ -152,7 +199,7 @@ export default class extends Controller {
         gain.gain.setValueAtTime(0.0001, time);
         gain.gain.exponentialRampToValueAtTime(accent ? 1 : 0.6, time + 0.002);
         gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.05);
-        osc.connect(gain).connect(this.master);
+        osc.connect(gain).connect(this.metroBus);
         osc.start(time);
         osc.stop(time + 0.06);
     }
@@ -187,19 +234,27 @@ export default class extends Controller {
         }
     }
 
+    setOctave() {
+        this.state.octave = Number(this.octaveTarget.value);
+        this.persist();
+        if (this.drone && this.state.droneNote !== null) {
+            this.startDrone(this.state.droneNote);
+        }
+    }
+
     startDrone(note) {
         const ctx = this.audio();
         this.stopDrone();
 
-        const base = DRONE_OCTAVE_C2 * 2 ** (note / 12);
+        const base = DRONE_OCTAVE_C2 * 2 ** (this.state.octave - 2 + note / 12);
         const freqs = this.state.fifth ? [base, base * 1.5] : [base];
         const gain = ctx.createGain();
         gain.gain.setValueAtTime(0.0001, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.35, ctx.currentTime + 0.15);
         const filter = ctx.createBiquadFilter();
         filter.type = 'lowpass';
-        filter.frequency.value = 900;
-        filter.connect(gain).connect(this.master);
+        filter.frequency.value = Math.max(900, base * 8);
+        filter.connect(gain).connect(this.droneBus);
 
         const oscs = freqs.flatMap((freq) => [['sawtooth', 0.4], ['sine', 1]].map(([type, level]) => {
             const osc = ctx.createOscillator();
