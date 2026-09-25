@@ -6,19 +6,25 @@ import { Controller } from '@hotwired/stimulus';
  * no-tracking-by-default stance. Playing in-page instead of opening a new
  * tab also means the exercise-session tab never becomes document.hidden,
  * so its timer keeps counting instead of pausing.
+ *
+ * One controller instance covers the whole resource list (a fixed player
+ * slot, shared by every "Abspielen" trigger below it - see running.html.twig)
+ * rather than one instance per resource, so the video always plays in the
+ * same place instead of appearing wherever was clicked and pushing
+ * whatever follows further down each time a different resource is chosen.
  */
 export default class extends Controller {
-    static targets = ['container', 'loadButton', 'playerWrapper'];
-    static values = { videoId: String };
+    static targets = ['container', 'playerWrapper'];
 
-    load() {
-        // The card body also triggers this - don't restart an already-playing video.
-        if (this.containerTarget.firstElementChild) {
-            return;
+    load(event) {
+        const videoId = event.params.videoId;
+        if (this.currentVideoId === videoId) {
+            return; // already playing this one
         }
+        this.currentVideoId = videoId;
 
         const iframe = document.createElement('iframe');
-        iframe.src = `https://www.youtube-nocookie.com/embed/${this.videoIdValue}?autoplay=1`;
+        iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`;
         iframe.title = 'YouTube video player';
         iframe.className = 'h-full w-full';
         iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
@@ -27,25 +33,15 @@ export default class extends Controller {
 
         this.containerTarget.replaceChildren(iframe);
         this.playerWrapperTarget.classList.remove('hidden');
-        this.loadButtonTarget.classList.add('hidden');
-
-        // Tells every other player on the page (listening on window, see
-        // closeIfOther) to close - only one video plays at a time.
-        this.dispatch('opened');
-    }
-
-    closeIfOther(event) {
-        if (event.target !== this.element) {
-            this.close();
-        }
+        this.playerWrapperTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     close() {
         // Actually remove the iframe, not just hide it - a hidden-but-still-
         // present embed keeps playing (and stays document-audible) in the
         // background.
+        this.currentVideoId = null;
         this.containerTarget.replaceChildren();
         this.playerWrapperTarget.classList.add('hidden');
-        this.loadButtonTarget.classList.remove('hidden');
     }
 }

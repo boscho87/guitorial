@@ -96,15 +96,27 @@
         </div>
     {% endif %}
 
-    {% if resource and not resource.isInternalTool %}
-        <div class="mt-6" data-hint-id="session.resource" data-hint="{{ 'hints.session.resource'|trans }}">
-            {{ include('exercise_session/_resource_link.html.twig', {resource: resource, videoId: youtubeVideoIds[resource.id] ?? null}) }}
-        </div>
-    {% elseif openableResources is not empty %}
-        <div class="mt-6 flex flex-col gap-2" data-hint-id="session.resource" data-hint="{{ 'hints.session.resource'|trans }}">
-            {% for openableResource in openableResources %}
-                {{ include('exercise_session/_resource_link.html.twig', {resource: openableResource, videoId: youtubeVideoIds[openableResource.id] ?? null}) }}
-            {% endfor %}
+    {% if (resource and not resource.isInternalTool) or openableResources is not empty %}
+        <div class="mt-6" data-controller="youtube-embed" data-hint-id="session.resource" data-hint="{{ 'hints.session.resource'|trans }}">
+            {# Fixed spot for the embedded player, above the resource
+               card(s) - always the same place regardless of which
+               resource's "Abspielen" was clicked, so opening/switching/
+               closing a video doesn't shift the card(s) below it. #}
+            <div class="mb-3 hidden" data-youtube-embed-target="playerWrapper">
+                <div class="aspect-video w-full overflow-hidden rounded-box bg-base-300" data-youtube-embed-target="container"></div>
+                <button type="button" class="btn btn-ghost btn-xs mt-2 gap-1.5" data-action="youtube-embed#close">
+                    {{ icons.icon('close') }}{{ 'exercise_session.close_player'|trans }}
+                </button>
+            </div>
+            {% if resource and not resource.isInternalTool %}
+                {{ include('exercise_session/_resource_link.html.twig', {resource: resource, videoId: youtubeVideoIds[resource.id] ?? null}) }}
+            {% else %}
+                <div class="flex flex-col gap-2">
+                    {% for openableResource in openableResources %}
+                        {{ include('exercise_session/_resource_link.html.twig', {resource: openableResource, videoId: youtubeVideoIds[openableResource.id] ?? null}) }}
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
     {% endif %}
 

@@ -1,88 +1,75 @@
 {#
     One external resource on the running page: a card that is itself the
     link (title, host underneath), plus - for a recognised YouTube link
-    (videoId set) - an optional in-page player.
+    (videoId set) - an "Abspielen" trigger for the shared player slot in
+    running.html.twig (one controller/slot for the whole page, see
+    youtube_embed_controller.js - not per resource).
 
     Expects: resource (ExerciseResource, external link), videoId (string|null)
 
-    The player is a click-to-load facade - nothing loads from YouTube until
-    "Abspielen" is clicked, matching the site's no-tracking-by-default stance
-    (see legal/privacy.html.twig; deliberately no thumbnail either, that
-    would be an unprompted request to Google). Playing in-page instead of a
-    new tab keeps this tab visible, so the timer isn't paused by
-    pauseWhenHidden (timer_controller.js); opening a second player closes
-    the first (youtube_embed_controller.js).
+    Opening the link in a new tab (both branches below) backgrounds this
+    tab, which would normally pause the timer (pauseWhenHidden) - marked via
+    external_resource_controller.js so the timer/heartbeat grant a grace
+    window instead of pausing right away (see timer_controller.js's
+    markResourceOpened). Playing a YouTube video in-page avoids the problem
+    at the root instead: the tab never actually loses visibility.
 #}
 {% import '_components/icons.html.twig' as icons %}
 {% set host = (resource.externalUrl|replace({'https://www.': '', 'https://': ''})|split('/'))|first %}
 {% set label = resource.externalTitle ?? resource.externalProvider ?? host %}
-<div
+<div class="card-tile group flex flex-col gap-3 !p-3 sm:flex-row sm:items-center">
     {% if videoId %}
-        data-controller="youtube-embed"
-        data-youtube-embed-video-id-value="{{ videoId }}"
-        data-action="youtube-embed:opened@window->youtube-embed#closeIfOther"
-    {% endif %}
->
-    <div class="card-tile group flex flex-col gap-3 !p-3 sm:flex-row sm:items-center">
-        {% if videoId %}
-            {# YouTube: playing in-page is the main action (the card body
-               and the primary button); opening in a new tab is the quiet
-               secondary icon on the right. #}
-            <button
-                    type="button" class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
-                    data-action="youtube-embed#load"
-                    title="{{ 'exercise_session.play_inline'|trans }}: {{ label }}"
-            >
-                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-box bg-primary/10 text-primary">
-                    {{ icons.icon('play') }}
-                </span>
-                <span class="min-w-0 flex-1">
-                    <span class="block truncate text-sm font-medium">{{ label }}</span>
-                    {% if label != host %}
-                        <span class="block truncate text-xs text-base-content/60">{{ host }}</span>
-                    {% endif %}
-                </span>
+        {# YouTube: playing in-page is the main action (the card body
+           and the primary button); opening in a new tab is the quiet
+           secondary icon on the right. #}
+        <button
+                type="button" class="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
+                data-action="youtube-embed#load" data-youtube-embed-video-id-param="{{ videoId }}"
+                title="{{ 'exercise_session.play_inline'|trans }}: {{ label }}"
+        >
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-box bg-primary/10 text-primary">
+                {{ icons.icon('play') }}
+            </span>
+            <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-medium">{{ label }}</span>
+                {% if label != host %}
+                    <span class="block truncate text-xs text-base-content/60">{{ host }}</span>
+                {% endif %}
+            </span>
+        </button>
+        <div class="flex shrink-0 items-center gap-1">
+            <button type="button" class="btn btn-primary btn-sm gap-1.5" data-action="youtube-embed#load" data-youtube-embed-video-id-param="{{ videoId }}">
+                {{ icons.icon('play') }}{{ 'exercise_session.play_inline'|trans }}
             </button>
-            <div class="flex shrink-0 items-center gap-1">
-                <button type="button" class="btn btn-primary btn-sm gap-1.5" data-youtube-embed-target="loadButton" data-action="youtube-embed#load">
-                    {{ icons.icon('play') }}{{ 'exercise_session.play_inline'|trans }}
-                </button>
-                <a
-                        href="{{ resource.externalUrl }}" target="_blank" rel="noopener"
-                        class="btn btn-ghost btn-sm btn-square text-base-content/60"
-                        title="{{ 'exercise_session.open_external'|trans }}" aria-label="{{ 'exercise_session.open_external'|trans }}: {{ label }}"
-                >
-                    {{ icons.icon('external') }}
-                </a>
-            </div>
-        {% else %}
             <a
                     href="{{ resource.externalUrl }}" target="_blank" rel="noopener"
-                    class="flex min-w-0 flex-1 items-center gap-3"
-                    title="{{ 'exercise_session.reopen_resource'|trans }}: {{ label }}"
-                    aria-label="{{ 'exercise_session.reopen_resource'|trans }}: {{ label }}"
+                    class="btn btn-ghost btn-sm btn-square text-base-content/60"
+                    data-controller="external-resource" data-action="click->external-resource#opened"
+                    title="{{ 'exercise_session.open_external'|trans }}" aria-label="{{ 'exercise_session.open_external'|trans }}: {{ label }}"
             >
-                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-box bg-primary/10 text-primary">
-                    {{ icons.icon('external') }}
-                </span>
-                <span class="min-w-0 flex-1">
-                    <span class="block truncate text-sm font-medium">{{ label }}</span>
-                    {% if label != host %}
-                        <span class="block truncate text-xs text-base-content/60">{{ host }}</span>
-                    {% endif %}
-                </span>
-                <span class="shrink-0 text-base-content/40 transition-transform group-hover:translate-x-0.5 group-hover:text-primary">
-                    {{ icons.icon('external') }}
-                </span>
+                {{ icons.icon('external') }}
             </a>
-        {% endif %}
-    </div>
-    {% if videoId %}
-        <div class="mt-3 hidden" data-youtube-embed-target="playerWrapper">
-            <div class="aspect-video w-full overflow-hidden rounded-box bg-base-300" data-youtube-embed-target="container"></div>
-            <button type="button" class="btn btn-ghost btn-xs mt-2 gap-1.5" data-action="youtube-embed#close">
-                {{ icons.icon('close') }}{{ 'exercise_session.close_player'|trans }}
-            </button>
         </div>
+    {% else %}
+        <a
+                href="{{ resource.externalUrl }}" target="_blank" rel="noopener"
+                class="flex min-w-0 flex-1 items-center gap-3"
+                data-controller="external-resource" data-action="click->external-resource#opened"
+                title="{{ 'exercise_session.reopen_resource'|trans }}: {{ label }}"
+                aria-label="{{ 'exercise_session.reopen_resource'|trans }}: {{ label }}"
+        >
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-box bg-primary/10 text-primary">
+                {{ icons.icon('external') }}
+            </span>
+            <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-medium">{{ label }}</span>
+                {% if label != host %}
+                    <span class="block truncate text-xs text-base-content/60">{{ host }}</span>
+                {% endif %}
+            </span>
+            <span class="shrink-0 text-base-content/40 transition-transform group-hover:translate-x-0.5 group-hover:text-primary">
+                {{ icons.icon('external') }}
+            </span>
+        </a>
     {% endif %}
 </div>

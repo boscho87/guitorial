@@ -65,6 +65,7 @@ export default class extends Controller {
         checkinGraceSeconds: { type: Number, default: 90 },
         checkinFlashTitle: String,
         checkinNotificationBody: String,
+        resourceGraceMinutes: { type: Number, default: 15 },
     };
 
     connect() {
@@ -85,6 +86,14 @@ export default class extends Controller {
         this.awaitingCheckin = false;
         this.checkinGraceExpired = false;
         this.manuallyPaused = false;
+        // Opening a linked resource (a new tab) backgrounds this tab just
+        // like walking away does - grant a grace window afterwards so
+        // reading/watching along doesn't itself pause the timer. See
+        // external_resource_controller.js, which fires this from a
+        // different controller scope (the resource link, not this element).
+        this.resourceOpenedAtMs = null;
+        this.onResourceOpened = () => this.markResourceOpened();
+        document.addEventListener('resource:opened', this.onResourceOpened);
         this.nextCheckinAtMs = this.hasCheckinIntervalMinutesValue && this.hasTargetSecondsValue
             ? this.startValue + this.targetSecondsValue * 1000 + this.checkinIntervalMinutesValue * 60000
             : null;
@@ -115,10 +124,27 @@ export default class extends Controller {
     disconnect() {
         clearInterval(this.interval);
         clearTimeout(this.graceTimeout);
+        clearTimeout(this.resourceGraceTimeout);
         this.stopFlashingTitle();
         if (this.onVisibilityChange) {
             document.removeEventListener('visibilitychange', this.onVisibilityChange);
         }
+        document.removeEventListener('resource:opened', this.onResourceOpened);
+    }
+
+    markResourceOpened() {
+        this.resourceOpenedAtMs = Date.now();
+        this.updatePauseState();
+        // Nothing else re-evaluates the pause state while hidden (tick()
+        // only reads it, visibilitychange won't fire again until they come
+        // back) - without this, staying away past the grace still wouldn't
+        // start counting as paused until they returned.
+        clearTimeout(this.resourceGraceTimeout);
+        this.resourceGraceTimeout = setTimeout(() => this.updatePauseState(), this.resourceGraceMinutesValue * 60000);
+    }
+
+    withinResourceGrace() {
+        return this.resourceOpenedAtMs !== null && Date.now() - this.resourceOpenedAtMs < this.resourceGraceMinutesValue * 60000;
     }
 
     /**
@@ -129,7 +155,7 @@ export default class extends Controller {
      * expired check-in at once) never get counted twice.
      */
     updatePauseState() {
-        const shouldBePaused = (this.pauseWhenHiddenValue && document.hidden) || this.checkinGraceExpired || this.manuallyPaused;
+        const shouldBePaused = (this.pauseWhenHiddenValue && document.hidden && !this.withinResourceGrace()) || this.checkinGraceExpired || this.manuallyPaused;
         if (shouldBePaused && this.pausedSince === null) {
             this.pausedSince = Date.now();
         } else if (!shouldBePaused && this.pausedSince !== null) {

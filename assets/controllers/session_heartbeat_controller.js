@@ -19,10 +19,20 @@ export default class extends Controller {
         resumeUrl: String,
         token: String,
         intervalMs: { type: Number, default: 20000 },
+        resourceGraceMinutes: { type: Number, default: 15 },
     };
 
     connect() {
         this.checkinPaused = false;
+        this.resourceOpenedAtMs = null;
+        // Fired by external_resource_controller.js from a resource link
+        // elsewhere on the page - see timer_controller.js's own copy of
+        // this for why it's a plain document event, not an action target.
+        this.onResourceOpened = () => {
+            this.resourceOpenedAtMs = Date.now();
+            this.ping();
+        };
+        document.addEventListener('resource:opened', this.onResourceOpened);
         // setInterval's first tick only fires after a full intervalMsValue,
         // not immediately - leaving within that first ~20s (e.g. straight
         // back to Heute right after starting) would otherwise mean zero
@@ -73,10 +83,15 @@ export default class extends Controller {
         }
         window.removeEventListener('pageshow', this.onPageShow);
         document.removeEventListener('visibilitychange', this.onVisibilityChange);
+        document.removeEventListener('resource:opened', this.onResourceOpened);
+    }
+
+    withinResourceGrace() {
+        return this.resourceOpenedAtMs !== null && Date.now() - this.resourceOpenedAtMs < this.resourceGraceMinutesValue * 60000;
     }
 
     ping() {
-        if (document.hidden || this.checkinPaused) {
+        if ((document.hidden && !this.withinResourceGrace()) || this.checkinPaused) {
             return;
         }
         fetch(this.urlValue, {
