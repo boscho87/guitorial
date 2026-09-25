@@ -567,6 +567,19 @@ practice_guide:
     diary: "Meine Übungen öffnen"
     tools: "Zu den Tools"
 
+practice_tools:
+  toggle: Übungshelfer (Metronom & Drone)
+  metronome: Metronom
+  bpm: BPM
+  slower: Langsamer
+  faster: Schneller
+  tap: Tap
+  beats: Taktart
+  start_stop: Start / Stopp
+  drone: Drone
+  fifth: mit Quinte
+  volume: Lautstärke
+
 footer:
   privacy: Datenschutz
   imprint: Impressum

@@ -162,6 +162,9 @@
     {% endif %}
     {% block body %}{% endblock %}
 </main>
+{% if hideChromeOnMobile is not defined or not hideChromeOnMobile %}
+    <div class="contents">{% include '_components/practice_tools.html.twig' %}</div>
+{% endif %}
 {% if hide_footer is not defined or not hide_footer %}
 <footer class="mt-auto border-t border-primary/20 bg-footer text-footer-content {{ hideChromeOnMobile is defined and hideChromeOnMobile ? 'hidden sm:block' : '' }}">
     <div class="mx-auto flex max-w-3xl flex-col items-center gap-2 px-4 py-5 text-center sm:px-6">

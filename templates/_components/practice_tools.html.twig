@@ -1,0 +1,47 @@
+{% import '_components/icons.html.twig' as icons %}
+{% set noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'] %}
+<div id="practice-tools" data-turbo-permanent data-controller="practice-tools" class="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-2 print:hidden">
+    <div data-practice-tools-target="panel" class="hidden w-[min(22rem,calc(100vw-2rem))] rounded-box border border-base-300 bg-base-100 p-4 shadow-lg">
+        <h2 class="eyebrow">{{ 'practice_tools.metronome'|trans }}</h2>
+        <div class="mt-3 flex items-center gap-2">
+            <button type="button" class="btn btn-sm btn-square btn-outline" data-action="practice-tools#nudgeBpm" data-practice-tools-delta-param="-1" aria-label="{{ 'practice_tools.slower'|trans }}">−</button>
+            <span class="w-16 text-center font-mono text-2xl"><span data-practice-tools-target="bpmOutput">100</span></span>
+            <button type="button" class="btn btn-sm btn-square btn-outline" data-action="practice-tools#nudgeBpm" data-practice-tools-delta-param="1" aria-label="{{ 'practice_tools.faster'|trans }}">+</button>
+            <span class="text-xs text-base-content/60">{{ 'practice_tools.bpm'|trans }}</span>
+            <button type="button" class="btn btn-sm btn-outline ml-auto" data-action="practice-tools#tap">{{ 'practice_tools.tap'|trans }}</button>
+        </div>
+        <input type="range" min="30" max="240" step="1" class="range range-xs mt-3 w-full" data-practice-tools-target="bpm" data-action="input->practice-tools#setBpm" aria-label="{{ 'practice_tools.bpm'|trans }}">
+        <div class="mt-3 flex items-center gap-3">
+            <select class="select select-sm select-bordered" data-practice-tools-target="beats" data-action="change->practice-tools#setBeats" aria-label="{{ 'practice_tools.beats'|trans }}">
+                {% for beats in [2, 3, 4, 6] %}
+                    <option value="{{ beats }}">{{ beats }}/4</option>
+                {% endfor %}
+            </select>
+            <div class="flex flex-1 items-center gap-1.5" aria-hidden="true">
+                {% for i in 1..6 %}
+                    <span class="h-2.5 w-2.5 rounded-full bg-base-300 transition-colors" data-practice-tools-target="beatDot"></span>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn btn-sm" data-practice-tools-target="metroButton" data-action="practice-tools#toggleMetronome">{{ 'practice_tools.start_stop'|trans }}</button>
+        </div>
+
+        <h2 class="eyebrow mt-6">{{ 'practice_tools.drone'|trans }}</h2>
+        <div class="mt-3 grid grid-cols-6 gap-1.5">
+            {% for name in noteNames %}
+                <button type="button" class="btn btn-sm btn-outline px-0 font-mono" aria-pressed="false" data-practice-tools-target="droneNote" data-action="practice-tools#selectDrone" data-practice-tools-note-param="{{ loop.index0 }}">{{ name }}</button>
+            {% endfor %}
+        </div>
+        <label class="mt-3 flex items-center gap-2 text-sm text-base-content/70">
+            <input type="checkbox" class="checkbox checkbox-sm" data-practice-tools-target="fifth" data-action="change->practice-tools#toggleFifth">
+            {{ 'practice_tools.fifth'|trans }}
+        </label>
+
+        <label class="mt-4 flex items-center gap-3 text-sm text-base-content/70">
+            {{ 'practice_tools.volume'|trans }}
+            <input type="range" min="0" max="1" step="0.05" class="range range-xs flex-1" data-practice-tools-target="volume" data-action="input->practice-tools#setVolume">
+        </label>
+    </div>
+    <button type="button" class="btn btn-circle btn-outline bg-base-100 shadow-md" data-action="practice-tools#toggle" aria-label="{{ 'practice_tools.toggle'|trans }}" title="{{ 'practice_tools.toggle'|trans }}">
+        {{ icons.icon('metronome') }}
+    </button>
+</div>
