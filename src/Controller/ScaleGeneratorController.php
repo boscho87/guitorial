@@ -305,6 +305,7 @@ final class ScaleGeneratorController extends AbstractController
             'csrfIntention' => self::CSRF_INTENTION,
             'hide_footer' => true,
             'hideChromeOnMobile' => true,
+            'hidePracticeTools' => true,
         ];
     }
 
