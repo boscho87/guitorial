@@ -47,6 +47,13 @@ export default class extends Controller {
         this.onUnbindExercise = () => this.unbindExercise();
         document.addEventListener('practice-tools:bind-exercise', this.onBindExercise);
         document.addEventListener('practice-tools:unbind-exercise', this.onUnbindExercise);
+        // On a cold page load this widget (appended at the very end of
+        // base.html.twig) can connect after the exercise bridge controller
+        // (near the top of <body>) already fired its own bind-exercise -
+        // which is then lost since nothing was listening yet. Asking here
+        // makes the bridge controller (still listening after its own
+        // connect()) re-announce, regardless of connect order.
+        document.dispatchEvent(new CustomEvent('practice-tools:request-exercise-binding'));
     }
 
     disconnect() {
