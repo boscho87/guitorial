@@ -163,6 +163,9 @@ final class ExerciseSessionController extends AbstractController
             'previousNoteDate' => $previousNote?->getFinishedAt(),
             'todayNote' => $todayNote,
             'returnRouteId' => $target['id'] ?? null,
+            'practiceToolsExerciseId' => $exercise?->getId(),
+            'practiceToolsConfig' => $exercise?->getPracticeToolsSnapshot(),
+            'practiceToolsSaveUrl' => $exercise !== null ? $this->generateUrl('exercise_practice_tools_save', ['id' => $exercise->getId()]) : null,
             'hideChromeOnMobile' => true,
         ]);
     }
@@ -204,6 +207,36 @@ final class ExerciseSessionController extends AbstractController
             $session->resumeAfterPause();
             $em->flush();
         }
+
+        return new Response('', 204);
+    }
+
+    /**
+     * Saves this exercise's own metronome/drone setup (see
+     * Exercise::practiceToolsSnapshot) - called from the global
+     * practice-tools widget while its running page is open, debounced.
+     * Keyed by exercise, not by session: the setting should stick around
+     * for next time regardless of which particular session loaded it.
+     */
+    #[Route('/uebung/{id}/metronom', name: 'exercise_practice_tools_save', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function savePracticeTools(int $id, Request $request, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $exercise = $this->exercises->findForVisitor($id, $this->requireVisitorId($request));
+        if ($exercise === null) {
+            return new Response('', 404);
+        }
+
+        $droneNote = $request->request->get('droneNote');
+
+        $exercise->applyPracticeToolsSnapshot([
+            'bpm' => max(30, min(240, (int) $request->request->get('bpm', 100))),
+            'beats' => in_array((int) $request->request->get('beats', 4), [2, 3, 4, 6], true) ? (int) $request->request->get('beats') : 4,
+            'droneNote' => $droneNote !== null && $droneNote !== '' ? max(0, min(11, (int) $droneNote)) : null,
+            'fifth' => $request->request->getBoolean('fifth'),
+            'octave' => max(2, min(4, (int) $request->request->get('octave', 3))),
+        ]);
+        $em->flush();
 
         return new Response('', 204);
     }

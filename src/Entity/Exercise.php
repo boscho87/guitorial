@@ -39,6 +39,20 @@ class Exercise
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $note = null;
 
+    /**
+     * This exercise's own remembered metronome/drone setup (bpm, beats,
+     * droneNote, fifth, octave - not the volumes, those are a listening-
+     * environment preference, not an exercise one) - lives on the anchor
+     * like the note, not the version: a practice setup you've settled into
+     * for this exercise, not something that should fork on edit or stay
+     * tied to history. Loaded into the global practice-tools widget
+     * (data-turbo-permanent, see base.html.twig) when its running page
+     * connects, but deliberately never auto-played from here - see
+     * practice_tools_controller.js's bindExercise().
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $practiceToolsSnapshot = null;
+
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $archivedAt = null;
 
@@ -73,6 +87,16 @@ class Exercise
     public function getNote(): ?string
     {
         return $this->note;
+    }
+
+    public function getPracticeToolsSnapshot(): ?array
+    {
+        return $this->practiceToolsSnapshot;
+    }
+
+    public function applyPracticeToolsSnapshot(array $snapshot): void
+    {
+        $this->practiceToolsSnapshot = $snapshot;
     }
 
     public function getArchivedAt(): ?\DateTimeImmutable

@@ -34,15 +34,65 @@ export default class extends Controller {
         this.droneVolumeTarget.value = this.state.droneVolume;
         this.renderBpm();
         this.renderDroneButtons();
+        this.renderBeatDots();
 
         this.onKeydown = this.onKeydown.bind(this);
         document.addEventListener('keydown', this.onKeydown);
+
+        // Set by exercise_practice_tools_controller.js while a specific
+        // diary exercise's running page is open - see bindExercise()/
+        // unbindExercise() below.
+        this.exerciseBinding = null;
+        this.onBindExercise = (event) => this.bindExercise(event);
+        this.onUnbindExercise = () => this.unbindExercise();
+        document.addEventListener('practice-tools:bind-exercise', this.onBindExercise);
+        document.addEventListener('practice-tools:unbind-exercise', this.onUnbindExercise);
     }
 
     disconnect() {
         document.removeEventListener('keydown', this.onKeydown);
+        document.removeEventListener('practice-tools:bind-exercise', this.onBindExercise);
+        document.removeEventListener('practice-tools:unbind-exercise', this.onUnbindExercise);
+        clearTimeout(this.exerciseSaveTimer);
         this.stopMetronome();
         this.stopDrone(true);
+    }
+
+    /**
+     * Loads one exercise's own remembered setup into the panel - never
+     * starts anything (the whole point: opening an exercise must not make
+     * sound by itself). Further changes while bound also save back to this
+     * exercise (see persist()), on top of the usual global-default save.
+     */
+    bindExercise(event) {
+        const { exerciseId, config, saveUrl, token } = event.detail;
+        this.exerciseBinding = { exerciseId, saveUrl, token };
+        if (!config) {
+            return;
+        }
+
+        if (config.bpm) {
+            this.state.bpm = this.clampBpm(config.bpm);
+            this.bpmTarget.value = this.state.bpm;
+        }
+        if (config.beats) {
+            this.state.beats = config.beats;
+            this.beatsTarget.value = this.state.beats;
+        }
+        this.state.droneNote = config.droneNote ?? null;
+        this.state.fifth = Boolean(config.fifth);
+        this.fifthTarget.checked = this.state.fifth;
+        if (config.octave) {
+            this.state.octave = Math.min(4, Math.max(2, config.octave));
+            this.octaveTarget.value = this.state.octave;
+        }
+        this.renderBpm();
+        this.renderDroneButtons();
+        this.renderBeatDots();
+    }
+
+    unbindExercise() {
+        this.exerciseBinding = null;
     }
 
     onKeydown(event) {
@@ -83,6 +133,33 @@ export default class extends Controller {
         } catch {
             // ignore
         }
+        this.persistToBoundExerciseIfAny();
+    }
+
+    persistToBoundExerciseIfAny() {
+        if (!this.exerciseBinding) {
+            return;
+        }
+        const { saveUrl, token } = this.exerciseBinding;
+        clearTimeout(this.exerciseSaveTimer);
+        this.exerciseSaveTimer = setTimeout(() => {
+            const body = new URLSearchParams({
+                _token: token,
+                bpm: this.state.bpm,
+                beats: this.state.beats,
+                droneNote: this.state.droneNote ?? '',
+                fifth: this.state.fifth ? '1' : '0',
+                octave: this.state.octave,
+            });
+            fetch(saveUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                keepalive: true,
+                body,
+            }).catch(() => {
+                // Best-effort - worst case this exercise just keeps its previous saved setup.
+            });
+        }, 600);
     }
 
     audio() {
@@ -150,6 +227,7 @@ export default class extends Controller {
     setBeats() {
         this.state.beats = Number(this.beatsTarget.value);
         this.beatIndex = 0;
+        this.renderBeatDots();
         this.persist();
     }
 
@@ -299,6 +377,16 @@ export default class extends Controller {
             const active = Number(button.dataset.practiceToolsNoteParam) === this.state.droneNote && this.drone !== null;
             button.classList.toggle('btn-primary', active);
             button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+    }
+
+    // Only as many dots as the current time signature has beats (4 for
+    // 4/4, 6 for 6/8, ...) - the markup renders a fixed 6, the max any
+    // option needs, so the rest just stay hidden instead of showing extra
+    // dots that never light up.
+    renderBeatDots() {
+        this.beatDotTargets.forEach((dot, index) => {
+            dot.classList.toggle('hidden', index >= this.state.beats);
         });
     }
 }

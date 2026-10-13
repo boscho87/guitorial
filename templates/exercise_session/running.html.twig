@@ -14,7 +14,17 @@
 {% block head_extra %}<meta name="turbo-cache-control" content="no-cache">{% endblock %}
 
 {% block body %}
-    <div data-controller="session-shortcuts">
+    <div
+        data-controller="session-shortcuts{{ practiceToolsExerciseId ? ' exercise-practice-tools' : '' }}"
+        {% if practiceToolsExerciseId %}
+            data-exercise-practice-tools-exercise-id-value="{{ practiceToolsExerciseId }}"
+            {% if practiceToolsConfig %}
+                data-exercise-practice-tools-config-value="{{ practiceToolsConfig|json_encode|e('html_attr') }}"
+            {% endif %}
+            data-exercise-practice-tools-save-url-value="{{ practiceToolsSaveUrl }}"
+            data-exercise-practice-tools-token-value="{{ csrf_token(csrfIntention) }}"
+        {% endif %}
+    >
     <a href="{{ returnRouteId ? path('routine_show', {id: returnRouteId}) : path('diary_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
         {{ icons.icon('back') }}
         {{ 'nav.diary'|trans }}
