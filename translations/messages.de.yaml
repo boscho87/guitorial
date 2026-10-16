@@ -490,6 +490,8 @@ exercise_session:
   resume: Fortsetzen
   previous_note:
     label: "Letzte Notiz (%date%)"
+  practice_tools:
+    hint: "Wird für diese Übung gespeichert"
   finish:
     title: "Wie lief's?"
     note_label: "Notiz (optional)"

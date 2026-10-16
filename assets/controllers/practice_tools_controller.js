@@ -6,7 +6,7 @@ const SCHEDULE_AHEAD_S = 0.1;
 const DRONE_OCTAVE_C2 = 65.406;
 
 export default class extends Controller {
-    static targets = ['panel', 'bpm', 'bpmOutput', 'beats', 'metroButton', 'droneNote', 'fifth', 'octave', 'metroVolume', 'droneVolume', 'beatDot'];
+    static targets = ['panel', 'bpm', 'bpmOutput', 'beats', 'metroButton', 'droneNote', 'fifth', 'octave', 'metroVolume', 'droneVolume', 'beatDot', 'toggleButton'];
 
     connect() {
         this.ctx = null;
@@ -130,8 +130,29 @@ export default class extends Controller {
         event.preventDefault();
     }
 
+    // Closed + running means the panel can't show the stop button - so the
+    // first click on the toggle itself has to stop everything (metronome
+    // and, if one's going, the drone) instead of opening the panel; any
+    // other combination keeps the plain open/close behaviour.
     toggle() {
+        if (this.panelTarget.classList.contains('hidden') && this.metroTimer) {
+            this.stopMetronome();
+            this.stopDrone();
+
+            return;
+        }
         this.panelTarget.classList.toggle('hidden');
+        this.updateToggleButtonBlink();
+    }
+
+    // Only visible while the panel is closed - once it's open the running
+    // state is obvious from the panel itself.
+    updateToggleButtonBlink() {
+        if (!this.hasToggleButtonTarget) {
+            return;
+        }
+        const blinking = Boolean(this.metroTimer) && this.panelTarget.classList.contains('hidden');
+        this.toggleButtonTarget.classList.toggle('practice-tools-blink', blinking);
     }
 
     persist() {
@@ -254,6 +275,7 @@ export default class extends Controller {
         this.schedule();
         this.metroButtonTarget.dataset.active = 'true';
         this.metroButtonTarget.classList.add('btn-primary');
+        this.updateToggleButtonBlink();
     }
 
     stopMetronome() {
@@ -266,6 +288,7 @@ export default class extends Controller {
             this.metroButtonTarget.classList.remove('btn-primary');
         }
         this.beatDotTargets.forEach((dot) => dot.classList.remove('bg-primary'));
+        this.updateToggleButtonBlink();
     }
 
     schedule() {

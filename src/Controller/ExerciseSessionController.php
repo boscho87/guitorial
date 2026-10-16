@@ -167,6 +167,9 @@ final class ExerciseSessionController extends AbstractController
             'practiceToolsConfig' => $exercise?->getPracticeToolsSnapshot(),
             'practiceToolsSaveUrl' => $exercise !== null ? $this->generateUrl('exercise_practice_tools_save', ['id' => $exercise->getId()]) : null,
             'hideChromeOnMobile' => true,
+            // Rendered embedded in this page's own content below instead -
+            // see running.html.twig.
+            'hidePracticeTools' => true,
         ]);
     }
 

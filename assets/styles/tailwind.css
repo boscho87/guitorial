@@ -349,6 +349,18 @@
     }
   }
 
+  /* Only runs while the practice-tools panel is closed and the metronome
+     is running (practice_tools_controller.js) - the only way to tell at a
+     glance, since the panel itself isn't visible to show it. */
+  @keyframes practice-tools-blink {
+    0%, 100% {
+      color: color-mix(in oklab, var(--color-secondary) 90%, transparent);
+    }
+    50% {
+      color: inherit;
+    }
+  }
+
   @keyframes hint-bubble-in {
     0% {
       opacity: 0;
@@ -380,6 +392,10 @@
 
   .hint-bubble-in {
     animation: hint-bubble-in 0.35s cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+
+  .practice-tools-blink {
+    animation: practice-tools-blink 1.1s ease-in-out infinite;
   }
 
   .hint-arrow {
@@ -440,7 +456,8 @@
 
   @media (prefers-reduced-motion: reduce) {
     .hint-ring,
-    .hint-bubble-in {
+    .hint-bubble-in,
+    .practice-tools-blink {
       animation: none;
     }
   }

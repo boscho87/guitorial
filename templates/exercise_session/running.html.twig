@@ -99,6 +99,16 @@
         </button>
     </div>
 
+    {% if practiceToolsExerciseId %}
+        <div class="stat-tile mt-4 flex items-center justify-between gap-3">
+            <div>
+                <h2 class="eyebrow">{{ 'practice_tools.toggle'|trans }}</h2>
+                <p class="mt-1 text-xs text-base-content/60">{{ 'exercise_session.practice_tools.hint'|trans }}</p>
+            </div>
+            {{ include('_components/practice_tools.html.twig', {embedded: true}) }}
+        </div>
+    {% endif %}
+
     {% if previousNote %}
         <div class="stat-tile mt-4">
             <p class="eyebrow">{{ 'exercise_session.previous_note.label'|trans({'%date%': previousNoteDate|date('d.m.Y')}) }}</p>
