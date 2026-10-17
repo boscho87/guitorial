@@ -8,6 +8,10 @@ error:
   title: "Etwas ist schiefgelaufen"
   message: "Da ist leider ein Fehler passiert. Versuch es nochmal, oder komm später wieder vorbei."
   back_home: "Zurück zur Startseite"
+  csrf:
+    title: "Das hat nicht geklappt"
+    message: "Deine Eingabe konnte nicht gespeichert werden - das passiert manchmal, wenn eine Seite eine Weile offen war. Bitte versuch es noch einmal."
+    retry: "Nochmal versuchen"
 
 home:
   meta_description: "Guitorial: Musiktheorie und Griffbrett für Gitarre (und Bass) gezielt trainieren - Tonarten, Akkordfunktionen, Skalen. Ohne Konto starten."

@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+
+{# Every 401 in this app is specifically an expired/invalid CSRF token
+   (assertValidCsrf() throws createAccessDeniedException(), which Symfony's
+   security layer turns into a 401 for an anonymous visitor) - never a real
+   "you must log in" case, since access_control is empty and nothing else
+   in this codebase throws AccessDeniedException. A link back to the
+   homepage would just dump the visitor out of whatever they were doing;
+   going back to the form they were just on and resubmitting is almost
+   always enough, since the failure is usually just a stale token from a
+   long-open tab, not a real problem with their input. #}
+
+{% block title %}{{ 'error.csrf.title'|trans }} – Guitorial{% endblock %}
+
+{% block body %}
+    <section class="mt-16 text-center sm:mt-24">
+        <h1 class="font-display mt-4 text-2xl font-semibold sm:text-3xl">{{ 'error.csrf.title'|trans }}</h1>
+        <p class="mt-3 text-base-content/70">{{ 'error.csrf.message'|trans }}</p>
+        <button type="button" class="btn btn-primary mt-8" data-controller="history-back" data-action="history-back#back">{{ 'error.csrf.retry'|trans }}</button>
+    </section>
+{% endblock %}
