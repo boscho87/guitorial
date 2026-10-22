@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/boscho87/guitorial/compare/v1.16.0...v1.17.0) (2026-10-22)
+
+
+### Features
+
+* **diary:** Streak-Erinnerungsmail bei gefährdetem 7+-Tage-Streak ([be1e653](https://github.com/boscho87/guitorial/commit/be1e65398e19486c4e475d0fc7c81892aaaff2b8))
+
 # [1.16.0](https://github.com/boscho87/guitorial/compare/v1.15.0...v1.16.0) (2026-10-22)
 
 
