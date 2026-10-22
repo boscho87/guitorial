@@ -65,6 +65,7 @@ RUN apt-get update \
       php8.3-mysql \
       php8.3-intl \
       php8.3-xdebug \
+      php8.3-gd \
  && rm -rf /var/lib/apt/lists/*
 
 # Node is only needed to build the Tailwind/DaisyUI stylesheet - AssetMapper

@@ -252,7 +252,7 @@ history:
   intro_anonymous: "Du bist nicht angemeldet – dein Fortschritt wird nur lokal über ein anonymes Cookie in diesem Browser gespeichert und geht bei dessen Verlust verloren. Melde dich an, um ihn dauerhaft zu sichern."
   empty: "Noch keine Übungsrunden aufgezeichnet. Fang mit einem der Tools an."
   export:
-    csv: "CSV exportieren"
+    xlsx: "Excel exportieren"
     pdf: "PDF exportieren"
   untitled_session: Übung
   finished: Abgeschlossen
