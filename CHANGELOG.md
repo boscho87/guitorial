@@ -11,7 +11,7 @@ Alle nennenswerten Änderungen an Guitorial werden hier festgehalten.
 
 Ab dem nächsten Release übernimmt [semantic-release](https://semantic-release.gitbook.io/) diese
 Datei automatisch, basierend auf [Conventional Commits](https://www.conventionalcommits.org/)
-(`feat:`, `fix:`, `fix!:`/`BREAKING CHANGE:` für Major, …) auf `main`. Der Abschnitt unten wurde
+(`feat:`, `fix:`, `fix!:`/`BREAKING CHANGE:` für Major, …) auf `next`. Der Abschnitt unten wurde
 einmalig aus der bisherigen Tag-Historie (manuell gepflegte `app.version` + Git-Tags) rekonstruiert
 und bildet nicht das Conventional-Commits-Format ab, da die Commits bis hierhin frei formuliert
 waren.
