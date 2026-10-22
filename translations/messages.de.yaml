@@ -734,6 +734,7 @@ profile:
   account:
     title: Konto
     anonymous: "Du nutzt Guitorial ohne Konto. Mit einem Login bleibt dein Fortschritt auch auf einem neuen Gerät erhalten."
+    export: "Meine Daten exportieren"
 
 hints:
   ui:

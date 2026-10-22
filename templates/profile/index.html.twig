@@ -97,7 +97,10 @@
                     </span>
                     <span class="mt-0.5 block truncate text-xs text-base-content/60">{{ app.user.email }}</span>
                 </p>
-                <a href="{{ path('app_logout') }}" class="btn btn-ghost btn-sm text-error">{{ 'nav.logout'|trans }}</a>
+                <div class="flex items-center gap-2">
+                    <a href="{{ path('profile_data_export') }}" class="btn btn-outline btn-sm">{{ 'profile.account.export'|trans }}</a>
+                    <a href="{{ path('app_logout') }}" class="btn btn-ghost btn-sm text-error">{{ 'nav.logout'|trans }}</a>
+                </div>
             {% else %}
                 <p class="text-sm text-base-content/70">{{ 'profile.account.anonymous'|trans }}</p>
                 <a href="{{ path('app_login') }}" class="btn btn-outline btn-sm">{{ 'nav.login'|trans }}</a>

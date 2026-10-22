@@ -22,4 +22,14 @@ class DayNoteRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['visitorId' => $visitorId, 'date' => $date->setTime(0, 0)]);
     }
+
+    /**
+     * @return DayNote[] every day note this visitor has, for the account
+     *   data export (AccountDataExporter) - not used by any per-day view,
+     *   which only ever needs forVisitorOnDate().
+     */
+    public function forVisitor(string $visitorId): array
+    {
+        return $this->findBy(['visitorId' => $visitorId], ['date' => 'ASC']);
+    }
 }
