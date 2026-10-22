@@ -1,3 +1,10 @@
+## [1.20.1](https://github.com/boscho87/guitorial/compare/v1.20.0...v1.20.1) (2026-10-22)
+
+
+### Bug Fixes
+
+* **deps:** symfony/http-foundation auf 7.4.19 (CVE-2026-108082) ([752550a](https://github.com/boscho87/guitorial/commit/752550a31fd7f8a35de19115a9f47dd6fee9a345))
+
 # [1.20.0](https://github.com/boscho87/guitorial/compare/v1.19.0...v1.20.0) (2026-10-22)
 
 
