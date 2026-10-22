@@ -23,6 +23,14 @@ use Doctrine\ORM\Mapping as ORM;
  * part of the plan on day D" stays a single half-open interval check
  * (`archivedAt === null || D < archivedAt`), the same shape as
  * DiaryItem::isActiveOn() - no redundant derived state to keep in sync.
+ *
+ * `deactivatedAt` is a second, independent half-open interval of the same
+ * shape, set automatically by DeactivateStaleExercisesCommand (10 days
+ * without a finished session) rather than by the visitor - archiving stays
+ * a deliberate, manual, final action, while deactivation is just "gone
+ * quiet", reversible by nothing more than practicing the exercise again
+ * (SessionRecorder::start() clears it). Archived wins if somehow both are
+ * set: see isActiveOn()/isDeactivatedOn().
  */
 #[ORM\Entity(repositoryClass: ExerciseRepository::class)]
 #[ORM\Index(columns: ['visitor_id'])]
@@ -55,6 +63,9 @@ class Exercise
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $archivedAt = null;
+
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $deactivatedAt = null;
 
     /**
      * Set only by RoutineShareController::import() - lets a re-import
@@ -104,6 +115,11 @@ class Exercise
         return $this->archivedAt;
     }
 
+    public function getDeactivatedAt(): ?\DateTimeImmutable
+    {
+        return $this->deactivatedAt;
+    }
+
     public function getImportedFromExercise(): ?self
     {
         return $this->importedFromExercise;
@@ -121,7 +137,22 @@ class Exercise
 
     public function isActiveOn(\DateTimeImmutable $date): bool
     {
-        return $this->archivedAt === null || $date < $this->archivedAt;
+        $archived = $this->archivedAt !== null && $date >= $this->archivedAt;
+        $deactivated = $this->deactivatedAt !== null && $date >= $this->deactivatedAt;
+
+        return !$archived && !$deactivated;
+    }
+
+    /**
+     * Only true for the "gone quiet" state, never for an archived exercise
+     * (archived takes precedence - it's the more deliberate, final one).
+     * Used by DiaryController::manage() to split the three tabs.
+     */
+    public function isDeactivatedOn(\DateTimeImmutable $date): bool
+    {
+        $archived = $this->archivedAt !== null && $date >= $this->archivedAt;
+
+        return !$archived && $this->deactivatedAt !== null && $date >= $this->deactivatedAt;
     }
 
     /**
@@ -142,5 +173,15 @@ class Exercise
     public function reactivate(): void
     {
         $this->archivedAt = null;
+    }
+
+    public function deactivate(\DateTimeImmutable $today): void
+    {
+        $this->deactivatedAt = $today;
+    }
+
+    public function reactivateFromStaleness(): void
+    {
+        $this->deactivatedAt = null;
     }
 }

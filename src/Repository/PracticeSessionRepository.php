@@ -86,6 +86,33 @@ class PracticeSessionRepository extends ServiceEntityRepository
     }
 
     /**
+     * Most recent finishedAt per exercise, across every visitor's finished
+     * sessions - used by the daily staleness sweep (DeactivateStaleExercisesCommand),
+     * which needs every exercise's true last-practiced date, not the
+     * forVisitor()-style row cap tuned for rendering a single day.
+     *
+     * @return array<int, \DateTimeImmutable> exercise id => most recent finishedAt
+     */
+    public function latestFinishedAtByExercise(): array
+    {
+        $rows = $this->createQueryBuilder('s')
+            ->select('IDENTITY(s.exercise) AS exerciseId', 'MAX(s.finishedAt) AS lastFinishedAt')
+            ->andWhere('s.status = :status')
+            ->andWhere('s.exercise IS NOT NULL')
+            ->setParameter('status', PracticeSession::STATUS_FINISHED)
+            ->groupBy('s.exercise')
+            ->getQuery()
+            ->getArrayResult();
+
+        $map = [];
+        foreach ($rows as $row) {
+            $map[(int) $row['exerciseId']] = new \DateTimeImmutable($row['lastFinishedAt']);
+        }
+
+        return $map;
+    }
+
+    /**
      * The most recently started session for exactly this exercise+tool
      * pairing, regardless of status - configSnapshot is frozen at start
      * time either way, so even an abandoned/discarded round still has a

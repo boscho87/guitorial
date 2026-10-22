@@ -40,4 +40,16 @@ class ExerciseRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['visitorId' => $visitorId, 'importedFromExercise' => $source]);
     }
+
+    /**
+     * Every exercise anchor, across every visitor, that's neither archived
+     * nor already deactivated - the candidate set DeactivateStaleExercisesCommand
+     * sweeps daily.
+     *
+     * @return Exercise[]
+     */
+    public function findActive(): array
+    {
+        return $this->findBy(['archivedAt' => null, 'deactivatedAt' => null]);
+    }
 }

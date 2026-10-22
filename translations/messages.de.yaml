@@ -402,6 +402,11 @@ diary:
   archive:
     title: Archiviert
     reactivate: Reaktivieren
+    empty: "Keine archivierten Übungen."
+  deactivate:
+    title: Deaktiviert
+    empty: "Keine deaktivierten Übungen."
+    hint: "Seit 10 Tagen nicht geübt – automatisch deaktiviert."
   setup:
     title: "Übung einrichten"
     intro: "Die Übung ist bereits angelegt. Ergänze hier optional, womit du übst, wie lange, wie oft und in welcher Gruppe."

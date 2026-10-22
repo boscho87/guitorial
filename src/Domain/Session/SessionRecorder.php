@@ -33,6 +33,15 @@ final class SessionRecorder
     ): PracticeSession {
         $this->discardDanglingSession($visitorId, $tool);
 
+        // Practicing it is proof enough that it's not stale anymore - no
+        // reason to also require a manual "reaktivieren" click right as
+        // someone starts doing the exact thing that disproves it. Archived
+        // exercises are excluded from this on purpose (see Exercise's
+        // docblock) - archiving stays a deliberate, final action.
+        if ($exercise !== null && $exercise->getDeactivatedAt() !== null) {
+            $exercise->reactivateFromStaleness();
+        }
+
         $session = new PracticeSession($visitorId, $this->generateClientSessionId(), $tool, $exercise, $resource, $configSnapshot);
         $this->em->persist($session);
         $this->em->flush();

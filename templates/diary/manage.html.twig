@@ -18,16 +18,23 @@
         <a href="{{ path('diary_groups') }}" class="btn btn-outline btn-sm shrink-0">{{ 'diary.groups.title'|trans }}</a>
     </div>
 
-    {# One frame spans both sections - archiving/reactivating moves an
-       item between them, so a delete/archive/reactivate response needs
-       to be able to update either list, not just the one the action
-       started in. #}
+    {# One frame spans all three tabs - archiving/deactivating/reactivating
+       moves an item between them, so a delete/archive/reactivate response
+       needs to be able to update any of the three lists, not just the one
+       the action started in. #}
     <turbo-frame id="diary-manage-list" class="block">
     {{ include('_components/_frame_toast.html.twig') }}
 
-    <section class="mt-10">
+    <div class="mt-10" data-controller="manage-tabs">
         <div class="flex flex-wrap items-center justify-between gap-3">
-            <h2 class="eyebrow">{{ 'diary.manage.active_heading'|trans }}</h2>
+            <div class="flex flex-wrap gap-1" role="tablist">
+                <input type="radio" name="manage-tab" id="manage-tab-active" value="active" class="sr-only" checked data-action="change->manage-tabs#switch">
+                <label for="manage-tab-active" class="chip-toggle">{{ 'diary.manage.active_heading'|trans }}</label>
+                <input type="radio" name="manage-tab" id="manage-tab-deactivated" value="deactivated" class="sr-only" data-action="change->manage-tabs#switch">
+                <label for="manage-tab-deactivated" class="chip-toggle">{{ 'diary.deactivate.title'|trans }}</label>
+                <input type="radio" name="manage-tab" id="manage-tab-archived" value="archived" class="sr-only" data-action="change->manage-tabs#switch">
+                <label for="manage-tab-archived" class="chip-toggle">{{ 'diary.archive.title'|trans }}</label>
+            </div>
             <div class="flex items-center gap-2">
                 <form method="post" action="{{ path('diary_add') }}" class="flex items-center gap-1">
                     <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
@@ -39,6 +46,7 @@
             </div>
         </div>
 
+    <section class="mt-4" data-manage-tabs-target="panel" data-tab="active">
         {% if activeExercises is empty %}
             <p class="mt-4 text-sm text-base-content/60">{{ 'diary.empty'|trans }}</p>
         {% else %}
@@ -101,9 +109,44 @@
         {% endif %}
     </section>
 
-    {% if archivedExercises is not empty %}
-        <section class="mt-10">
-            <h2 class="eyebrow">{{ 'diary.archive.title'|trans }}</h2>
+    <section class="mt-4 hidden" data-manage-tabs-target="panel" data-tab="deactivated">
+        {% if deactivatedExercises is empty %}
+            <p class="mt-4 text-sm text-base-content/60">{{ 'diary.deactivate.empty'|trans }}</p>
+        {% else %}
+            <ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {% for entry in deactivatedExercises %}
+                    <li class="card-tile flex items-center justify-between gap-2 opacity-70">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium sm:text-base">{{ entry.version.title }}</p>
+                            <p class="mt-1 text-xs text-base-content/50">{{ 'diary.deactivate.hint'|trans }}</p>
+                        </div>
+                        <div class="flex shrink-0 gap-0.5">
+                            <form method="post" action="{{ path('diary_reactivate_from_deactivation', {id: entry.exercise.id}) }}" data-controller="submit-loading" data-submit-loading-spinner-value="false" data-action="submit->submit-loading#submit">
+                                <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                                <button type="submit" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.archive.reactivate'|trans }}" aria-label="{{ 'diary.archive.reactivate'|trans }}">
+                                    {{ icons.icon('reactivate') }}
+                                </button>
+                            </form>
+                            <form id="exercise-delete-{{ entry.exercise.id }}" method="post" action="{{ path('diary_delete', {id: entry.exercise.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                            </form>
+                            <div class="contents" data-controller="confirm-modal">
+                                <button type="button" class="btn btn-ghost btn-xs btn-square text-error" data-action="confirm-modal#open" title="{{ 'diary.item.delete'|trans }}" aria-label="{{ 'diary.item.delete'|trans }}">
+                                    {{ icons.icon('trash') }}
+                                </button>
+                                {{ confirmModal.dialog('exercise-delete-' ~ entry.exercise.id, 'diary.item.delete_confirm'|trans, 'diary.item.delete'|trans) }}
+                            </div>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </section>
+
+    <section class="mt-4 hidden" data-manage-tabs-target="panel" data-tab="archived">
+        {% if archivedExercises is empty %}
+            <p class="mt-4 text-sm text-base-content/60">{{ 'diary.archive.empty'|trans }}</p>
+        {% else %}
             <ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {% for entry in archivedExercises %}
                     <li class="card-tile flex items-center justify-between gap-2 opacity-70">
@@ -128,7 +171,8 @@
                     </li>
                 {% endfor %}
             </ul>
-        </section>
-    {% endif %}
+        {% endif %}
+    </section>
+    </div>
     </turbo-frame>
 {% endblock %}

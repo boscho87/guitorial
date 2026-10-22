@@ -161,6 +161,7 @@ final class DiaryController extends AbstractController
         $today = new \DateTimeImmutable('today');
 
         $active = [];
+        $deactivated = [];
         $archived = [];
         foreach ($visitorId !== '' ? $exercises->forVisitor($visitorId) : [] as $exercise) {
             $currentVersion = $versions->currentFor($exercise, $today);
@@ -171,6 +172,8 @@ final class DiaryController extends AbstractController
             $entry = ['exercise' => $exercise, 'version' => $currentVersion, 'resources' => $resources->forExercise($exercise)];
             if ($exercise->isActiveOn($today)) {
                 $active[] = $entry;
+            } elseif ($exercise->isDeactivatedOn($today)) {
+                $deactivated[] = $entry;
             } else {
                 $archived[] = $entry;
             }
@@ -178,6 +181,7 @@ final class DiaryController extends AbstractController
 
         return $this->render('diary/manage.html.twig', [
             'activeExercises' => $active,
+            'deactivatedExercises' => $deactivated,
             'archivedExercises' => $archived,
             'groups' => $groups->forVisitor($visitorId),
             'rhythms' => ExerciseVersion::RHYTHMS,
@@ -519,6 +523,19 @@ final class DiaryController extends AbstractController
         $exercise = $exercises->findForVisitor($id, $this->requireVisitorId($request));
         if ($exercise !== null) {
             $exercise->reactivate();
+            $em->flush();
+        }
+
+        return $this->redirectToRoute('diary_manage');
+    }
+
+    #[Route('/{id}/reaktivieren-deaktiviert', name: 'diary_reactivate_from_deactivation', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function reactivateFromDeactivation(int $id, Request $request, ExerciseRepository $exercises, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $exercise = $exercises->findForVisitor($id, $this->requireVisitorId($request));
+        if ($exercise !== null) {
+            $exercise->reactivateFromStaleness();
             $em->flush();
         }
 
