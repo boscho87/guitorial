@@ -8,7 +8,7 @@ parameters:
     # plain export, not a clone - see deploy.yml/CLAUDE.md), so this can't
     # be read from git at runtime. Bump this by hand in the same commit as
     # each future release tag.
-    app.version: '1.20.1'
+    app.version: '1.21.0'
 
     # A console command (e.g. the streak-reminder cron job) has no request
     # context to generate an absolute URL from - this is the one place that
