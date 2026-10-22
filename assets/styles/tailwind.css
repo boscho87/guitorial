@@ -457,9 +457,35 @@
   @media (prefers-reduced-motion: reduce) {
     .hint-ring,
     .hint-bubble-in,
-    .practice-tools-blink {
+    .practice-tools-blink,
+    .confetti-piece {
       animation: none;
     }
+  }
+
+  /* confetti_controller.js spawns a handful of these, one burst, then
+     removes the whole container once the longest piece's animation ends -
+     see the controller for why JS also short-circuits the whole effect on
+     prefers-reduced-motion instead of relying on this alone (there's
+     nothing to visually fall back to here, unlike a color pulse). */
+  @keyframes confetti-fall {
+    0% {
+      transform: translateY(-10vh) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(var(--confetti-spin, 540deg));
+      opacity: 0;
+    }
+  }
+
+  .confetti-piece {
+    position: absolute;
+    top: 0;
+    width: 0.5rem;
+    height: 0.9rem;
+    border-radius: 1px;
+    animation: confetti-fall 2.2s ease-in forwards;
   }
 
   .stat-tile {

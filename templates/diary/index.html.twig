@@ -14,6 +14,10 @@
 {% block head_extra %}<meta name="turbo-cache-control" content="no-cache">{% endblock %}
 
 {% block body %}
+    {% if app.flashes('celebrate') is not empty %}
+        <div data-controller="confetti" data-confetti-active-value="true"></div>
+    {% endif %}
+
     <a href="{{ path('training_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
         {{ icons.icon('back') }}
         {{ 'nav.back_home'|trans }}

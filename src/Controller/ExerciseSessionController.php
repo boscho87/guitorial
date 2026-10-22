@@ -262,6 +262,14 @@ final class ExerciseSessionController extends AbstractController
         );
 
         $this->addFlash('success', 'exercise_session.flash.finished');
+        // One-shot celebration flag for confetti_controller.js - finish()
+        // always redirects (diary_index or routine_show, see
+        // redirectAfterSession()), never a turbo-frame update, so there's
+        // no in-page moment to trigger an animation from directly; the
+        // landing template reads+clears this flash once instead.
+        if ($learningState === PracticeSession::LEARNING_STATE_CONFIDENT) {
+            $this->addFlash('celebrate', '1');
+        }
 
         return $this->redirectAfterSession($request);
     }
