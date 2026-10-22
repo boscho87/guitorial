@@ -24,6 +24,12 @@ mail:
     cta: "Jetzt üben"
     unsubscribe_hint: "Diese Mails nicht mehr bekommen? "
     unsubscribe_link: "Hier abmelden"
+  daily_digest:
+    subject: "Das steht heute an"
+    heading: "Guten Morgen, %firstName%!"
+    more: "+%count% weitere"
+    cta: "Zum Tagebuch"
+    manage_link: "Diese Mail abschalten"
 
 home:
   meta_description: "Guitorial: Musiktheorie und Griffbrett für Gitarre (und Bass) gezielt trainieren - Tonarten, Akkordfunktionen, Skalen. Ohne Konto starten."
@@ -722,6 +728,9 @@ profile:
     streak_reminders:
       toggle: "Streak-Erinnerung"
       description: "Eine Mail abends, wenn dein Streak (ab 7 Tagen) sonst heute reissen würde."
+    daily_digest:
+      toggle: "Täglicher Übungs-Reminder"
+      description: "Eine Mail morgens mit dem, was heute laut deiner Routine ansteht (max. 5, Rest als Sammelhinweis)."
   account:
     title: Konto
     anonymous: "Du nutzt Guitorial ohne Konto. Mit einem Login bleibt dein Fortschritt auch auf einem neuen Gerät erhalten."

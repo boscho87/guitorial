@@ -57,6 +57,15 @@ class User implements UserInterface
     #[ORM\Column]
     private bool $streakReminderOptOut = false;
 
+    /**
+     * Opt-in (default off, unlike streakReminderOptOut) - a daily mail is a
+     * bigger commitment than the occasional streak warning, so this one
+     * only goes out once someone actively turns it on in their profile.
+     * See SendDailyDigestCommand.
+     */
+    #[ORM\Column]
+    private bool $dailyDigestEnabled = false;
+
     public function __construct(string $email, string $firstName, string $lastName, string $visitorId)
     {
         $this->email = $email;
@@ -119,6 +128,21 @@ class User implements UserInterface
     public function optInToStreakReminders(): void
     {
         $this->streakReminderOptOut = false;
+    }
+
+    public function hasDailyDigestEnabled(): bool
+    {
+        return $this->dailyDigestEnabled;
+    }
+
+    public function enableDailyDigest(): void
+    {
+        $this->dailyDigestEnabled = true;
+    }
+
+    public function disableDailyDigest(): void
+    {
+        $this->dailyDigestEnabled = false;
     }
 
     public function getRoles(): array

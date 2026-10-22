@@ -75,6 +75,13 @@
                     </label>
                     <input id="streak-reminders-enabled" type="checkbox" name="streak_reminders" value="1" class="toggle toggle-primary" {{ app.user.hasOptedOutOfStreakReminders ? '' : 'checked' }} data-action="change->auto-submit#submit">
                 </div>
+                <div class="card-tile mt-3 flex items-start justify-between gap-4 !p-4">
+                    <label class="min-w-0 flex-1 cursor-pointer" for="daily-digest-enabled">
+                        <span class="block text-sm font-medium">{{ 'profile.mail.daily_digest.toggle'|trans }}</span>
+                        <span class="mt-1 block text-xs text-base-content/60">{{ 'profile.mail.daily_digest.description'|trans }}</span>
+                    </label>
+                    <input id="daily-digest-enabled" type="checkbox" name="daily_digest" value="1" class="toggle toggle-primary" {{ app.user.hasDailyDigestEnabled ? 'checked' : '' }} data-action="change->auto-submit#submit">
+                </div>
             </form>
         </section>
     {% endif %}

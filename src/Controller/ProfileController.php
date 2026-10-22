@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,21 +31,26 @@ final class ProfileController extends AbstractController
     }
 
     /**
-     * One checkbox today (streak reminders), but deliberately modeled as a
-     * set of mail-preference fields on User (streakReminderOptOut, ...) so
-     * a future second mail type is just another column + checkbox row, not
-     * a restructure.
+     * One form, one submit, for every mail preference at once - modeled as
+     * a set of named fields on User (streakReminderOptOut,
+     * dailyDigestEnabled, ...) so a future third mail type is just another
+     * column + checkbox row here, not a restructure.
      */
     #[Route('/profil/mail-einstellungen', name: 'profile_mail_preferences', methods: ['POST'])]
     public function updateMailPreferences(Request $request, EntityManagerInterface $em): Response
     {
         $this->assertValidCsrf($request);
         $user = $this->getUser();
-        if ($user instanceof \App\Entity\User) {
+        if ($user instanceof User) {
             if ($request->request->getBoolean('streak_reminders')) {
                 $user->optInToStreakReminders();
             } else {
                 $user->optOutOfStreakReminders();
+            }
+            if ($request->request->getBoolean('daily_digest')) {
+                $user->enableDailyDigest();
+            } else {
+                $user->disableDailyDigest();
             }
             $em->flush();
         }
