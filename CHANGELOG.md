@@ -1,3 +1,10 @@
+# [1.21.0](https://github.com/boscho87/guitorial/compare/v1.20.1...v1.21.0) (2026-10-22)
+
+
+### Features
+
+* **history:** Export auf XLSX (mehrere Tabs + Charts) umgestellt, PDF nur noch Stats ([7a9a3be](https://github.com/boscho87/guitorial/commit/7a9a3be91f0e209a7e91ef632b709021544f9e02))
+
 ## [1.20.1](https://github.com/boscho87/guitorial/compare/v1.20.0...v1.20.1) (2026-10-22)
 
 
