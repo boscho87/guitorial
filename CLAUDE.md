@@ -77,29 +77,40 @@ Push-to-deploy via a bare repo on the server (`~/guitorial.git`), triggered from
 (`.github/workflows/deploy.yml`) using an SSH key (`SSH_PRIVATE_KEY` secret - reuses the account's own
 default key, not a scoped deploy key). The server's `post-receive` hook decides what happens per ref:
 
-- `refs/heads/main` → staging (`stage.guitorial.com`, HTTP Basic Auth `stage`/see server) - single
+- `refs/heads/next` → staging (`stage.guitorial.com`, HTTP Basic Auth `stage`/see server) - single
   persistent checkout at `/usr/www/users/xlifep/stage.guitorial.com/`
-- `refs/tags/v*` → production (`guitorial.com`) - atomic release: checks out to
-  `/usr/www/users/xlifep/guitorial.com/releases/<tag>/`, then re-points the `public` symlink; keeps the
-  last 5 releases. **Only tags deploy to prod, plain commits never do.**
+- `refs/tags/v*` → production (`guitorial.com`) - **direct checkout** (`git checkout -f <tag>`) into a
+  single, stable, persistent path `/usr/www/users/xlifep/guitorial.com/` - no releases/ directory, no
+  symlink (the hook's own comment: "no symlink support on this host"). A future cron job (or anything
+  else needing a stable prod path, e.g. for `php bin/console`) can rely on that path never moving.
+  **Only tags deploy to prod, plain commits never do** - a plain push to `main` currently does nothing
+  server-side at all (see below).
+- Anything else (including a plain push to `main`) is logged and ignored.
 
-Both run `composer install --no-dev`, `importmap:install` (vendors JS packages - `assets/vendor/` is
-gitignored, not committed), migrations, `cache:clear`, `asset-map:compile`.
+`next` is the integration/staging branch; `main` is, for now, just kept roughly in sync by pushing to
+both in parallel (a manual habit, not automation) - there is no automatic `next`→`main` promotion yet.
+The hook itself isn't in this repo (it lives only on the server); its current content is mirrored here
+for reference and any edit needs to be applied there by hand (over SSH) to actually take effect - a
+change to this doc alone changes nothing live.
 
-`release.yml` (semantic-release) runs on every push to `main` (`workflow_dispatch` still works too,
-for a manual re-run). It uses a `RELEASE_TOKEN` PAT rather than the default `GITHUB_TOKEN`, because
-pushes/releases made with the default token don't cascade into other workflow runs (deploy.yml
-would silently never fire after a release).
+Both deploy paths run `composer install --no-dev`, `importmap:install` (vendors JS packages -
+`assets/vendor/` is gitignored, not committed), migrations, `cache:clear`, `asset-map:compile`.
 
-**Commit messages on `main` must use a [Conventional Commits](https://www.conventionalcommits.org/)
+`release.yml` (semantic-release) runs on every push to `next` (`workflow_dispatch` still works too,
+for a manual re-run) - `.releaserc.json`'s `branches` is `["next"]` to match. It uses a `RELEASE_TOKEN`
+PAT rather than the default `GITHUB_TOKEN`, because pushes/releases made with the default token don't
+cascade into other workflow runs (deploy.yml would silently never fire after a release).
+
+**Commit messages on `next` must use a [Conventional Commits](https://www.conventionalcommits.org/)
 prefix** (`feat:`, `fix:`, `chore:`, `docs:`, …; free text after the colon, German is fine) -
 `@semantic-release/commit-analyzer` only detects a release-worthy change from that prefix. A
 `chore:`/`docs:`-only push (or one with no new prefix at all) is analyzed and skipped, no release
 created. When a release *is* warranted, semantic-release computes the next version, updates
 `CHANGELOG.md` **and** `config/services.yaml`'s `app.version` (via `@semantic-release/exec`'s
-`prepareCmd` in `.releaserc.json` - no more hand-bumping that parameter), commits both, and pushes
-a `vX.Y.Z` tag - which is exactly the tag `deploy.yml` watches, so **a qualifying push to `main` now
-deploys to prod on its own**, no manual tag/push step anymore.
+`prepareCmd` in `.releaserc.json` - no more hand-bumping that parameter), commits both back to `next`,
+and pushes a `vX.Y.Z` tag - which is exactly the tag `deploy.yml` watches, so **a qualifying push to
+`next` now deploys to prod on its own**, no manual tag/push step anymore. That release commit only
+lands on `next` automatically; keeping `main` in sync with it is on whoever next pushes to both.
 
 The release commit's message deliberately does **not** contain `[skip ci]` (unlike
 `@semantic-release/git`'s own default template) - that marker suppresses every workflow for *any*
