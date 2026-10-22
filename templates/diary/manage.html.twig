@@ -29,11 +29,11 @@
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex flex-wrap gap-1" role="tablist">
                 <input type="radio" name="manage-tab" id="manage-tab-active" value="active" class="sr-only" checked data-action="change->manage-tabs#switch">
-                <label for="manage-tab-active" class="chip-toggle">{{ 'diary.manage.active_heading'|trans }}</label>
+                <label for="manage-tab-active" class="chip-toggle">{{ 'diary.manage.active_heading'|trans }} ({{ activeExercises|length }})</label>
                 <input type="radio" name="manage-tab" id="manage-tab-deactivated" value="deactivated" class="sr-only" data-action="change->manage-tabs#switch">
-                <label for="manage-tab-deactivated" class="chip-toggle">{{ 'diary.deactivate.title'|trans }}</label>
+                <label for="manage-tab-deactivated" class="chip-toggle">{{ 'diary.deactivate.title'|trans }} ({{ deactivatedExercises|length }})</label>
                 <input type="radio" name="manage-tab" id="manage-tab-archived" value="archived" class="sr-only" data-action="change->manage-tabs#switch">
-                <label for="manage-tab-archived" class="chip-toggle">{{ 'diary.archive.title'|trans }}</label>
+                <label for="manage-tab-archived" class="chip-toggle">{{ 'diary.archive.title'|trans }} ({{ archivedExercises|length }})</label>
             </div>
             <div class="flex items-center gap-2">
                 <form method="post" action="{{ path('diary_add') }}" class="flex items-center gap-1">

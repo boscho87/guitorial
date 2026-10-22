@@ -25,7 +25,7 @@ use Doctrine\ORM\Mapping as ORM;
  * DiaryItem::isActiveOn() - no redundant derived state to keep in sync.
  *
  * `deactivatedAt` is a second, independent half-open interval of the same
- * shape, set automatically by DeactivateStaleExercisesCommand (10 days
+ * shape, set automatically by DeactivateStaleExercisesCommand (14 days
  * without a finished session) rather than by the visitor - archiving stays
  * a deliberate, manual, final action, while deactivation is just "gone
  * quiet", reversible by nothing more than practicing the exercise again

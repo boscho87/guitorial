@@ -26,7 +26,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 #[AsCommand(name: 'app:deactivate-stale-exercises', description: 'Deactivates exercises with no finished session in the last 10 days')]
 final class DeactivateStaleExercisesCommand extends Command
 {
-    private const STALE_AFTER_DAYS = 10;
+    private const STALE_AFTER_DAYS = 14;
 
     public function __construct(
         private readonly ExerciseRepository $exercises,
