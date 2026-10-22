@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/boscho87/guitorial/compare/v1.14.0...v1.15.0) (2026-10-22)
+
+
+### Features
+
+* **mail:** Mailer-Infrastruktur einrichten (DSN, Absender, lokales Mailpit) ([5b73abc](https://github.com/boscho87/guitorial/commit/5b73abc3968a73970e7291f9ea4879fc5d88d3ec))
+
 # Changelog
 
 Alle nennenswerten Änderungen an Guitorial werden hier festgehalten.
@@ -265,4 +272,3 @@ v0.1.1: add CLAUDE.md project context
 
 ### v0.1.0 — 2026-09-09
 Add anonymous practice history + rework scale generator into bounded rounds
-
