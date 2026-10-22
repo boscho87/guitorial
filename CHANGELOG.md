@@ -1,3 +1,10 @@
+# [1.23.0](https://github.com/boscho87/guitorial/compare/v1.22.0...v1.23.0) (2026-10-22)
+
+
+### Features
+
+* **history:** neuer XLSX-Tab "Pro Übung" - Menge + Lernstand-Qualität ([2b779d6](https://github.com/boscho87/guitorial/commit/2b779d6f8f81a3621f14cd64bc05ed01ce69b78d))
+
 # [1.22.0](https://github.com/boscho87/guitorial/compare/v1.21.0...v1.22.0) (2026-10-22)
 
 
