@@ -1,3 +1,11 @@
+# [1.20.0](https://github.com/boscho87/guitorial/compare/v1.19.0...v1.20.0) (2026-10-22)
+
+
+### Features
+
+* **history:** Übungsstats/-historie als CSV und PDF exportieren ([be9edad](https://github.com/boscho87/guitorial/commit/be9edad323407ec448dda39d98cf7ea56b8784fd))
+* **profile:** DSGVO-Datenexport als JSON ([52b1352](https://github.com/boscho87/guitorial/commit/52b135215995256e10966f2f8a41f355a5527cf3))
+
 # [1.19.0](https://github.com/boscho87/guitorial/compare/v1.18.0...v1.19.0) (2026-10-22)
 
 
