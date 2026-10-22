@@ -1,3 +1,11 @@
+# [1.18.0](https://github.com/boscho87/guitorial/compare/v1.17.0...v1.18.0) (2026-10-22)
+
+
+### Features
+
+* **diary:** Deaktivierungs-Schwelle auf 14 Tage, Anzahl pro Tab anzeigen ([fad4255](https://github.com/boscho87/guitorial/commit/fad42551bfcee6dc8f9870c4ffc3218940e90046))
+* **profile:** Streak-Erinnerungen im Profil ein-/ausschaltbar ([ac544cb](https://github.com/boscho87/guitorial/commit/ac544cbaa799bed5842eae990b27c076af4480bb))
+
 # [1.17.0](https://github.com/boscho87/guitorial/compare/v1.16.0...v1.17.0) (2026-10-22)
 
 
