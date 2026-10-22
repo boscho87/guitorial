@@ -61,6 +61,7 @@ final class HistoryExportController extends AbstractController
         $spreadsheet = new Spreadsheet();
         $this->buildOverviewSheet($spreadsheet->getActiveSheet(), $stats);
         $this->buildToolBreakdownSheet($spreadsheet->createSheet(), $rows);
+        $this->buildExerciseBreakdownSheet($spreadsheet->createSheet(), $rows, $exerciseTitles);
         $this->buildHistorySheet($spreadsheet->createSheet(), $rows, $exerciseTitles);
         $spreadsheet->setActiveSheetIndex(0);
 
@@ -208,6 +209,84 @@ final class HistoryExportController extends AbstractController
         $chart = new Chart('toolBreakdown', new Title('Runden pro Werkzeug'), new Legend(Legend::POSITION_RIGHT, null, false), $plotArea);
         $chart->setTopLeftPosition('D2');
         $chart->setBottomRightPosition('L18');
+        $sheet->addChart($chart);
+    }
+
+    /**
+     * Menge (Sitzungen/Minuten) und Qualität (Lernstand-Verteilung) pro
+     * Übung - the tool breakdown sheet only ever covers the 5 built-in
+     * tools, so a visitor's own diary/routine exercises (manual or
+     * resource-linked, PracticeSession::getExercise() !== null) had no
+     * quantity/quality view of their own at all until now.
+     *
+     * @param PracticeSession[] $rows
+     * @param array<int, string> $exerciseTitles
+     */
+    private function buildExerciseBreakdownSheet(Worksheet $sheet, array $rows, array $exerciseTitles): void
+    {
+        $sheet->setTitle('Pro Übung');
+        $headers = ['Übung', 'Sitzungen', 'Minuten gesamt', 'Zäh', 'Wird besser', 'Sicher'];
+        foreach ($headers as $i => $header) {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($i + 1) . '1', $header);
+        }
+        $sheet->getStyle('A1:F1')->getFont()->setBold(true);
+
+        $stats = [];
+        foreach ($rows as $session) {
+            $exerciseId = $session->getExercise()?->getId();
+            if ($exerciseId === null || !$session->isFinished()) {
+                continue;
+            }
+            $stats[$exerciseId] ??= ['sessions' => 0, 'minutes' => 0, 'schwierig' => 0, 'wird_besser' => 0, 'sicher' => 0];
+            $stats[$exerciseId]['sessions']++;
+            $stats[$exerciseId]['minutes'] += $this->minutes($session) ?? 0;
+            $state = $session->getLearningState();
+            if ($state !== null && isset($stats[$exerciseId][$state])) {
+                $stats[$exerciseId][$state]++;
+            }
+        }
+
+        $row = 2;
+        foreach ($stats as $exerciseId => $s) {
+            $sheet->setCellValue("A{$row}", $exerciseTitles[$exerciseId] ?? 'Übung');
+            $sheet->setCellValue("B{$row}", $s['sessions']);
+            $sheet->setCellValue("C{$row}", $s['minutes']);
+            $sheet->setCellValue("D{$row}", $s['schwierig']);
+            $sheet->setCellValue("E{$row}", $s['wird_besser']);
+            $sheet->setCellValue("F{$row}", $s['sicher']);
+            $row++;
+        }
+        $lastRow = $row - 1;
+        foreach (range('A', 'F') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        if ($stats === []) {
+            return;
+        }
+
+        // Stacked bar: height = how much a given exercise has actually been
+        // rated (menge), colour split = how that practice has gone so far
+        // (qualität) - one chart doing both axes the user asked for instead
+        // of two separate ones.
+        $categories = [new DataSeriesValues('String', "'Pro Übung'!\$A\$2:\$A\${$lastRow}", null, $lastRow - 1)];
+        $seriesLabels = [
+            new DataSeriesValues('String', "'Pro Übung'!\$D\$1", null, 1),
+            new DataSeriesValues('String', "'Pro Übung'!\$E\$1", null, 1),
+            new DataSeriesValues('String', "'Pro Übung'!\$F\$1", null, 1),
+        ];
+        $values = [
+            new DataSeriesValues('Number', "'Pro Übung'!\$D\$2:\$D\${$lastRow}", null, $lastRow - 1),
+            new DataSeriesValues('Number', "'Pro Übung'!\$E\$2:\$E\${$lastRow}", null, $lastRow - 1),
+            new DataSeriesValues('Number', "'Pro Übung'!\$F\$2:\$F\${$lastRow}", null, $lastRow - 1),
+        ];
+
+        $series = new DataSeries(DataSeries::TYPE_BARCHART, DataSeries::GROUPING_STACKED, range(0, 2), $seriesLabels, array_fill(0, 3, $categories[0]), $values);
+        $series->setPlotDirection(DataSeries::DIRECTION_COL);
+        $plotArea = new PlotArea(null, [$series]);
+        $chart = new Chart('exerciseQuality', new Title('Sitzungen pro Übung nach Lernstand'), new Legend(Legend::POSITION_RIGHT, null, false), $plotArea);
+        $chart->setTopLeftPosition('H2');
+        $chart->setBottomRightPosition('P20');
         $sheet->addChart($chart);
     }
 
