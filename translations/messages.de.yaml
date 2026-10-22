@@ -361,6 +361,8 @@ diary:
     title: "Übungen verwalten"
     intro: "Deine bestehenden Übungen – bearbeiten, archivieren oder löschen. Änderungen wirken ab heute."
     active_heading: "Aktive Übungen"
+    quick_add_placeholder: "Neue Übung…"
+    add_flash: "Übung hinzugefügt."
     back_to_diary: "Zurück zu Meine Übungen"
     back_to_list: "Zurück zur Liste"
   item:

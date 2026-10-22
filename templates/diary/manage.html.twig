@@ -26,9 +26,17 @@
     {{ include('_components/_frame_toast.html.twig') }}
 
     <section class="mt-10">
-        <div class="flex items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="eyebrow">{{ 'diary.manage.active_heading'|trans }}</h2>
-            <a href="{{ path('diary_add_form') }}" data-turbo-frame="_top" class="btn btn-primary btn-sm" data-hint-id="manage.add" data-hint="{{ 'hints.manage.add'|trans }}">{{ 'diary.add.new_button'|trans }}</a>
+            <div class="flex items-center gap-2">
+                <form method="post" action="{{ path('diary_add') }}" class="flex items-center gap-1">
+                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                    <input type="hidden" name="return_to" value="diary_manage">
+                    <input type="text" name="title" maxlength="120" required placeholder="{{ 'diary.manage.quick_add_placeholder'|trans }}" class="input input-sm input-bordered w-40 sm:w-56">
+                    <button type="submit" class="btn btn-primary btn-sm btn-square" title="{{ 'diary.add.new_button'|trans }}" aria-label="{{ 'diary.add.new_button'|trans }}">+</button>
+                </form>
+                <a href="{{ path('diary_add_form') }}" data-turbo-frame="_top" class="btn btn-outline btn-sm" data-hint-id="manage.add" data-hint="{{ 'hints.manage.add'|trans }}">{{ 'diary.add.new_button'|trans }}</a>
+            </div>
         </div>
 
         {% if activeExercises is empty %}
@@ -86,7 +94,7 @@
                                 <span class="text-xs text-base-content/60">&middot; {{ entry.version.targetMinutes }} Min.</span>
                             {% endif %}
                         </form>
-                        {% if entry.exercise.note %}<p class="mt-2 text-xs text-base-content/50">{{ entry.exercise.note }}</p>{% endif %}
+                        {% if entry.exercise.note %}<p class="mt-2 line-clamp-2 text-xs text-base-content/50">{{ entry.exercise.note }}</p>{% endif %}
                     </li>
                 {% endfor %}
             </ul>

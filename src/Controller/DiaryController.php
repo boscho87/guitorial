@@ -354,11 +354,17 @@ final class DiaryController extends AbstractController
 
         $em->flush();
 
-        // A suggestion chip already submits title+resource+minutes in one
-        // go and is usable as-is; a bare custom title still needs a
-        // resource/time/group - either way, land on the setup step next
-        // rather than back on the (now much shorter) list, so "add" always
-        // continues into "configure" instead of being a single wide form.
+        // The manage page's own quick-add box (just a title, same defaults
+        // as a bare custom title here) wants to stay on the list it was
+        // typed from instead - everything else (the dedicated add page's
+        // suggestion chips and custom-title form) still always continues
+        // into "configure" next, same as before.
+        if ($request->request->get('return_to') === 'diary_manage') {
+            $this->addFlash('frame_toast', 'diary.manage.add_flash');
+
+            return $this->redirectToRoute('diary_manage');
+        }
+
         return $this->redirectToRoute('diary_setup', ['id' => $exercise->getId()]);
     }
 
