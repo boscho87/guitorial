@@ -63,6 +63,22 @@
         </div>
     </section>
 
+    {% if app.user %}
+        <section class="mt-10">
+            <h2 class="eyebrow">{{ 'profile.mail.title'|trans }}</h2>
+            <form method="post" action="{{ path('profile_mail_preferences') }}" data-controller="auto-submit">
+                <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                <div class="card-tile mt-3 flex items-start justify-between gap-4 !p-4">
+                    <label class="min-w-0 flex-1 cursor-pointer" for="streak-reminders-enabled">
+                        <span class="block text-sm font-medium">{{ 'profile.mail.streak_reminders.toggle'|trans }}</span>
+                        <span class="mt-1 block text-xs text-base-content/60">{{ 'profile.mail.streak_reminders.description'|trans }}</span>
+                    </label>
+                    <input id="streak-reminders-enabled" type="checkbox" name="streak_reminders" value="1" class="toggle toggle-primary" {{ app.user.hasOptedOutOfStreakReminders ? '' : 'checked' }} data-action="change->auto-submit#submit">
+                </div>
+            </form>
+        </section>
+    {% endif %}
+
     <section class="mt-10">
         <h2 class="eyebrow">{{ 'profile.account.title'|trans }}</h2>
         <div class="card-tile mt-3 flex flex-wrap items-center justify-between gap-3 !p-4">

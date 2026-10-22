@@ -717,6 +717,11 @@ profile:
     priority:
       title: "Empfohlene Prioritäten"
       description: "Innerhalb deiner Routine kommt Zähes und lange Nicht-Geübtes zuerst, Erledigtes steht unten."
+  mail:
+    title: "E-Mail-Erinnerungen"
+    streak_reminders:
+      toggle: "Streak-Erinnerung"
+      description: "Eine Mail abends, wenn dein Streak (ab 7 Tagen) sonst heute reissen würde."
   account:
     title: Konto
     anonymous: "Du nutzt Guitorial ohne Konto. Mit einem Login bleibt dein Fortschritt auch auf einem neuen Gerät erhalten."

@@ -49,10 +49,10 @@ class User implements UserInterface
     private ?\DateTimeImmutable $lastStreakReminderSentAt = null;
 
     /**
-     * Set only via the one-click unsubscribe link in a reminder mail
-     * (UnsubscribeController) - there's no profile toggle for this on
-     * purpose (reminders are on by default, see SendStreakRemindersCommand),
-     * but a no-login-required way out is a bare minimum.
+     * Flipped either via the profile settings toggle or the one-click
+     * unsubscribe link in a reminder mail (UnsubscribeController, no login
+     * required there - the signed token is what proves the request).
+     * Defaults to false (reminders on) - see SendStreakRemindersCommand.
      */
     #[ORM\Column]
     private bool $streakReminderOptOut = false;
@@ -114,6 +114,11 @@ class User implements UserInterface
     public function optOutOfStreakReminders(): void
     {
         $this->streakReminderOptOut = true;
+    }
+
+    public function optInToStreakReminders(): void
+    {
+        $this->streakReminderOptOut = false;
     }
 
     public function getRoles(): array
