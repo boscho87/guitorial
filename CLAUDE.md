@@ -86,9 +86,27 @@ default key, not a scoped deploy key). The server's `post-receive` hook decides 
 Both run `composer install --no-dev`, `importmap:install` (vendors JS packages - `assets/vendor/` is
 gitignored, not committed), migrations, `cache:clear`, `asset-map:compile`.
 
-`release.yml` (semantic-release) is manual-only (`workflow_dispatch`), not triggered on push - and uses a
-`RELEASE_TOKEN` PAT rather than the default `GITHUB_TOKEN`, because pushes/releases made with the default
-token don't cascade into other workflow runs (deploy.yml would silently never fire after a release).
+`release.yml` (semantic-release) runs on every push to `main` (`workflow_dispatch` still works too,
+for a manual re-run). It uses a `RELEASE_TOKEN` PAT rather than the default `GITHUB_TOKEN`, because
+pushes/releases made with the default token don't cascade into other workflow runs (deploy.yml
+would silently never fire after a release).
+
+**Commit messages on `main` must use a [Conventional Commits](https://www.conventionalcommits.org/)
+prefix** (`feat:`, `fix:`, `chore:`, `docs:`, …; free text after the colon, German is fine) -
+`@semantic-release/commit-analyzer` only detects a release-worthy change from that prefix. A
+`chore:`/`docs:`-only push (or one with no new prefix at all) is analyzed and skipped, no release
+created. When a release *is* warranted, semantic-release computes the next version, updates
+`CHANGELOG.md` **and** `config/services.yaml`'s `app.version` (via `@semantic-release/exec`'s
+`prepareCmd` in `.releaserc.json` - no more hand-bumping that parameter), commits both, and pushes
+a `vX.Y.Z` tag - which is exactly the tag `deploy.yml` watches, so **a qualifying push to `main` now
+deploys to prod on its own**, no manual tag/push step anymore.
+
+The release commit's message deliberately does **not** contain `[skip ci]` (unlike
+`@semantic-release/git`'s own default template) - that marker suppresses every workflow for *any*
+push event whose head commit carries it, including the tag push pointing at that same commit, which
+would silently stop `deploy.yml` from ever firing after a release. The harmless cost: that commit's
+own push re-triggers `release.yml` once more, which just re-analyzes (sees a `chore:` commit, no
+release needed) and exits - not a loop, since `chore:` never produces another release on its own.
 
 `actions/checkout` needs `fetch-depth: 0` in both deploy jobs - a shallow clone has no common ancestor
 with the server's existing branch, so the push gets rejected as a non-fast-forward even when it is one.
@@ -110,8 +128,10 @@ the committed `.env`). Obtained from:
   accounts" (matches `tenant: common` in `config/packages/knpu_oauth2_client.yaml`) → redirect URI
   `https://<host>/connect/azure/check` per environment → Certificates & secrets → new client secret.
 
-Current prod version: see the footer of guitorial.com (`app.version`). No formal semantic-release cycle has run yet - tags so far were pushed
-manually.
+Current prod version: see the footer of guitorial.com (`app.version`), or [`CHANGELOG.md`](./CHANGELOG.md)
+for the full release history. Automatic semantic-release went live 2026-10-22 (see `CHANGELOG.md`'s
+"Historie" header) - releases before that were manually tagged and are listed there verbatim from
+git history, not from Conventional Commits.
 
 ## Conventions
 

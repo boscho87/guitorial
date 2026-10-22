@@ -10,6 +10,7 @@
     "daisyui": "latest",
     "semantic-release": "latest",
     "@semantic-release/changelog": "latest",
+    "@semantic-release/exec": "latest",
     "@semantic-release/git": "latest",
     "@semantic-release/github": "latest"
   }

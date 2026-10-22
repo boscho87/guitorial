@@ -1,6 +1,13 @@
 name: Release
 
+# Runs on every push to main; semantic-release itself decides whether a
+# release is actually warranted (at least one feat:/fix: commit since the
+# last one) - a docs:/chore:/style:-only push just analyzes and exits
+# without creating anything. workflow_dispatch stays available for a manual
+# re-run (e.g. after fixing a failed release).
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
