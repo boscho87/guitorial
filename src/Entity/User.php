@@ -40,6 +40,23 @@ class User implements UserInterface
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     private \DateTimeImmutable $createdAt;
 
+    /**
+     * Set by SendStreakRemindersCommand once it actually sends - keeps a
+     * manual re-run of the command on the same day from double-sending,
+     * since the cron is the only thing expected to invoke it.
+     */
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $lastStreakReminderSentAt = null;
+
+    /**
+     * Set only via the one-click unsubscribe link in a reminder mail
+     * (UnsubscribeController) - there's no profile toggle for this on
+     * purpose (reminders are on by default, see SendStreakRemindersCommand),
+     * but a no-login-required way out is a bare minimum.
+     */
+    #[ORM\Column]
+    private bool $streakReminderOptOut = false;
+
     public function __construct(string $email, string $firstName, string $lastName, string $visitorId)
     {
         $this->email = $email;
@@ -77,6 +94,26 @@ class User implements UserInterface
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function getLastStreakReminderSentAt(): ?\DateTimeImmutable
+    {
+        return $this->lastStreakReminderSentAt;
+    }
+
+    public function markStreakReminderSent(\DateTimeImmutable $today): void
+    {
+        $this->lastStreakReminderSentAt = $today;
+    }
+
+    public function hasOptedOutOfStreakReminders(): bool
+    {
+        return $this->streakReminderOptOut;
+    }
+
+    public function optOutOfStreakReminders(): void
+    {
+        $this->streakReminderOptOut = true;
     }
 
     public function getRoles(): array

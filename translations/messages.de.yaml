@@ -13,6 +13,18 @@ error:
     message: "Deine Eingabe konnte nicht gespeichert werden - das passiert manchmal, wenn eine Seite eine Weile offen war. Bitte versuch es noch einmal."
     retry: "Nochmal versuchen"
 
+mail:
+  unsubscribed:
+    title: "Abgemeldet"
+    message: "Du bekommst keine Streak-Erinnerungen mehr. Deine Übungen und dein Fortschritt bleiben natürlich erhalten."
+  streak_reminder:
+    subject: "Dein %streak%-Tage-Streak läuft heute aus"
+    heading: "Dein %streak%-Tage-Streak läuft heute aus"
+    body: "Hallo %firstName%, du hast heute noch nicht geübt - ein kurzer Besuch reicht, um deinen Streak zu retten."
+    cta: "Jetzt üben"
+    unsubscribe_hint: "Diese Mails nicht mehr bekommen? "
+    unsubscribe_link: "Hier abmelden"
+
 home:
   meta_description: "Guitorial: Musiktheorie und Griffbrett für Gitarre (und Bass) gezielt trainieren - Tonarten, Akkordfunktionen, Skalen. Ohne Konto starten."
   cta: Üben
