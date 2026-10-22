@@ -21,7 +21,11 @@
                 <p class="mt-2 text-warning">{{ 'history.intro_anonymous'|trans }}</p>
             {% endif %}
         </div>
-        <a href="{{ path('history_groups') }}" class="btn btn-outline btn-sm shrink-0">{{ 'history.groups_link'|trans }}</a>
+        <div class="flex shrink-0 items-center gap-2">
+            <a href="{{ path('history_export_csv') }}" class="btn btn-outline btn-sm">{{ 'history.export.csv'|trans }}</a>
+            <a href="{{ path('history_export_pdf') }}" class="btn btn-outline btn-sm">{{ 'history.export.pdf'|trans }}</a>
+            <a href="{{ path('history_groups') }}" class="btn btn-outline btn-sm">{{ 'history.groups_link'|trans }}</a>
+        </div>
     </div>
 
     {{ include('diary/_area_nav.html.twig', {active: 'history'}) }}

@@ -1,0 +1,64 @@
+{# Rendered by Dompdf, not a browser - only a safe CSS subset applies, and
+   none of assets/styles/app.css is loaded, so everything here is
+   self-contained inline/embedded CSS, same reasoning as the email
+   templates. #}
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #1f2420; }
+        h1 { font-size: 18px; margin: 0 0 4px; }
+        .meta { color: #6b7169; font-size: 10px; margin: 0 0 20px; }
+        .stats { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+        .stats td { padding: 6px 10px; border: 1px solid #ddd; }
+        .stats .label { color: #6b7169; font-size: 10px; text-transform: uppercase; }
+        .stats .value { font-size: 15px; font-weight: bold; }
+        table.history { width: 100%; border-collapse: collapse; }
+        table.history th, table.history td { padding: 5px 8px; border-bottom: 1px solid #eee; text-align: left; }
+        table.history th { background-color: #f4f4f2; font-size: 10px; text-transform: uppercase; color: #6b7169; }
+    </style>
+</head>
+<body>
+    <h1>Guitorial – Übungsverlauf</h1>
+    <p class="meta">Exportiert am {{ generatedAt|date('d.m.Y H:i') }}</p>
+
+    <table class="stats">
+        <tr>
+            <td><span class="label">Aktueller Streak</span><br><span class="value">{{ stats.currentStreak }} {{ stats.currentStreak == 1 ? 'Tag' : 'Tage' }}</span></td>
+            <td><span class="label">Längster Streak</span><br><span class="value">{{ stats.longestStreak }} {{ stats.longestStreak == 1 ? 'Tag' : 'Tage' }}</span></td>
+            <td><span class="label">Übungstage gesamt</span><br><span class="value">{{ stats.totalPracticeDays }}</span></td>
+        </tr>
+        <tr>
+            <td><span class="label">Abgeschlossene Runden</span><br><span class="value">{{ stats.totalFinishedRounds }}</span></td>
+            <td><span class="label">Übungszeit gesamt</span><br><span class="value">{{ stats.totalDurationMinutes }} Min.</span></td>
+            <td><span class="label">Ø Trefferquote</span><br><span class="value">{{ stats.averageAccuracy is not null ? (stats.averageAccuracy|round) ~ ' %' : '–' }}</span></td>
+        </tr>
+    </table>
+
+    <table class="history">
+        <thead>
+            <tr>
+                <th>Datum</th>
+                <th>Übung</th>
+                <th>Status</th>
+                <th>Ergebnis</th>
+                <th>Lernstand</th>
+                <th>Min.</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+                <tr>
+                    <td>{{ row.date|date('d.m.Y H:i') }}</td>
+                    <td>{{ row.title }}</td>
+                    <td>{{ row.status }}</td>
+                    <td>{{ row.totalQuestions ? row.correctCount ~ '/' ~ row.totalQuestions : '–' }}</td>
+                    <td>{{ row.learningState ?? '–' }}</td>
+                    <td>{{ row.minutes ?? '–' }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
