@@ -13,6 +13,7 @@
         "dompdf/dompdf": "^3.1",
         "knpuniversity/oauth2-client-bundle": "^2.20",
         "league/oauth2-google": "^5.0",
+        "phpoffice/phpspreadsheet": "^5.10",
         "symfony/asset-mapper": "7.4.*",
         "symfony/console": "7.4.*",
         "symfony/dotenv": "7.4.*",

@@ -7,8 +7,19 @@ namespace App\Controller;
 use App\Domain\History\HistoryStatsBuilder;
 use App\Domain\Quiz\ToolRegistry;
 use App\Entity\PracticeSession;
+use App\Repository\ExerciseVersionRepository;
 use App\Repository\PracticeSessionRepository;
 use Dompdf\Dompdf;
+use PhpOffice\PhpSpreadsheet\Chart\Chart;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeries;
+use PhpOffice\PhpSpreadsheet\Chart\DataSeriesValues;
+use PhpOffice\PhpSpreadsheet\Chart\Legend;
+use PhpOffice\PhpSpreadsheet\Chart\PlotArea;
+use PhpOffice\PhpSpreadsheet\Chart\Title;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,13 +29,15 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 use Twig\Environment;
 
 /**
- * CSV/PDF export of a visitor's own practice stats/history - unlike
+ * XLSX/PDF export of a visitor's own practice stats/history - unlike
  * DataExportController (the DSGVO account dump), this is open to anonymous
  * visitors too, same as /verlauf itself (both are scoped by the visitorId
- * cookie, not a login). CSV for raw/sortable data, PDF for a readable,
- * printable/shareable summary - same STATS_WINDOW as HistoryController's
- * own chart/stats, so the numbers on the page and in the export always
- * agree.
+ * cookie, not a login). XLSX (multiple sheets + native Excel charts) for
+ * anyone who wants to dig into the raw data, PDF for a short, printable
+ * summary - the PDF deliberately stays stats-only, the full row-by-row
+ * history lives in the XLSX's own sheet instead of duplicating it onto
+ * paper. Both share STATS_WINDOW with HistoryController's own chart/stats,
+ * so the numbers on the page and in either export always agree.
  */
 final class HistoryExportController extends AbstractController
 {
@@ -37,36 +50,31 @@ final class HistoryExportController extends AbstractController
     ) {
     }
 
-    #[Route('/verlauf/export.csv', name: 'history_export_csv', methods: ['GET'])]
-    public function csv(Request $request, PracticeSessionRepository $sessions): Response
+    #[Route('/verlauf/export.xlsx', name: 'history_export_xlsx', methods: ['GET'])]
+    public function xlsx(Request $request, PracticeSessionRepository $sessions, ExerciseVersionRepository $versions): Response
     {
         $visitorId = $this->requireVisitorId($request);
         $rows = $visitorId !== '' ? $sessions->forVisitor($visitorId, self::STATS_WINDOW) : [];
+        $stats = $this->statsBuilder->build($rows);
+        $exerciseTitles = $this->latestTitleByExerciseId($versions, $visitorId);
 
-        $response = new StreamedResponse(function () use ($rows): void {
-            $out = fopen('php://output', 'w');
-            // UTF-8 BOM - Excel on Windows otherwise guesses the wrong
-            // encoding for German umlauts in exercise titles/notes.
-            fwrite($out, "\xEF\xBB\xBF");
-            fputcsv($out, ['Datum', 'Übung', 'Status', 'Richtig', 'Gesamt', 'Lernstand', 'Minuten', 'Notiz'], ';');
-            foreach ($rows as $session) {
-                fputcsv($out, [
-                    $session->getStartedAt()->format('Y-m-d H:i'),
-                    $this->resolveTitle($session),
-                    $this->statusLabel($session),
-                    $session->getCorrectCount(),
-                    $session->getTotalQuestions(),
-                    $this->learningStateLabel($session),
-                    $this->minutes($session),
-                    $session->getNote(),
-                ], ';');
-            }
-            fclose($out);
+        $spreadsheet = new Spreadsheet();
+        $this->buildOverviewSheet($spreadsheet->getActiveSheet(), $stats);
+        $this->buildToolBreakdownSheet($spreadsheet->createSheet(), $rows);
+        $this->buildHistorySheet($spreadsheet->createSheet(), $rows, $exerciseTitles);
+        $spreadsheet->setActiveSheetIndex(0);
+
+        $writer = new Xlsx($spreadsheet);
+        // Charts are silently dropped from the file unless explicitly
+        // told to include them - not the default, easy to miss.
+        $writer->setIncludeCharts(true);
+        $response = new StreamedResponse(function () use ($writer): void {
+            $writer->save('php://output');
         });
-        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
+        $response->headers->set('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         $response->headers->set('Content-Disposition', $response->headers->makeDisposition(
             'attachment',
-            sprintf('guitorial-verlauf-%s.csv', (new \DateTimeImmutable())->format('Y-m-d')),
+            sprintf('guitorial-verlauf-%s.xlsx', (new \DateTimeImmutable())->format('Y-m-d')),
         ));
 
         return $response;
@@ -79,18 +87,11 @@ final class HistoryExportController extends AbstractController
         $rows = $visitorId !== '' ? $sessions->forVisitor($visitorId, self::STATS_WINDOW) : [];
         $stats = $this->statsBuilder->build($rows);
 
+        // Stats only, deliberately - the full row-by-row history belongs in
+        // the XLSX export's own sheet, not duplicated onto paper here.
         $html = $twig->render('history/_export_pdf.html.twig', [
             'stats' => $stats,
             'generatedAt' => new \DateTimeImmutable(),
-            'rows' => array_map(fn (PracticeSession $s) => [
-                'date' => $s->getStartedAt(),
-                'title' => $this->resolveTitle($s),
-                'status' => $this->statusLabel($s),
-                'correctCount' => $s->getCorrectCount(),
-                'totalQuestions' => $s->getTotalQuestions(),
-                'learningState' => $this->learningStateLabel($s),
-                'minutes' => $this->minutes($s),
-            ], $rows),
         ]);
 
         $dompdf = new Dompdf();
@@ -104,6 +105,148 @@ final class HistoryExportController extends AbstractController
         ]);
     }
 
+    /**
+     * @param array{currentStreak: int, longestStreak: int, totalPracticeDays: int, totalFinishedRounds: int, totalDurationMinutes: int, averageAccuracy: ?float, series: array<string, array{label: string, points: list<array{date: \DateTimeImmutable, accuracy: float}>}>} $stats
+     */
+    private function buildOverviewSheet(Worksheet $sheet, array $stats): void
+    {
+        $sheet->setTitle('Übersicht');
+        $sheet->setCellValue('A1', 'Guitorial – Übungsstatistiken');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+
+        $labels = [
+            ['Aktueller Streak (Tage)', $stats['currentStreak']],
+            ['Längster Streak (Tage)', $stats['longestStreak']],
+            ['Übungstage gesamt', $stats['totalPracticeDays']],
+            ['Abgeschlossene Runden', $stats['totalFinishedRounds']],
+            ['Übungszeit gesamt (Min.)', $stats['totalDurationMinutes']],
+            ['Ø Trefferquote (%)', $stats['averageAccuracy'] !== null ? round($stats['averageAccuracy'], 1) : null],
+        ];
+        $row = 3;
+        foreach ($labels as [$label, $value]) {
+            $sheet->setCellValue("A{$row}", $label);
+            $sheet->setCellValue("B{$row}", $value);
+            $sheet->getStyle("A{$row}")->getFont()->setBold(true);
+            $row++;
+        }
+
+        $sheet->getColumnDimension('A')->setWidth(26);
+        $sheet->getColumnDimension('B')->setWidth(14);
+
+        $all = $stats['series']['all'] ?? null;
+        if ($all === null || count($all['points']) < 2) {
+            return;
+        }
+
+        $dataStartRow = $row + 2;
+        $sheet->setCellValue("A{$dataStartRow}", 'Datum');
+        $sheet->setCellValue("B{$dataStartRow}", 'Trefferquote (%)');
+        $sheet->getStyle("A{$dataStartRow}:B{$dataStartRow}")->getFont()->setBold(true);
+        $r = $dataStartRow + 1;
+        foreach ($all['points'] as $point) {
+            $sheet->setCellValueExplicit("A{$r}", $point['date']->format('d.m.Y'), \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING);
+            $sheet->setCellValue("B{$r}", $point['accuracy']);
+            $r++;
+        }
+        $lastDataRow = $r - 1;
+        $pointCount = $lastDataRow - $dataStartRow;
+
+        $categories = [new DataSeriesValues('String', "'Übersicht'!\$A\$" . ($dataStartRow + 1) . ":\$A\${$lastDataRow}", null, $pointCount)];
+        $values = [new DataSeriesValues('Number', "'Übersicht'!\$B\$" . ($dataStartRow + 1) . ":\$B\${$lastDataRow}", null, $pointCount)];
+
+        $series = new DataSeries(DataSeries::TYPE_LINECHART, DataSeries::GROUPING_STANDARD, [0], [], $categories, $values);
+        $plotArea = new PlotArea(null, [$series]);
+        $legend = new Legend(Legend::POSITION_RIGHT, null, false);
+        $chart = new Chart('accuracyTrend', new Title('Trefferquote im Zeitverlauf'), $legend, $plotArea);
+        $chart->setTopLeftPosition('D3');
+        $chart->setBottomRightPosition('L20');
+        $sheet->addChart($chart);
+    }
+
+    /**
+     * @param PracticeSession[] $rows
+     */
+    private function buildToolBreakdownSheet(Worksheet $sheet, array $rows): void
+    {
+        $sheet->setTitle('Pro Werkzeug');
+        $sheet->setCellValue('A1', 'Werkzeug');
+        $sheet->setCellValue('B1', 'Abgeschlossene Runden');
+        $sheet->getStyle('A1:B1')->getFont()->setBold(true);
+
+        $counts = [];
+        foreach ($rows as $session) {
+            if (!$session->isFinished()) {
+                continue;
+            }
+            $toolId = $session->getTool();
+            if ($toolId === null) {
+                continue;
+            }
+            $counts[$toolId] = ($counts[$toolId] ?? 0) + 1;
+        }
+
+        $row = 2;
+        foreach ($this->tools->all() as $tool) {
+            $sheet->setCellValue("A{$row}", $this->translator->trans($tool['title']));
+            $sheet->setCellValue("B{$row}", $counts[$tool['id']] ?? 0);
+            $row++;
+        }
+        $lastRow = $row - 1;
+        $sheet->getColumnDimension('A')->setWidth(24);
+        $sheet->getColumnDimension('B')->setWidth(22);
+
+        if ($counts === []) {
+            return;
+        }
+
+        $categories = [new DataSeriesValues('String', "'Pro Werkzeug'!\$A\$2:\$A\${$lastRow}", null, $lastRow - 1)];
+        $values = [new DataSeriesValues('Number', "'Pro Werkzeug'!\$B\$2:\$B\${$lastRow}", null, $lastRow - 1)];
+
+        $series = new DataSeries(DataSeries::TYPE_BARCHART, DataSeries::GROUPING_CLUSTERED, [0], [], $categories, $values);
+        $series->setPlotDirection(DataSeries::DIRECTION_COL);
+        $plotArea = new PlotArea(null, [$series]);
+        $chart = new Chart('toolBreakdown', new Title('Runden pro Werkzeug'), new Legend(Legend::POSITION_RIGHT, null, false), $plotArea);
+        $chart->setTopLeftPosition('D2');
+        $chart->setBottomRightPosition('L18');
+        $sheet->addChart($chart);
+    }
+
+    /**
+     * @param PracticeSession[] $rows
+     * @param array<int, string> $exerciseTitles
+     */
+    private function buildHistorySheet(Worksheet $sheet, array $rows, array $exerciseTitles): void
+    {
+        $sheet->setTitle('Verlauf');
+        $headers = ['Datum', 'Übung', 'Status', 'Richtig', 'Gesamt', 'Lernstand', 'Minuten', 'Notiz'];
+        foreach ($headers as $i => $header) {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($i + 1) . '1', $header);
+        }
+        $sheet->getStyle('A1:H1')->getFont()->setBold(true);
+
+        $row = 2;
+        foreach ($rows as $session) {
+            $values = [
+                $session->getStartedAt()->format('d.m.Y H:i'),
+                $this->resolveTitle($session, $exerciseTitles),
+                $this->statusLabel($session),
+                $session->getCorrectCount(),
+                $session->getTotalQuestions(),
+                $this->learningStateLabel($session),
+                $this->minutes($session),
+                $session->getNote(),
+            ];
+            foreach ($values as $i => $value) {
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($i + 1) . $row, $value);
+            }
+            $row++;
+        }
+
+        foreach (range('A', 'H') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+    }
+
     private function minutes(PracticeSession $session): ?int
     {
         if ($session->getFinishedAt() === null) {
@@ -114,12 +257,44 @@ final class HistoryExportController extends AbstractController
     }
 
     /**
-     * Same recipe as HistoryController::resolveTitle() - kept as its own
-     * copy rather than a shared service, matching this codebase's existing
-     * per-controller small-helper convention (see requireVisitorId below).
+     * @return array<int, string> exercise id => its most recent version's
+     *   title, regardless of whether that version (or the exercise itself)
+     *   is still active today - an archived/deactivated exercise's history
+     *   rows still need a name to show.
      */
-    private function resolveTitle(PracticeSession $session): string
+    private function latestTitleByExerciseId(ExerciseVersionRepository $versions, string $visitorId): array
     {
+        if ($visitorId === '') {
+            return [];
+        }
+
+        $titles = [];
+        foreach ($versions->forVisitor($visitorId) as $version) {
+            $exerciseId = $version->getExercise()->getId();
+            // forVisitor() has no guaranteed order - keep whichever version
+            // validFrom's latest for this exercise.
+            if (!isset($titles[$exerciseId]) || $version->getValidFrom() > $titles[$exerciseId]['validFrom']) {
+                $titles[$exerciseId] = ['title' => $version->getTitle(), 'validFrom' => $version->getValidFrom()];
+            }
+        }
+
+        return array_map(static fn (array $t) => $t['title'], $titles);
+    }
+
+    /**
+     * Checks the linked Exercise's own title first - an export is exactly
+     * the place someone wants to know *which* exercise a row was, not just
+     * which of the 5 built-in tools it happened to use.
+     *
+     * @param array<int, string> $exerciseTitles
+     */
+    private function resolveTitle(PracticeSession $session, array $exerciseTitles): string
+    {
+        $exerciseId = $session->getExercise()?->getId();
+        if ($exerciseId !== null && isset($exerciseTitles[$exerciseId])) {
+            return $exerciseTitles[$exerciseId];
+        }
+
         $toolId = $session->getTool() ?? $session->getResource()?->getInternalToolId();
         if ($toolId !== null) {
             try {
