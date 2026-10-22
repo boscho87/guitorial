@@ -1,3 +1,10 @@
+# [1.19.0](https://github.com/boscho87/guitorial/compare/v1.18.0...v1.19.0) (2026-10-22)
+
+
+### Features
+
+* **mail:** täglicher Übungs-Reminder morgens (opt-in) ([4b116ff](https://github.com/boscho87/guitorial/commit/4b116ff96832c6c3fe20c86fea2289a79719f77c))
+
 # [1.18.0](https://github.com/boscho87/guitorial/compare/v1.17.0...v1.18.0) (2026-10-22)
 
 
