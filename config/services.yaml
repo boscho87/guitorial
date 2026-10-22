@@ -10,6 +10,18 @@ parameters:
     # each future release tag.
     app.version: '1.14.0'
 
+    # A console command (e.g. the streak-reminder cron job) has no request
+    # context to generate an absolute URL from - this is the one place that
+    # needs to know the public base URL by hand.
+    app.base_url: 'https://guitorial.com'
+
+    # Sender identity for automated mail (streak reminders etc.) - not a
+    # real mailbox, just the From header; MAILER_DSN itself is an env var,
+    # not a parameter, since it differs per environment (see .env.local on
+    # the server / CLAUDE.md).
+    app.mailer_from_address: 'noreply@guitorial.com'
+    app.mailer_from_name: 'Guitorial'
+
 services:
     # default configuration for services in *this* file
     _defaults:
