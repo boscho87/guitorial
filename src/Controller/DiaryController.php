@@ -111,6 +111,14 @@ final class DiaryController extends AbstractController
         if ($sortByPriority) {
             $rows = $this->exercisePrioritizer->sort($rows, $today);
         }
+        if ($isToday) {
+            // The manual "priorisieren" pin (exercise's own setup page)
+            // always wins, on top of whichever order/sort-mode came before -
+            // a deliberate per-exercise choice, unlike the opt-in algorithmic
+            // sort above. usort() is stable since PHP 8.0, so ties keep
+            // whatever relative order they already had.
+            usort($rows, static fn (array $a, array $b): int => (int) $b['version']->getExercise()->isPrioritized() <=> (int) $a['version']->getExercise()->isPrioritized());
+        }
         $recentRatios = $this->dayViewBuilder->buildRecentRatios($allVersions, $allSessions, $today, self::RECENT_DAYS);
 
         $resourcesByExerciseId = [];
@@ -540,6 +548,19 @@ final class DiaryController extends AbstractController
         }
 
         return $this->redirectToRoute('diary_manage');
+    }
+
+    #[Route('/{id}/priorisieren', name: 'diary_toggle_priority', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function togglePriority(int $id, Request $request, ExerciseRepository $exercises, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $exercise = $exercises->findForVisitor($id, $this->requireVisitorId($request));
+        if ($exercise !== null) {
+            $exercise->togglePriority();
+            $em->flush();
+        }
+
+        return $this->redirectToRoute('diary_setup', ['id' => $id]);
     }
 
     #[Route('/{id}/loeschen', name: 'diary_delete', methods: ['POST'], requirements: ['id' => '\d+'])]

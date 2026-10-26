@@ -432,6 +432,9 @@ diary:
     title: "Übung einrichten"
     intro: "Die Übung ist bereits angelegt. Ergänze hier optional, womit du übst, wie lange, wie oft und in welcher Gruppe."
     done: Fertig
+    priority:
+      on: "Priorisiert"
+      off: "Priorisieren"
     flash:
       saved: "Gespeichert."
     section:

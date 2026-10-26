@@ -12,6 +12,18 @@
     <h1 class="font-display mt-3 text-2xl font-semibold sm:text-3xl">{{ 'diary.setup.title'|trans }}</h1>
     <p class="mt-2 text-base-content/70">{{ 'diary.setup.intro'|trans }}</p>
 
+    <form method="post" action="{{ path('diary_toggle_priority', {id: exercise.id}) }}" class="mt-4" data-controller="submit-loading" data-submit-loading-spinner-value="false" data-action="submit->submit-loading#submit">
+        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+        <button
+                type="submit"
+                class="btn btn-sm {{ exercise.isPrioritized ? 'btn-primary' : 'btn-outline' }} gap-1.5"
+                aria-pressed="{{ exercise.isPrioritized ? 'true' : 'false' }}"
+        >
+            {{ icons.icon('star') }}
+            {{ (exercise.isPrioritized ? 'diary.setup.priority.on' : 'diary.setup.priority.off')|trans }}
+        </button>
+    </form>
+
     <form method="post" action="{{ path('diary_edit', {id: exercise.id}) }}" class="mt-8 space-y-8" data-controller="exercise-form">
         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
         {% if returnRouteId %}

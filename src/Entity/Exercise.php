@@ -68,6 +68,16 @@ class Exercise
     private ?\DateTimeImmutable $deactivatedAt = null;
 
     /**
+     * Manual "pin to the top of Heute" flag, toggled from the exercise's
+     * own setup page - unrelated to ExercisePrioritizer's algorithmic
+     * recommended-order cookie (profile setting): this one is a deliberate,
+     * per-exercise choice that always wins, regardless of which sort mode
+     * is active.
+     */
+    #[ORM\Column]
+    private bool $isPrioritized = false;
+
+    /**
      * Set only by RoutineShareController::import() - lets a re-import
      * reuse this exact copy instead of cloning a duplicate, and survives
      * the copy being renamed (unlike matching by title).
@@ -183,5 +193,15 @@ class Exercise
     public function reactivateFromStaleness(): void
     {
         $this->deactivatedAt = null;
+    }
+
+    public function isPrioritized(): bool
+    {
+        return $this->isPrioritized;
+    }
+
+    public function togglePriority(): void
+    {
+        $this->isPrioritized = !$this->isPrioritized;
     }
 }
