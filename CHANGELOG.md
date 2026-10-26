@@ -1,3 +1,11 @@
+# [1.25.0](https://github.com/boscho87/guitorial/compare/v1.24.0...v1.25.0) (2026-10-26)
+
+
+### Features
+
+* **diary:** neuer Sitzungs-Status "angefangen" für Zäh/Wird besser ([0952d02](https://github.com/boscho87/guitorial/commit/0952d028184a3ee153b5ffe2ff698734e0eb0472))
+* **diary:** Übung auch während der laufenden Sitzung priorisieren können ([fd9cdd1](https://github.com/boscho87/guitorial/commit/fd9cdd165abf097588df2c712671cc1e44ef02be))
+
 # [1.24.0](https://github.com/boscho87/guitorial/compare/v1.23.0...v1.24.0) (2026-10-26)
 
 
