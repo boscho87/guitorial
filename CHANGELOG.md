@@ -1,3 +1,10 @@
+# [1.24.0](https://github.com/boscho87/guitorial/compare/v1.23.0...v1.24.0) (2026-10-26)
+
+
+### Features
+
+* **diary:** Übung priorisieren - Toggle auf der Übungsansicht ([dae90bb](https://github.com/boscho87/guitorial/commit/dae90bbabe37c10555ed19ffdb69572dceb07909))
+
 # [1.23.0](https://github.com/boscho87/guitorial/compare/v1.22.0...v1.23.0) (2026-10-22)
 
 
