@@ -41,9 +41,12 @@ final class ExerciseDayViewBuilder
 
             $exerciseId = $exercise->getId();
             $dateKey = $date->format('Y-m-d');
-            $stat = $dailyStats[$exerciseId][$dateKey] ?? ['minutes' => 0.0, 'count' => 0];
+            $stat = $dailyStats[$exerciseId][$dateKey] ?? ['minutes' => 0.0, 'count' => 0, 'completedMinutes' => 0.0, 'completedCount' => 0];
             $targetMinutes = $version->getTargetMinutes();
-            $checked = $targetMinutes !== null ? $stat['minutes'] >= $targetMinutes : $stat['count'] >= 1;
+            // Driven by completed-only stats, not the creditable total just
+            // below - "zäh"/"wird besser" time shows in the progress bar
+            // but never checks the exercise off by itself.
+            $checked = $targetMinutes !== null ? $stat['completedMinutes'] >= $targetMinutes : $stat['completedCount'] >= 1;
 
             $weeklyDone = null;
             $weeklyTarget = null;
@@ -145,8 +148,8 @@ final class ExerciseDayViewBuilder
 
                 $exerciseId = $exercise->getId();
                 $targetMinutes = $version->getTargetMinutes();
-                $stat = $dailyStats[$exerciseId][$dateKey] ?? ['minutes' => 0.0, 'count' => 0];
-                $checkedToday = $targetMinutes !== null ? $stat['minutes'] >= $targetMinutes : $stat['count'] >= 1;
+                $stat = $dailyStats[$exerciseId][$dateKey] ?? ['minutes' => 0.0, 'count' => 0, 'completedMinutes' => 0.0, 'completedCount' => 0];
+                $checkedToday = $targetMinutes !== null ? $stat['completedMinutes'] >= $targetMinutes : $stat['completedCount'] >= 1;
 
                 if ($version->getRepeatRhythm() === ExerciseVersion::RHYTHM_WEEKLY) {
                     $doneBeforeToday = $this->weeklyDoneCount($dailyStats, $exerciseId, $targetMinutes, $date->modify('-1 day'));
@@ -173,7 +176,7 @@ final class ExerciseDayViewBuilder
     }
 
     /**
-     * @param array<int, array<string, array{minutes: float, count: int}>> $dailyStats
+     * @param array<int, array<string, array{minutes: float, count: int, completedMinutes: float, completedCount: int}>> $dailyStats
      */
     private function weeklyDoneCount(array $dailyStats, int $exerciseId, ?int $targetMinutes, \DateTimeImmutable $throughDate): int
     {
@@ -183,8 +186,8 @@ final class ExerciseDayViewBuilder
         $done = 0;
         $cursor = $weekStart;
         while ($cursor <= $throughDate) {
-            $stat = $dailyStats[$exerciseId][$cursor->format('Y-m-d')] ?? ['minutes' => 0.0, 'count' => 0];
-            $checked = $targetMinutes !== null ? $stat['minutes'] >= $targetMinutes : $stat['count'] >= 1;
+            $stat = $dailyStats[$exerciseId][$cursor->format('Y-m-d')] ?? ['minutes' => 0.0, 'count' => 0, 'completedMinutes' => 0.0, 'completedCount' => 0];
+            $checked = $targetMinutes !== null ? $stat['completedMinutes'] >= $targetMinutes : $stat['completedCount'] >= 1;
             if ($checked) {
                 $done++;
             }
@@ -215,35 +218,49 @@ final class ExerciseDayViewBuilder
     }
 
     /**
+     * Two parallel tallies per exercise per day: `minutes`/`count` (every
+     * creditable session - STATUS_FINISHED or STATUS_STARTED, i.e. "zäh"/
+     * "wird besser" too) drive the displayed practicedMinutes/sessionCount,
+     * while `completedMinutes`/`completedCount` (STATUS_FINISHED only)
+     * drive the Heute checkmark/weekly-target logic - practicing counts
+     * for the time shown either way, but only a genuine "sicher" (or an
+     * unrated completion) checks the exercise off.
+     *
      * @param PracticeSession[] $sessions
-     * @return array<int, array<string, array{minutes: float, count: int}>> exerciseId => dateKey => stats, finished sessions only
+     * @return array<int, array<string, array{minutes: float, count: int, completedMinutes: float, completedCount: int}>>
      */
     private function dailyStatsByExercise(array $sessions): array
     {
         $stats = [];
         foreach ($sessions as $s) {
             $exercise = $s->getExercise();
-            if ($exercise === null || !$s->isFinished()) {
+            if ($exercise === null || !$s->isCreditable()) {
                 continue;
             }
 
             $exerciseId = $exercise->getId();
             $dateKey = $s->getFinishedAt()->format('Y-m-d');
             $minutes = ($s->getFinishedAt()->getTimestamp() - $s->getStartedAt()->getTimestamp()) / 60;
+            $stats[$exerciseId][$dateKey] ??= ['minutes' => 0.0, 'count' => 0, 'completedMinutes' => 0.0, 'completedCount' => 0];
 
-            $stats[$exerciseId][$dateKey]['minutes'] = ($stats[$exerciseId][$dateKey]['minutes'] ?? 0.0) + $minutes;
-            $stats[$exerciseId][$dateKey]['count'] = ($stats[$exerciseId][$dateKey]['count'] ?? 0) + 1;
+            $stats[$exerciseId][$dateKey]['minutes'] += $minutes;
+            $stats[$exerciseId][$dateKey]['count']++;
+            if ($s->isFinished()) {
+                $stats[$exerciseId][$dateKey]['completedMinutes'] += $minutes;
+                $stats[$exerciseId][$dateKey]['completedCount']++;
+            }
         }
 
         return $stats;
     }
 
     /**
-     * Per exercise: the day of the most recent finished session and the
-     * learning state of the most recent finished session that was actually
-     * rated (a later unrated one doesn't erase the last real assessment) -
-     * the inputs ExercisePrioritizer ranks Heute by. Every exercise gets an
-     * entry, with nulls where there's nothing yet.
+     * Per exercise: the day of the most recent creditable session (finished
+     * or merely "angefangen" - either still means real practice happened)
+     * and the learning state of the most recent rated one (a later unrated
+     * one doesn't erase the last real assessment) - the inputs
+     * ExercisePrioritizer ranks Heute by. Every exercise gets an entry,
+     * with nulls where there's nothing yet.
      *
      * @param PracticeSession[] $sessions
      * @return array<int, array{learningState: ?string, lastPracticedOn: ?\DateTimeImmutable}>
@@ -255,7 +272,7 @@ final class ExerciseDayViewBuilder
         $result = [];
         foreach ($sessions as $s) {
             $exercise = $s->getExercise();
-            if ($exercise === null || !$s->isFinished()) {
+            if ($exercise === null || !$s->isCreditable()) {
                 continue;
             }
             $exerciseId = $exercise->getId();

@@ -77,7 +77,7 @@ final class SendStreakRemindersCommand extends Command
 
             $practicedToday = false;
             foreach ($sessions as $session) {
-                if ($session->isFinished() && $session->getFinishedAt()?->format('Y-m-d') === $today->format('Y-m-d')) {
+                if ($session->isCreditable() && $session->getFinishedAt()?->format('Y-m-d') === $today->format('Y-m-d')) {
                     $practicedToday = true;
                     break;
                 }

@@ -46,7 +46,7 @@ final class HistoryGroupStatsBuilder
         $stats = [];
         foreach ($sessions as $s) {
             $exercise = $s->getExercise();
-            if ($exercise === null || !$s->isFinished() || $s->getFinishedAt() < $windowStart) {
+            if ($exercise === null || !$s->isCreditable() || $s->getFinishedAt() < $windowStart) {
                 continue;
             }
 

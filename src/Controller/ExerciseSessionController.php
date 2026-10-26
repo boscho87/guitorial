@@ -286,7 +286,10 @@ final class ExerciseSessionController extends AbstractController
             note: $note !== '' ? $note : null,
         );
 
-        $this->addFlash('success', 'exercise_session.flash.finished');
+        // "Zäh"/"wird besser" lands as STATUS_STARTED, not a genuine
+        // completion (see PracticeSession::finish()) - the flash shouldn't
+        // claim "abgeschlossen" when the whole point was to leave it open.
+        $this->addFlash('success', $session->isFinished() ? 'exercise_session.flash.finished' : 'exercise_session.flash.started');
         // One-shot celebration flag for confetti_controller.js - finish()
         // always redirects (diary_index or routine_show, see
         // redirectAfterSession()), never a turbo-frame update, so there's

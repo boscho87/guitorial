@@ -234,7 +234,7 @@ final class HistoryExportController extends AbstractController
         $stats = [];
         foreach ($rows as $session) {
             $exerciseId = $session->getExercise()?->getId();
-            if ($exerciseId === null || !$session->isFinished()) {
+            if ($exerciseId === null || !$session->isCreditable()) {
                 continue;
             }
             $stats[$exerciseId] ??= ['sessions' => 0, 'minutes' => 0, 'schwierig' => 0, 'wird_besser' => 0, 'sicher' => 0];
@@ -390,6 +390,7 @@ final class HistoryExportController extends AbstractController
     {
         return match ($session->getStatus()) {
             'abgeschlossen' => $this->translator->trans('history.finished'),
+            'angefangen' => $this->translator->trans('history.started'),
             'verworfen' => $this->translator->trans('history.discarded'),
             default => $this->translator->trans('history.in_progress', ['%current%' => $session->getQuestionIndex()]),
         };

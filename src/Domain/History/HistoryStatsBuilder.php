@@ -49,8 +49,14 @@ final class HistoryStatsBuilder
     public function build(array $sessions): array
     {
         $finished = array_values(array_filter($sessions, static fn (PracticeSession $s): bool => $s->isFinished()));
+        // "Zäh"/"wird besser" (STATUS_STARTED) still counts as real practice
+        // for the streak and total time, even though it's not a genuine
+        // completion - totalFinishedRounds/averageAccuracy/series stay
+        // strictly isFinished()-based, those are about rounds actually
+        // brought to a close.
+        $creditable = array_values(array_filter($sessions, static fn (PracticeSession $s): bool => $s->isCreditable()));
         $graded = array_values(array_filter($finished, self::isGraded(...)));
-        $days = self::practiceDays($finished);
+        $days = self::practiceDays($creditable);
         $totalFinishedRounds = count($finished);
 
         return [
@@ -59,7 +65,7 @@ final class HistoryStatsBuilder
             'currentStreak' => self::currentStreak($days),
             'longestStreak' => self::longestStreak($days),
             'totalPracticeDays' => count($days),
-            'totalDurationMinutes' => self::totalDurationMinutes($finished),
+            'totalDurationMinutes' => self::totalDurationMinutes($creditable),
             'milestones' => [
                 'days' => self::milestoneProgress(count($days), self::DAY_MILESTONES),
                 'sessions' => self::milestoneProgress($totalFinishedRounds, self::SESSION_MILESTONES),

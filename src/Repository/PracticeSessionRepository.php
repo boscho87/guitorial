@@ -97,9 +97,9 @@ class PracticeSessionRepository extends ServiceEntityRepository
     {
         $rows = $this->createQueryBuilder('s')
             ->select('IDENTITY(s.exercise) AS exerciseId', 'MAX(s.finishedAt) AS lastFinishedAt')
-            ->andWhere('s.status = :status')
+            ->andWhere('s.status IN (:statuses)')
             ->andWhere('s.exercise IS NOT NULL')
-            ->setParameter('status', PracticeSession::STATUS_FINISHED)
+            ->setParameter('statuses', [PracticeSession::STATUS_FINISHED, PracticeSession::STATUS_STARTED])
             ->groupBy('s.exercise')
             ->getQuery()
             ->getArrayResult();
@@ -159,7 +159,8 @@ class PracticeSessionRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return PracticeSession[] finished sessions for exactly this exercise, on exactly this date
+     * @return PracticeSession[] creditable sessions (finished or "angefangen")
+     *   for exactly this exercise, on exactly this date
      */
     public function finishedForExerciseOnDate(Exercise $exercise, \DateTimeImmutable $date): array
     {
@@ -168,10 +169,10 @@ class PracticeSessionRepository extends ServiceEntityRepository
 
         return $this->createQueryBuilder('s')
             ->andWhere('s.exercise = :exercise')
-            ->andWhere('s.status = :status')
+            ->andWhere('s.status IN (:statuses)')
             ->andWhere('s.finishedAt >= :start AND s.finishedAt < :end')
             ->setParameter('exercise', $exercise)
-            ->setParameter('status', PracticeSession::STATUS_FINISHED)
+            ->setParameter('statuses', [PracticeSession::STATUS_FINISHED, PracticeSession::STATUS_STARTED])
             ->setParameter('start', $start)
             ->setParameter('end', $end)
             ->getQuery()

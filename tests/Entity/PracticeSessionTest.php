@@ -68,6 +68,60 @@ final class PracticeSessionTest extends TestCase
         self::assertSame(180, (int) round($creditedMinutes));
     }
 
+    public function testFinishWithDifficultLearningStateLandsAsStartedNotFinished(): void
+    {
+        $session = new PracticeSession('visitor-1', 'client-1', null);
+
+        $session->finish(PracticeSession::LEARNING_STATE_DIFFICULT);
+
+        self::assertSame(PracticeSession::STATUS_STARTED, $session->getStatus());
+        self::assertFalse($session->isFinished());
+        self::assertTrue($session->isCreditable());
+    }
+
+    public function testFinishWithImprovingLearningStateLandsAsStartedNotFinished(): void
+    {
+        $session = new PracticeSession('visitor-1', 'client-1', null);
+
+        $session->finish(PracticeSession::LEARNING_STATE_IMPROVING);
+
+        self::assertSame(PracticeSession::STATUS_STARTED, $session->getStatus());
+        self::assertFalse($session->isFinished());
+        self::assertTrue($session->isCreditable());
+    }
+
+    public function testFinishWithConfidentLearningStateIsAGenuineCompletion(): void
+    {
+        $session = new PracticeSession('visitor-1', 'client-1', null);
+
+        $session->finish(PracticeSession::LEARNING_STATE_CONFIDENT);
+
+        self::assertSame(PracticeSession::STATUS_FINISHED, $session->getStatus());
+        self::assertTrue($session->isFinished());
+        self::assertTrue($session->isCreditable());
+    }
+
+    public function testFinishWithNoLearningStateIsAGenuineCompletion(): void
+    {
+        // completeManually()'s "mark done" path, and bare tool rounds, never
+        // pass a learningState at all - must stay a real completion.
+        $session = new PracticeSession('visitor-1', 'client-1', null);
+
+        $session->finish();
+
+        self::assertSame(PracticeSession::STATUS_FINISHED, $session->getStatus());
+    }
+
+    public function testDiscardedAndRunningSessionsAreNotCreditable(): void
+    {
+        $discarded = new PracticeSession('visitor-1', 'client-1', null);
+        $discarded->discard();
+        self::assertFalse($discarded->isCreditable());
+
+        $running = new PracticeSession('visitor-1', 'client-2', null);
+        self::assertFalse($running->isCreditable());
+    }
+
     private function backdateStartedAt(PracticeSession $session, int $seconds): void
     {
         (\Closure::bind(function () use ($seconds): void {

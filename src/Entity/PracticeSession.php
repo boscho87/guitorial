@@ -37,6 +37,7 @@ use Doctrine\ORM\Mapping as ORM;
 class PracticeSession
 {
     public const STATUS_RUNNING = 'laufend';
+    public const STATUS_STARTED = 'angefangen';
     public const STATUS_FINISHED = 'abgeschlossen';
     public const STATUS_DISCARDED = 'verworfen';
 
@@ -224,6 +225,19 @@ class PracticeSession
         return $this->status === self::STATUS_FINISHED;
     }
 
+    /**
+     * Counts for time/streak purposes even though it's not a genuine
+     * completion (STATUS_STARTED) - "zäh"/"wird besser" still means real
+     * practice happened, see finish(). Used wherever credited time,
+     * "practiced today" or staleness should recognize that, as opposed to
+     * isFinished(), which stays strict for anything that means "genuinely
+     * done" (the Heute checkmark, totalFinishedRounds, …).
+     */
+    public function isCreditable(): bool
+    {
+        return $this->status === self::STATUS_FINISHED || $this->status === self::STATUS_STARTED;
+    }
+
     public function getExercise(): ?Exercise
     {
         return $this->exercise;
@@ -285,10 +299,20 @@ class PracticeSession
         $this->hasInteraction = true;
     }
 
+    /**
+     * "Zäh"/"wird besser" means still-in-progress, not genuinely done - the
+     * exercise should stay unchecked/resumable on Heute, so this lands as
+     * STATUS_STARTED instead of STATUS_FINISHED. Only "sicher" (or no
+     * rating at all, e.g. completeManually()/a bare tool round) is a real
+     * completion. Either way finishedAt/learningState/points/note are set
+     * identically - time crediting never depends on which of the two.
+     */
     public function finish(?string $learningState = null, ?int $points = null, ?int $timeBonusPoints = null, ?string $note = null): void
     {
         $this->finishedAt = $this->cappedFinishTimestamp();
-        $this->status = self::STATUS_FINISHED;
+        $this->status = in_array($learningState, [self::LEARNING_STATE_DIFFICULT, self::LEARNING_STATE_IMPROVING], true)
+            ? self::STATUS_STARTED
+            : self::STATUS_FINISHED;
         $this->learningState = $learningState;
         $this->points = $points;
         $this->timeBonusPoints = $timeBonusPoints;

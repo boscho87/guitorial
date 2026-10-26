@@ -256,6 +256,7 @@ history:
     pdf: "PDF exportieren"
   untitled_session: Übung
   finished: Abgeschlossen
+  started: Angefangen
   discarded: Verworfen
   in_progress: "In Bearbeitung (Frage %current%)"
   tones_practiced: "%count% Töne geübt"
@@ -548,6 +549,7 @@ exercise_session:
     notification_body: "Bestätige, dass du noch an der Übung dran bist."
   flash:
     finished: "Übung abgeschlossen."
+    started: "Zeit gespeichert - bleib dran, die Übung ist noch offen."
 
 practice_guide:
   title: "Richtig üben"

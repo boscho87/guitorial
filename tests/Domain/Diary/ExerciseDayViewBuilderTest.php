@@ -115,6 +115,45 @@ final class ExerciseDayViewBuilderTest extends TestCase
         self::assertSame(3, $row['weeklyTarget']);
     }
 
+    public function testAngefangenSessionCountsMinutesButNeverChecksOffByItself(): void
+    {
+        $today = new \DateTimeImmutable('today');
+        $exercise = $this->exercise(1);
+        $version = $this->version($exercise, 'Zäh geübt', 10, ExerciseVersion::RHYTHM_DAILY, null, $today->modify('-3 days'));
+
+        $row = $this->builder->buildDay([$version], [$this->startedSession($exercise, $today, 15)], $today)[0];
+
+        self::assertFalse($row['checked']);
+        self::assertSame(15, $row['practicedMinutes']);
+    }
+
+    public function testAngefangenSessionAloneChecksOffAnOhneVorgabeExerciseEither(): void
+    {
+        $today = new \DateTimeImmutable('today');
+        $exercise = $this->exercise(1);
+        $version = $this->version($exercise, 'Frei, zäh', null, ExerciseVersion::RHYTHM_NONE, null, $today->modify('-3 days'));
+
+        $row = $this->builder->buildDay([$version], [$this->startedSession($exercise, $today, 5)], $today)[0];
+
+        self::assertFalse($row['checked']);
+    }
+
+    public function testCombinedAngefangenAndAbgeschlossenMinutesCountTowardTheTargetOnceGenuinelyCompleted(): void
+    {
+        $today = new \DateTimeImmutable('today');
+        $exercise = $this->exercise(1);
+        $version = $this->version($exercise, 'Gemischt', 10, ExerciseVersion::RHYTHM_DAILY, null, $today->modify('-3 days'));
+
+        // 6 "zäh" minutes earlier today, then a later finished session that
+        // alone would miss the target (4 < 10) - only the genuinely
+        // completed minutes may check it off, and 4 isn't enough on its own.
+        $sessions = [$this->startedSession($exercise, $today, 6), $this->finishedSession($exercise, $today, 4)];
+        $row = $this->builder->buildDay([$version], $sessions, $today)[0];
+
+        self::assertSame(10, $row['practicedMinutes']); // shown total includes the "zäh" time
+        self::assertFalse($row['checked']); // but only 4 completed minutes count toward the 10-minute target
+    }
+
     public function testRunningSessionIdIsExposedWhenAnExerciseHasALaufendSession(): void
     {
         $today = new \DateTimeImmutable('today');
@@ -269,6 +308,27 @@ final class ExerciseDayViewBuilderTest extends TestCase
         (\Closure::bind(function () use ($started, $finished): void {
             $this->startedAt = $started;
             $this->finishedAt = $finished;
+        }, $session, PracticeSession::class))();
+
+        return $session;
+    }
+
+    /**
+     * A "zäh"/"wird besser" rated session - STATUS_STARTED, not a genuine
+     * completion (see PracticeSession::finish()).
+     */
+    private function startedSession(Exercise $exercise, \DateTimeImmutable $date, int $minutes): PracticeSession
+    {
+        $session = new PracticeSession('visitor-1', 'session-'.uniqid(), null, $exercise);
+
+        $started = $date->setTime(9, 0);
+        $finished = $started->modify("+{$minutes} minutes");
+
+        (\Closure::bind(function () use ($started, $finished): void {
+            $this->startedAt = $started;
+            $this->finishedAt = $finished;
+            $this->status = PracticeSession::STATUS_STARTED;
+            $this->learningState = PracticeSession::LEARNING_STATE_DIFFICULT;
         }, $session, PracticeSession::class))();
 
         return $session;
