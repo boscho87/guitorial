@@ -32,6 +32,20 @@
 
     <h1 class="font-display mt-3 text-2xl font-semibold sm:text-3xl">{{ title ?? 'exercise_session.untitled'|trans }}</h1>
 
+    {% if exercise %}
+        <form method="post" action="{{ path('exercise_session_toggle_priority', {id: session.id}) }}" class="mt-2" data-controller="submit-loading" data-submit-loading-spinner-value="false" data-action="submit->submit-loading#submit">
+            <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+            <button
+                    type="submit"
+                    class="btn btn-sm {{ exercise.isPrioritized ? 'btn-primary' : 'btn-outline' }} gap-1.5"
+                    aria-pressed="{{ exercise.isPrioritized ? 'true' : 'false' }}"
+            >
+                {{ icons.icon('star') }}
+                {{ (exercise.isPrioritized ? 'diary.setup.priority.on' : 'diary.setup.priority.off')|trans }}
+            </button>
+        </form>
+    {% endif %}
+
     <div
             class="stat-tile mt-8 flex flex-col items-center gap-2 py-10 text-center" data-hint-id="session.timer" data-hint="{{ 'hints.session.timer'|trans }}"
             data-controller="session-heartbeat timer"

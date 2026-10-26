@@ -170,7 +170,32 @@ final class ExerciseSessionController extends AbstractController
             // Rendered embedded in this page's own content below instead -
             // see running.html.twig.
             'hidePracticeTools' => true,
+            'exercise' => $exercise,
         ]);
+    }
+
+    /**
+     * Same toggle as DiaryController::togglePriority() (the exercise setup
+     * page), just reachable without leaving the running page mid-session -
+     * redirects back to this same page by session id rather than to the
+     * setup page or Heute.
+     */
+    #[Route('/sitzung/{id}/priorisieren', name: 'exercise_session_toggle_priority', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function togglePriority(int $id, Request $request, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $session = $this->requireRunningSession($id, $request);
+        if ($session === null) {
+            return $this->redirectToRoute('diary_index');
+        }
+
+        $exercise = $session->getExercise();
+        if ($exercise !== null) {
+            $exercise->togglePriority();
+            $em->flush();
+        }
+
+        return $this->redirectToRoute('exercise_session_running', ['id' => $id]);
     }
 
     /**
