@@ -25,7 +25,7 @@
     <turbo-frame id="diary-manage-list" class="block">
     {{ include('_components/_frame_toast.html.twig') }}
 
-    <div class="mt-10" data-controller="manage-tabs exercise-routine-drop">
+    <div class="mt-10" data-controller="manage-tabs">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex flex-wrap gap-1" role="tablist">
                 <input type="radio" name="manage-tab" id="manage-tab-active" value="active" class="sr-only" checked data-manage-tabs-target="radio" data-action="change->manage-tabs#switch">
@@ -46,34 +46,29 @@
             </div>
         </div>
 
-    <section class="mt-4" data-manage-tabs-target="panel" data-tab="active" data-hint-id="manage.list" data-hint="{{ 'hints.manage.list'|trans }}">
+    <section
+            class="mt-4"
+            data-controller="collapse-all"
+            data-manage-tabs-target="panel" data-tab="active"
+            data-hint-id="manage.list" data-hint="{{ 'hints.manage.list'|trans }}"
+            data-collapse-all-expand-label-value="{{ 'diary.manage.expand_all'|trans }}"
+            data-collapse-all-collapse-label-value="{{ 'diary.manage.collapse_all'|trans }}"
+    >
         {% if activeExercises is empty %}
             <p class="mt-4 text-sm text-base-content/60">{{ 'diary.empty'|trans }}</p>
         {% else %}
-            {% if routines is not empty %}
-                <p class="mt-4 text-xs text-base-content/50">{{ 'diary.manage.drag_to_routine_hint'|trans }}</p>
-                <div class="mt-2 flex flex-wrap gap-3">
-                    {% for routine in routines %}
-                        <div
-                                class="flex min-h-[4.5rem] min-w-[9rem] flex-1 flex-col items-center justify-center gap-1 rounded-box border-2 border-dashed border-base-300 p-3 text-center text-sm font-medium transition-colors sm:flex-none"
-                                data-exercise-routine-drop-target="dropZone"
-                        >
-                            {{ routine.name }}
-                            <form method="post" action="{{ path('routine_add_exercise', {id: routine.id}) }}">
-                                <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
-                                <input type="hidden" name="exercise_id" value="">
-                            </form>
-                        </div>
-                    {% endfor %}
+            {% if activeExercisesByGroup|length > 1 %}
+                <div class="mt-4 flex justify-end">
+                    <button type="button" class="btn btn-ghost btn-xs" data-collapse-all-target="button" data-action="collapse-all#toggle">{{ 'diary.manage.collapse_all'|trans }}</button>
                 </div>
             {% endif %}
 
             {% for bucket in activeExercisesByGroup %}
-                <details class="{{ loop.first ? 'mt-4' : 'mt-3' }}" open>
+                <details class="{{ loop.first ? 'mt-4' : 'mt-3' }}" data-collapse-all-target="details" open>
                     <summary class="cursor-pointer text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ bucket.group.name }} ({{ bucket.entries|length }})</summary>
-                <ul class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2" data-exercise-routine-drop-target="source">
+                <ul class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {% for entry in bucket.entries %}
-                        <li class="card-tile cursor-grab active:cursor-grabbing" data-exercise-id="{{ entry.exercise.id }}">
+                        <li class="card-tile">
                             <div class="flex items-start justify-between gap-2">
                                 <p class="min-w-0 flex-1 text-sm font-medium sm:text-base">{{ entry.version.title }}</p>
                                 <div class="flex shrink-0 gap-0.5">
@@ -123,6 +118,18 @@
                                     <span class="text-xs text-base-content/60">&middot; {{ entry.version.targetMinutes }} Min.</span>
                                 {% endif %}
                             </form>
+                            {% if routines is not empty %}
+                                <form method="post" action="{{ path('routine_add_exercise') }}" data-controller="auto-submit" class="mt-2">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
+                                    <input type="hidden" name="exercise_id" value="{{ entry.exercise.id }}">
+                                    <select name="routine_id" class="select select-xs select-bordered" data-action="change->auto-submit#submit">
+                                        <option value="" selected disabled>{{ 'diary.manage.add_to_routine_placeholder'|trans }}</option>
+                                        {% for routine in routines %}
+                                            <option value="{{ routine.id }}">{{ routine.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </form>
+                            {% endif %}
                             {% if entry.exercise.note %}<p class="mt-2 line-clamp-2 text-xs text-base-content/50">{{ entry.exercise.note }}</p>{% endif %}
                         </li>
                     {% endfor %}

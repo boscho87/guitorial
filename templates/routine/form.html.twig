@@ -50,28 +50,28 @@
             <input type="text" name="name" value="{{ routine ? routine.name : '' }}" maxlength="80" required class="input input-bordered mt-1 w-full">
         </label>
 
-        <div class="mt-6" data-controller="routine-picker" data-hint-id="routines.pick" data-hint="{{ 'hints.routines.pick'|trans }}">
+        <div
+                class="mt-6"
+                data-controller="routine-picker"
+                data-routine-picker-exercises-value="{{ pickerExercises|json_encode|e('html_attr') }}"
+                data-routine-picker-selected-value="{{ selectedExerciseIds|json_encode|e('html_attr') }}"
+                data-routine-picker-add-label-value="{{ 'routine.form.add_aria'|trans }}"
+                data-routine-picker-remove-label-value="{{ 'routine.form.remove_aria'|trans }}"
+                data-hint-id="routines.pick" data-hint="{{ 'hints.routines.pick'|trans }}"
+        >
             <p class="text-sm font-medium">{{ 'routine.form.exercises'|trans }}</p>
-            {% if availableExercises is empty and selectedExercises is empty %}
+            {% if pickerExercises is empty %}
                 <p class="mt-2 text-sm text-base-content/60">{{ 'routine.form.no_exercises'|trans }} <a href="{{ path('diary_add_form') }}" class="font-medium text-primary hover:underline">{{ 'routine.form.no_exercises_cta'|trans }}</a></p>
             {% else %}
-                <p class="mt-1 text-xs text-base-content/50">{{ 'routine.form.drag_hint'|trans }}</p>
+                <p class="mt-1 text-xs text-base-content/50">{{ 'routine.form.picker_hint'|trans }}</p>
                 <div class="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ 'routine.form.available_heading'|trans }}</p>
-                        <ul class="mt-2 flex min-h-32 flex-col gap-1.5 rounded-box border border-dashed border-base-300 p-2" data-routine-picker-target="available">
-                            {% for entry in availableExercises %}
-                                <li class="card-tile cursor-grab !p-2 text-sm active:cursor-grabbing" data-id="{{ entry.exercise.id }}">{{ entry.version.title }}</li>
-                            {% endfor %}
-                        </ul>
+                        <ul class="mt-2 flex min-h-32 flex-col gap-1.5 rounded-box border border-dashed border-base-300 p-2" data-routine-picker-target="available"></ul>
                     </div>
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50" data-hint-id="routines.order" data-hint="{{ 'hints.routines.order'|trans }}">{{ 'routine.form.selected_heading'|trans }}</p>
-                        <ul class="mt-2 flex min-h-32 flex-col gap-1.5 rounded-box border border-dashed border-primary/40 bg-primary/5 p-2" data-routine-picker-target="selected">
-                            {% for entry in selectedExercises %}
-                                <li class="card-tile cursor-grab !p-2 text-sm active:cursor-grabbing" data-id="{{ entry.exercise.id }}">{{ entry.version.title }}</li>
-                            {% endfor %}
-                        </ul>
+                        <ul class="mt-2 flex min-h-32 flex-col gap-1.5 rounded-box border border-dashed border-primary/40 bg-primary/5 p-2" data-routine-picker-target="selected"></ul>
                     </div>
                 </div>
                 <div data-routine-picker-target="hiddenInputs"></div>

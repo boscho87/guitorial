@@ -388,8 +388,10 @@ diary:
     add_flash: "Übung hinzugefügt."
     back_to_diary: "Zurück zu Meine Übungen"
     back_to_list: "Zurück zur Liste"
-    drag_to_routine_hint: "Übung halten und auf eine Routine ziehen, um sie hinzuzufügen."
+    add_to_routine_placeholder: "Zu Routine hinzufügen…"
     add_to_routine_flash: "Zur Routine hinzugefügt."
+    expand_all: "Alle aufklappen"
+    collapse_all: "Alle einklappen"
   item:
     linked_to: "Verknüpft mit %tool%"
     of_target: "von %target% Min."
@@ -494,9 +496,11 @@ routine:
     exercises: Übungen
     no_exercises: "Du hast noch keine aktiven Übungen."
     no_exercises_cta: "Jetzt eine Übung erfassen"
-    drag_hint: "Übungen zwischen den Listen hin- und herziehen: hinzufügen, entfernen und die Reihenfolge ändern funktioniert alles per Ziehen."
+    picker_hint: "Mit + hinzufügen, mit × entfernen. Die Reihenfolge änderst du per Ziehen am Griff-Symbol."
     available_heading: "Verfügbare Übungen"
     selected_heading: "In dieser Routine"
+    add_aria: "Zur Routine hinzufügen"
+    remove_aria: "Aus der Routine entfernen"
     save: Speichern
     quick_add_label: "Neue Übung direkt hinzufügen"
     quick_add_placeholder: "z. B. Another Brick in the Wall"

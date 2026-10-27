@@ -65,8 +65,8 @@ final class RoutineController extends AbstractController
 
         return $this->render('routine/form.html.twig', [
             'routine' => null,
-            'availableExercises' => $this->activeExercisesForVisitor($visitorId, $exercises, $versions),
-            'selectedExercises' => [],
+            'pickerExercises' => $this->pickerExercises($this->activeExercisesForVisitor($visitorId, $exercises, $versions)),
+            'selectedExerciseIds' => [],
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
     }
@@ -127,25 +127,29 @@ final class RoutineController extends AbstractController
         }
 
         $today = new \DateTimeImmutable('today');
-        $selectedExercises = [];
+        $pickerEntries = $this->activeExercisesForVisitor($visitorId, $exercises, $versions);
+        $knownIds = array_map(static fn (array $entry): int => $entry['exercise']->getId(), $pickerEntries);
+
         $selectedIds = [];
         foreach ($routine->getItems() as $item) {
-            $version = $versions->currentFor($item->getExercise(), $today);
-            if ($version !== null) {
-                $selectedExercises[] = ['exercise' => $item->getExercise(), 'version' => $version];
-                $selectedIds[] = $item->getExercise()->getId();
+            $exerciseId = $item->getExercise()->getId();
+            $selectedIds[] = $exerciseId;
+            if (!in_array($exerciseId, $knownIds, true)) {
+                // The routine can keep an item whose exercise has since
+                // been deactivated/archived - it still needs a title to
+                // show in "In dieser Routine" even though it won't appear
+                // as a pickable "available" exercise anywhere else.
+                $version = $versions->currentFor($item->getExercise(), $today);
+                if ($version !== null) {
+                    $pickerEntries[] = ['exercise' => $item->getExercise(), 'version' => $version];
+                }
             }
         }
 
-        $availableExercises = array_values(array_filter(
-            $this->activeExercisesForVisitor($visitorId, $exercises, $versions),
-            static fn (array $entry): bool => !in_array($entry['exercise']->getId(), $selectedIds, true),
-        ));
-
         return $this->render('routine/form.html.twig', [
             'routine' => $routine,
-            'availableExercises' => $availableExercises,
-            'selectedExercises' => $selectedExercises,
+            'pickerExercises' => $this->pickerExercises($pickerEntries),
+            'selectedExerciseIds' => $selectedIds,
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
     }
@@ -283,18 +287,21 @@ final class RoutineController extends AbstractController
     }
 
     /**
-     * The "Übung verwalten" page's drag-an-exercise-onto-a-routine-chip
-     * shortcut - same membership change the routine editor's drag board
-     * makes, without opening that page first. Appends at the end; a drop
-     * on a routine the exercise already belongs to is a no-op rather than
-     * a duplicate RoutineItem.
+     * The "Übung verwalten" page's per-card "zu Routine hinzufügen"
+     * dropdown - same membership change the routine editor's picker makes,
+     * without opening that page first. Not tied to a specific routine in
+     * the path (both ids travel in the body instead) since one dropdown
+     * per card needs to post to whichever routine was picked, the same
+     * auto-submit-on-change shape as this page's existing group/rhythm
+     * dropdowns. Picking a routine the exercise already belongs to is a
+     * no-op rather than a duplicate RoutineItem.
      */
-    #[Route('/{id}/uebung-hinzufuegen', name: 'routine_add_exercise', methods: ['POST'], requirements: ['id' => '\d+'])]
-    public function addExercise(int $id, Request $request, RoutineRepository $routines, ExerciseRepository $exercises, EntityManagerInterface $em): Response
+    #[Route('/uebung-hinzufuegen', name: 'routine_add_exercise', methods: ['POST'])]
+    public function addExercise(Request $request, RoutineRepository $routines, ExerciseRepository $exercises, EntityManagerInterface $em): Response
     {
         $this->assertValidCsrf($request);
         $visitorId = $this->requireVisitorId($request);
-        $routine = $routines->findForVisitor($id, $visitorId);
+        $routine = $routines->findForVisitor($request->request->getInt('routine_id'), $visitorId);
         $exercise = $exercises->findForVisitor($request->request->getInt('exercise_id'), $visitorId);
 
         if ($routine !== null && $exercise !== null && !$routine->hasExercise($exercise)) {
@@ -378,6 +385,19 @@ final class RoutineController extends AbstractController
         usort($entries, static fn (array $a, array $b): int => $a['version']->getTitle() <=> $b['version']->getTitle());
 
         return $entries;
+    }
+
+    /**
+     * @param array<int, array{exercise: \App\Entity\Exercise, version: \App\Entity\ExerciseVersion}> $entries
+     *
+     * @return array<int, array{id: int, title: string}>
+     */
+    private function pickerExercises(array $entries): array
+    {
+        return array_map(
+            static fn (array $entry): array => ['id' => $entry['exercise']->getId(), 'title' => $entry['version']->getTitle()],
+            $entries,
+        );
     }
 
     /**
