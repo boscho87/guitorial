@@ -1,3 +1,10 @@
+# [1.30.0](https://github.com/boscho87/guitorial/compare/v1.29.1...v1.30.0) (2026-10-27)
+
+
+### Features
+
+* **routine:** Drag-and-Drop zum Hinzufuegen/Entfernen/Sortieren von Uebungen in Routinen und Gruppierung in Uebung verwalten ([3c09b7f](https://github.com/boscho87/guitorial/commit/3c09b7f0f4b75db2807c2ee08301a14d768e4ff9))
+
 ## [1.29.1](https://github.com/boscho87/guitorial/compare/v1.29.0...v1.29.1) (2026-10-27)
 
 
