@@ -399,7 +399,13 @@ export default class extends Controller {
     }
 
     renderBpm() {
-        this.bpmOutputTarget.textContent = this.state.bpm;
+        // Plural - the embedded (exercise-running) layout also shows a
+        // second, always-visible bpmOutput badge next to the toggle button
+        // itself, so the tempo reads without opening the panel. Both need
+        // to stay in sync.
+        this.bpmOutputTargets.forEach((el) => {
+            el.textContent = this.state.bpm;
+        });
     }
 
     renderDroneButtons() {

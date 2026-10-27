@@ -63,7 +63,17 @@
             <input type="range" min="0" max="1" step="0.05" class="range range-xs flex-1" data-practice-tools-target="droneVolume" data-action="input->practice-tools#setDroneVolume">
         </label>
     </div>
-    <button type="button" class="btn btn-circle btn-outline bg-base-100 shadow-md" data-practice-tools-target="toggleButton" data-action="practice-tools#toggle" data-hint-id="practice_tools.toggle" data-hint-order="900" data-hint="{{ 'hints.practice_tools.toggle'|trans }}" aria-label="{{ 'practice_tools.toggle'|trans }}" title="{{ 'practice_tools.toggle'|trans }}">
-        {{ icons.icon('metronome') }}
-    </button>
+    <div class="flex items-center gap-2">
+        {% if embedded|default(false) %}
+            {# Visible at a glance without opening the panel - see
+               renderBpm() in practice_tools_controller.js, which keeps
+               this and the panel's own bpmOutput in sync together. #}
+            <span class="rounded-full border border-base-300 bg-base-100 px-2.5 py-1 font-mono text-sm shadow-sm">
+                <span data-practice-tools-target="bpmOutput">100</span> {{ 'practice_tools.bpm'|trans }}
+            </span>
+        {% endif %}
+        <button type="button" class="btn btn-circle btn-outline bg-base-100 shadow-md" data-practice-tools-target="toggleButton" data-action="practice-tools#toggle" data-hint-id="practice_tools.toggle" data-hint-order="900" data-hint="{{ 'hints.practice_tools.toggle'|trans }}" aria-label="{{ 'practice_tools.toggle'|trans }}" title="{{ 'practice_tools.toggle'|trans }}">
+            {{ icons.icon('metronome') }}
+        </button>
+    </div>
 </div>
