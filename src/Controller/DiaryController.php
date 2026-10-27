@@ -28,6 +28,7 @@ use App\Repository\ExerciseRepository;
 use App\Repository\ExerciseResourceRepository;
 use App\Repository\ExerciseVersionRepository;
 use App\Repository\PracticeSessionRepository;
+use App\Repository\RoutineRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -76,12 +77,14 @@ final class DiaryController extends AbstractController
         ExerciseResourceRepository $resources,
         PracticeSessionRepository $sessions,
         DayNoteRepository $dayNotes,
+        RoutineRepository $routines,
     ): Response {
         $visitorId = $this->requireVisitorId($request);
         $today = new \DateTimeImmutable('today');
         $viewDate = $this->readViewDate($request, $today);
         $isToday = $viewDate->format('Y-m-d') === $today->format('Y-m-d');
         $dayNote = $visitorId !== '' ? $dayNotes->forVisitorOnDate($visitorId, $viewDate) : null;
+        $favoriteRoutines = $isToday && $visitorId !== '' ? $routines->findFavoritesForVisitor($visitorId) : [];
 
         $allVersions = $visitorId !== '' ? $versions->forVisitor($visitorId) : [];
         $allSessions = $visitorId !== '' ? $sessions->forVisitor($visitorId, 300) : [];
@@ -143,6 +146,7 @@ final class DiaryController extends AbstractController
             'previousDate' => $viewDate->modify('-1 day'),
             'nextDate' => $isToday ? null : $viewDate->modify('+1 day'),
             'activeRoutine' => $activeRoutine,
+            'favoriteRoutines' => $favoriteRoutines,
             'dayRows' => $rows,
             'dayNote' => $dayNote?->getNote(),
             'dayNoteMaxLength' => self::DAY_NOTE_MAX_LENGTH,
@@ -330,7 +334,7 @@ final class DiaryController extends AbstractController
     }
 
     #[Route('/hinzufuegen', name: 'diary_add', methods: ['POST'])]
-    public function add(Request $request, ExerciseGroupRepository $groups, EntityManagerInterface $em): Response
+    public function add(Request $request, ExerciseGroupRepository $groups, RoutineRepository $routines, EntityManagerInterface $em): Response
     {
         $this->assertValidCsrf($request);
         $visitorId = $this->requireVisitorId($request);
@@ -342,6 +346,14 @@ final class DiaryController extends AbstractController
         if ($input['title'] === '') {
             return $this->redirectToRoute('diary_add_form');
         }
+
+        // The routine editor's own quick-add box (just a title) must land
+        // the new exercise in *that* routine specifically, not whichever
+        // one happens to be active - see RoutineProvisioner::appendToRoutine().
+        $returnTo = $request->request->get('return_to');
+        $targetRoutine = $returnTo === 'routine_edit'
+            ? $routines->findForVisitor($request->request->getInt('return_to_id'), $visitorId)
+            : null;
 
         $resourceInputs = $this->readResourceInput($request);
         $resourceInputs = array_merge($resourceInputs, $this->extraResourcesFromNote($input['note'], $resourceInputs));
@@ -363,16 +375,27 @@ final class DiaryController extends AbstractController
         foreach ($resourceInputs as $sortIndex => $resource) {
             $em->persist($this->buildResource($exercise, $sortIndex, $resource));
         }
-        $this->routineProvisioner->appendToActiveRoutine($visitorId, $exercise);
+
+        if ($targetRoutine !== null) {
+            $this->routineProvisioner->appendToRoutine($targetRoutine, $exercise);
+        } else {
+            $this->routineProvisioner->appendToActiveRoutine($visitorId, $exercise);
+        }
 
         $em->flush();
+
+        if ($targetRoutine !== null) {
+            $this->addFlash('success', 'routine.form.quick_add_flash');
+
+            return $this->redirectToRoute('routine_edit_form', ['id' => $targetRoutine->getId()]);
+        }
 
         // The manage page's own quick-add box (just a title, same defaults
         // as a bare custom title here) wants to stay on the list it was
         // typed from instead - everything else (the dedicated add page's
         // suggestion chips and custom-title form) still always continues
         // into "configure" next, same as before.
-        if ($request->request->get('return_to') === 'diary_manage') {
+        if ($returnTo === 'diary_manage') {
             $this->addFlash('frame_toast', 'diary.manage.add_flash');
 
             return $this->redirectToRoute('diary_manage');

@@ -56,6 +56,17 @@
                 </ul>
             {% endif %}
         </section>
+
+        <div class="mt-6">
+            <p class="text-sm font-medium">{{ 'routine.form.quick_add_label'|trans }}</p>
+            <form method="post" action="{{ path('diary_add') }}" class="mt-2 flex items-center gap-1">
+                <input type="hidden" name="_token" value="{{ csrf_token('diary') }}">
+                <input type="hidden" name="return_to" value="routine_edit">
+                <input type="hidden" name="return_to_id" value="{{ routine.id }}">
+                <input type="text" name="title" maxlength="120" required placeholder="{{ 'routine.form.quick_add_placeholder'|trans }}" class="input input-sm input-bordered flex-1">
+                <button type="submit" class="btn btn-primary btn-sm btn-square" title="{{ 'diary.add.new_button'|trans }}" aria-label="{{ 'diary.add.new_button'|trans }}">+</button>
+            </form>
+        </div>
     {% endif %}
 
     <form method="post" action="{{ routine ? path('routine_edit', {id: routine.id}) : path('routine_add') }}" class="mt-8">

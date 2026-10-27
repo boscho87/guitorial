@@ -110,6 +110,18 @@ final class RoutineProvisioner
             return;
         }
 
+        $this->appendToRoutine($routine, $exercise);
+    }
+
+    /**
+     * Same append as appendToActiveRoutine(), for a caller that already
+     * has a specific (possibly non-active) Routine in hand - e.g. the
+     * "neue Übung direkt hier hinzufügen" quick-add on the routine editor,
+     * which must land the new exercise in *that* routine regardless of
+     * which one is active, not silently also show up on Heute.
+     */
+    public function appendToRoutine(Routine $routine, Exercise $exercise): void
+    {
         $nextSortIndex = 0;
         foreach ($routine->getItems() as $item) {
             $nextSortIndex = max($nextSortIndex, $item->getSortIndex() + 1);

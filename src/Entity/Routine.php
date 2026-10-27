@@ -45,6 +45,17 @@ class Routine
     private bool $isActive = false;
 
     /**
+     * Marks this routine for the "Schnellwechsel" chips on Heute (see
+     * DiaryController::index()) - a lightweight, independent flag from
+     * isActive, since several routines can be favorited at once while only
+     * one is ever active. The max-3 cap lives in RoutineController, not
+     * here, so this entity stays a plain flag with no awareness of its
+     * siblings.
+     */
+    #[ORM\Column]
+    private bool $isFavorite = false;
+
+    /**
      * Generated lazily (ensureShareToken()) only once someone actually
      * clicks "Teilen" - null until then, rather than every Routine getting
      * a guessable public link the moment it's created.
@@ -111,6 +122,16 @@ class Routine
     public function deactivate(): void
     {
         $this->isActive = false;
+    }
+
+    public function isFavorite(): bool
+    {
+        return $this->isFavorite;
+    }
+
+    public function toggleFavorite(): void
+    {
+        $this->isFavorite = !$this->isFavorite;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

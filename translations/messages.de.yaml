@@ -355,6 +355,8 @@ diary:
   active_routine:
     label: "Aktuelle Routine:"
     change: "Wechseln"
+  fast_switch:
+    label: "Schnellwechsel:"
   day_note:
     label: "Notiz zum Tag"
     placeholder: "Wie lief's? (optional)"
@@ -477,6 +479,9 @@ routine:
   delete_confirm: "Routine wirklich löschen? Die enthaltenen Übungen selbst bleiben unter Meine Übungen erhalten."
   delete_flash: "Routine gelöscht."
   delete_active_error: "Die aktuelle Routine kann nicht gelöscht werden. Aktiviere zuerst eine andere Routine."
+  favorite:
+    toggle: "Favorit (Schnellwechsel auf Heute)"
+    max_reached: "Maximal 3 Favoriten. Entferne zuerst eine andere Routine aus den Favoriten."
   back_to_list: "Zurück zu Routinen"
   add:
     title: "Neue Routine"
@@ -491,6 +496,9 @@ routine:
     no_exercises_cta: "Jetzt eine Übung erfassen"
     order_preview: "Reihenfolge"
     save: Speichern
+    quick_add_label: "Neue Übung direkt hinzufügen"
+    quick_add_placeholder: "z. B. Another Brick in the Wall"
+    quick_add_flash: "Übung hinzugefügt und in diese Routine aufgenommen."
   show:
     all_done: "Routine heute abgeschlossen."
     empty: "Diese Routine enthält keine aktiven Übungen mehr."

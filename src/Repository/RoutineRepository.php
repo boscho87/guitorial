@@ -41,6 +41,19 @@ class RoutineRepository extends ServiceEntityRepository
         return $this->findOneBy(['visitorId' => $visitorId, 'isActive' => true]);
     }
 
+    /**
+     * @return Routine[] ordered by sortIndex
+     */
+    public function findFavoritesForVisitor(string $visitorId): array
+    {
+        return $this->findBy(['visitorId' => $visitorId, 'isFavorite' => true], ['sortIndex' => 'ASC']);
+    }
+
+    public function countFavoritesForVisitor(string $visitorId): int
+    {
+        return $this->count(['visitorId' => $visitorId, 'isFavorite' => true]);
+    }
+
     public function findByShareToken(string $token): ?Routine
     {
         return $this->findOneBy(['shareToken' => $token]);

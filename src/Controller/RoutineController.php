@@ -34,6 +34,7 @@ final class RoutineController extends AbstractController
 {
     private const CSRF_INTENTION = 'routine';
     private const NAME_MAX_LENGTH = 80;
+    private const MAX_FAVORITES = 3;
 
     public function __construct(
         private readonly ToolRegistry $tools,
@@ -280,6 +281,31 @@ final class RoutineController extends AbstractController
         }
 
         return $this->redirectToRoute('diary_index');
+    }
+
+    /**
+     * Toggles membership in the Heute "Schnellwechsel" row (max 3, enforced
+     * here rather than on the entity - see Routine::$isFavorite). Turning
+     * one off is always allowed; turning one on past the cap is silently
+     * refused with a flash instead of bumping another favorite out, since
+     * there's no obviously "right" one to evict automatically.
+     */
+    #[Route('/{id}/favorisieren', name: 'routine_toggle_favorite', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function toggleFavorite(int $id, Request $request, RoutineRepository $routines, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $visitorId = $this->requireVisitorId($request);
+        $routine = $routines->findForVisitor($id, $visitorId);
+        if ($routine !== null) {
+            if (!$routine->isFavorite() && $routines->countFavoritesForVisitor($visitorId) >= self::MAX_FAVORITES) {
+                $this->addFlash('frame_toast', 'routine.favorite.max_reached');
+            } else {
+                $routine->toggleFavorite();
+                $em->flush();
+            }
+        }
+
+        return $this->redirectToRoute('routine_index');
     }
 
     #[Route('/{id}', name: 'routine_show', methods: ['GET'], requirements: ['id' => '\d+'])]

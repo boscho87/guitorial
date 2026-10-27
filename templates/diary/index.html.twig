@@ -78,6 +78,21 @@
             </p>
             <a href="{{ path('routine_index') }}" class="text-xs font-medium text-primary hover:underline">{{ 'diary.active_routine.change'|trans }}</a>
         </div>
+        {% if favoriteRoutines is not empty %}
+            <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                <span class="text-xs text-base-content/50">{{ 'diary.fast_switch.label'|trans }}</span>
+                {% for routine in favoriteRoutines %}
+                    {% if routine.id == activeRoutine.id %}
+                        <span class="badge badge-primary badge-sm">{{ routine.name }}</span>
+                    {% else %}
+                        <form method="post" action="{{ path('routine_activate', {id: routine.id}) }}" data-turbo-frame="_top">
+                            <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
+                            <button type="submit" class="badge badge-outline badge-sm hover:border-primary hover:text-primary">{{ routine.name }}</button>
+                        </form>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
         {% if sortByPriority %}
             <p class="mt-2 text-xs text-base-content/60">
                 {{ 'diary.priority.note'|trans }}
