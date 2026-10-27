@@ -115,6 +115,30 @@ export default class extends Controller {
                 }
             };
             document.addEventListener('visibilitychange', this.onVisibilityChange);
+
+            // Same gotcha as session_heartbeat_controller.js - only relevant
+            // here too, not for the 5 tools' bare rounds (pauseWhenHiddenValue
+            // false there), which deliberately keep counting through
+            // backgrounding by design and shouldn't get reloaded mid-round.
+            // A long enough background spell (mobile OSes do this
+            // aggressively on backgrounding/locking, not just desktop
+            // back/forward) can freeze this whole page - JS heap, running
+            // setInterval, pausedSince/hiddenMs bookkeeping and all - then
+            // thaw it exactly as it was, without ever re-running connect()
+            // or necessarily firing visibilitychange in the expected order.
+            // The frozen startValue (baked into the DOM at the original
+            // render) then drives a resumed clock computing elapsed from a
+            // timer whose pause tracking never saw the gap - exactly "counts
+            // in the background when it shouldn't". Forcing a genuine reload
+            // is the same fix already used there: a fresh page re-fetches
+            // startValue server-side, correctly capped from the real last
+            // heartbeat.
+            this.onPageShow = (event) => {
+                if (event.persisted) {
+                    window.location.reload();
+                }
+            };
+            window.addEventListener('pageshow', this.onPageShow);
         }
 
         this.tick();
@@ -130,6 +154,9 @@ export default class extends Controller {
             document.removeEventListener('visibilitychange', this.onVisibilityChange);
         }
         document.removeEventListener('resource:opened', this.onResourceOpened);
+        if (this.onPageShow) {
+            window.removeEventListener('pageshow', this.onPageShow);
+        }
     }
 
     markResourceOpened() {
