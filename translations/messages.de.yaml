@@ -71,6 +71,7 @@ training:
   storage_hint: "Ergebnisse werden anonym gespeichert – mit Login bleiben sie geräteübergreifend erhalten."
   streak_one: "%days% Tag in Folge geübt"
   streak_other: "%days% Tage in Folge geübt"
+  metronome_cta: "Metronom mit Takt-Pausen öffnen"
 
 nav:
   back_home: Zurück
@@ -620,6 +621,29 @@ practice_tools:
   octave: Oktave
   volume: Lautstärke
   shortcuts: "Tasten: M Start/Stopp · T Tap · + / − Tempo (±5)"
+  advanced_metronome_cta: "Mehr Optionen: Metronom mit Takt-Pausen →"
+
+metronome:
+  title: Metronom
+  meta_title: "Metronom mit Takt-Pausen"
+  meta_description: "Eigenständiges Metronom mit Tap-Tempo und einstellbaren Takt-Pausen, um ein stabiles inneres Tempo zu trainieren."
+  intro: "Spiele eine festgelegte Anzahl Takte, dann pausiert der Klick für einige Takte - das Tempo musst du in der Stille selbst halten."
+  bpm: BPM
+  slower: Langsamer
+  faster: Schneller
+  tap: Tap
+  beats: Taktart
+  start_stop: "Start / Stopp"
+  rest_section: "Takt-Pausen"
+  rest_hint: "0 Pausentakte = normales Metronom ohne Aussetzer."
+  active_bars: "Takte spielen"
+  rest_bars: "Takte Pause"
+  volume: Lautstärke
+  shortcuts: "Tasten: M Start/Stopp · T Tap · + / − Tempo (±5)"
+  status:
+    playing: "Takt {bar}/{total} – Klick"
+    resting: "Takt {bar}/{total} – Pause"
+  embedded_hint: "Für ein Metronom direkt in der Übung: das kleine Icon unten rechts hat auch Tap-Tempo und eine Drone."
 
 footer:
   privacy: Datenschutz

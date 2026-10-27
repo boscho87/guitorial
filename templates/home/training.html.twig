@@ -51,4 +51,9 @@
             </a>
         {% endfor %}
     </div>
+
+    <a href="{{ path('metronome_index') }}" class="mt-6 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline">
+        {{ icons.icon('metronome') }}
+        {{ 'training.metronome_cta'|trans }}
+    </a>
 {% endblock %}

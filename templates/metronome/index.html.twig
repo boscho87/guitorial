@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+{% import '_components/icons.html.twig' as icons %}
+
+{% block title %}{{ 'metronome.meta_title'|trans }} – Guitorial{% endblock %}
+
+{% block meta_description %}{{ 'metronome.meta_description'|trans }}{% endblock %}
+
+{% block body %}
+    <h1 class="font-display text-2xl font-semibold sm:text-3xl">{{ 'metronome.title'|trans }}</h1>
+    <p class="mt-2 text-base-content/70">{{ 'metronome.intro'|trans }}</p>
+
+    <div
+            class="card-tile mt-8 !p-5 sm:!p-6"
+            data-controller="advanced-metronome"
+            data-advanced-metronome-play-label-value="{{ 'metronome.status.playing'|trans }}"
+            data-advanced-metronome-pause-label-value="{{ 'metronome.status.resting'|trans }}"
+    >
+        <h2 class="eyebrow">{{ 'metronome.bpm'|trans }}</h2>
+        <div class="mt-3 flex items-center gap-3">
+            <button type="button" class="btn btn-square btn-outline" data-action="advanced-metronome#nudgeBpm" data-advanced-metronome-delta-param="-5" aria-label="{{ 'metronome.slower'|trans }}">−</button>
+            <span class="w-24 text-center font-mono text-4xl"><span data-advanced-metronome-target="bpmOutput">100</span></span>
+            <button type="button" class="btn btn-square btn-outline" data-action="advanced-metronome#nudgeBpm" data-advanced-metronome-delta-param="5" aria-label="{{ 'metronome.faster'|trans }}">+</button>
+            <span class="text-sm text-base-content/60">{{ 'metronome.bpm'|trans }}</span>
+            <button type="button" class="btn btn-outline ml-auto" data-action="advanced-metronome#tap">{{ 'metronome.tap'|trans }}</button>
+        </div>
+        <input type="range" min="30" max="240" step="1" class="range mt-4 w-full" data-advanced-metronome-target="bpm" data-action="input->advanced-metronome#setBpm" aria-label="{{ 'metronome.bpm'|trans }}">
+
+        <div class="mt-6 flex flex-wrap items-center gap-4">
+            <label class="flex items-center gap-2 text-sm text-base-content/70">
+                {{ 'metronome.beats'|trans }}
+                <select class="select select-bordered" data-advanced-metronome-target="beats" data-action="change->advanced-metronome#setBeats" aria-label="{{ 'metronome.beats'|trans }}">
+                    {% for beats in [2, 3, 4, 5, 6] %}
+                        <option value="{{ beats }}">{{ beats }}/4</option>
+                    {% endfor %}
+                </select>
+            </label>
+            <div class="flex items-center gap-2" aria-hidden="true">
+                {% for i in 1..6 %}
+                    <span class="h-3.5 w-3.5 rounded-full bg-base-300 transition-colors" data-advanced-metronome-target="beatDot"></span>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn btn-primary ml-auto" data-advanced-metronome-target="startButton" data-action="advanced-metronome#toggle">{{ 'metronome.start_stop'|trans }}</button>
+        </div>
+
+        <h2 class="eyebrow mt-8">{{ 'metronome.rest_section'|trans }}</h2>
+        <p class="mt-1 text-sm text-base-content/60">{{ 'metronome.rest_hint'|trans }}</p>
+        <div class="mt-3 flex flex-wrap items-center gap-4">
+            <label class="flex items-center gap-2 text-sm text-base-content/70">
+                {{ 'metronome.active_bars'|trans }}
+                <input type="number" min="1" max="32" class="input input-bordered w-20" data-advanced-metronome-target="activeBars" data-action="change->advanced-metronome#setActiveBars">
+            </label>
+            <label class="flex items-center gap-2 text-sm text-base-content/70">
+                {{ 'metronome.rest_bars'|trans }}
+                <input type="number" min="0" max="32" class="input input-bordered w-20" data-advanced-metronome-target="restBars" data-action="change->advanced-metronome#setRestBars">
+            </label>
+            <span class="font-mono text-sm text-base-content/70" data-advanced-metronome-target="statusLabel" aria-live="polite"></span>
+        </div>
+
+        <label class="mt-6 flex items-center gap-3 text-sm text-base-content/70">
+            {{ 'metronome.volume'|trans }}
+            <input type="range" min="0" max="1" step="0.05" class="range flex-1" data-advanced-metronome-target="volume" data-action="input->advanced-metronome#setVolume">
+        </label>
+
+        <p class="mt-4 text-xs text-base-content/50">{{ 'metronome.shortcuts'|trans }}</p>
+    </div>
+
+    <p class="mt-6 flex items-center gap-2 text-sm text-base-content/60">
+        {{ icons.icon('metronome') }}
+        {{ 'metronome.embedded_hint'|trans }}
+    </p>
+{% endblock %}

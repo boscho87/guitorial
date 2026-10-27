@@ -62,6 +62,8 @@
             {{ 'practice_tools.volume'|trans }}
             <input type="range" min="0" max="1" step="0.05" class="range range-xs flex-1" data-practice-tools-target="droneVolume" data-action="input->practice-tools#setDroneVolume">
         </label>
+
+        <a href="{{ path('metronome_index') }}" data-turbo-frame="_top" class="mt-4 block text-center text-xs text-base-content/50 hover:text-primary hover:underline">{{ 'practice_tools.advanced_metronome_cta'|trans }}</a>
     </div>
     <div class="flex items-center gap-2">
         {% if embedded|default(false) %}
