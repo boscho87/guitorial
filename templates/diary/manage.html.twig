@@ -52,12 +52,11 @@
         {% else %}
             {% if routines is not empty %}
                 <p class="mt-4 text-xs text-base-content/50">{{ 'diary.manage.drag_to_routine_hint'|trans }}</p>
-                <div class="mt-2 flex flex-wrap gap-2">
+                <div class="mt-2 flex flex-wrap gap-3">
                     {% for routine in routines %}
                         <div
-                                class="badge badge-outline badge-lg gap-1 border-dashed transition-colors"
+                                class="flex min-h-[4.5rem] min-w-[9rem] flex-1 flex-col items-center justify-center gap-1 rounded-box border-2 border-dashed border-base-300 p-3 text-center text-sm font-medium transition-colors sm:flex-none"
                                 data-exercise-routine-drop-target="dropZone"
-                                data-action="dragover->exercise-routine-drop#dragOver dragleave->exercise-routine-drop#dragLeave drop->exercise-routine-drop#drop"
                         >
                             {{ routine.name }}
                             <form method="post" action="{{ path('routine_add_exercise', {id: routine.id}) }}">
@@ -70,10 +69,11 @@
             {% endif %}
 
             {% for bucket in activeExercisesByGroup %}
-                <h3 class="{{ loop.first ? 'mt-4' : 'mt-6' }} text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ bucket.group.name }} ({{ bucket.entries|length }})</h3>
-                <ul class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <details class="{{ loop.first ? 'mt-4' : 'mt-3' }}" open>
+                    <summary class="cursor-pointer text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ bucket.group.name }} ({{ bucket.entries|length }})</summary>
+                <ul class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2" data-exercise-routine-drop-target="source">
                     {% for entry in bucket.entries %}
-                        <li class="card-tile cursor-grab active:cursor-grabbing" draggable="true" data-exercise-id="{{ entry.exercise.id }}" data-action="dragstart->exercise-routine-drop#dragStart">
+                        <li class="card-tile cursor-grab active:cursor-grabbing" data-exercise-id="{{ entry.exercise.id }}">
                             <div class="flex items-start justify-between gap-2">
                                 <p class="min-w-0 flex-1 text-sm font-medium sm:text-base">{{ entry.version.title }}</p>
                                 <div class="flex shrink-0 gap-0.5">
@@ -127,6 +127,7 @@
                         </li>
                     {% endfor %}
                 </ul>
+                </details>
             {% endfor %}
         {% endif %}
     </section>

@@ -388,7 +388,7 @@ diary:
     add_flash: "Übung hinzugefügt."
     back_to_diary: "Zurück zu Meine Übungen"
     back_to_list: "Zurück zur Liste"
-    drag_to_routine_hint: "Übung auf eine Routine ziehen, um sie hinzuzufügen."
+    drag_to_routine_hint: "Übung halten und auf eine Routine ziehen, um sie hinzuzufügen."
     add_to_routine_flash: "Zur Routine hinzugefügt."
   item:
     linked_to: "Verknüpft mit %tool%"

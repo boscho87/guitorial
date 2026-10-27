@@ -15,13 +15,17 @@ export default class extends Controller {
     static targets = ['available', 'selected', 'hiddenInputs'];
 
     connect() {
-        const options = {
+        // Each Sortable instance needs its OWN options object - SortableJS
+        // writes instance bookkeeping onto whatever object it's given, so
+        // sharing one between the two lists made a drag in either list
+        // corrupt the other's state (symptom: dragging one exercise moved
+        // every item in the list instead of just the one being dragged).
+        this.sortables = [this.availableTarget, this.selectedTarget].map((list) => new Sortable(list, {
             group: 'routine-exercises',
             animation: 150,
             ghostClass: 'opacity-40',
             onEnd: () => this.sync(),
-        };
-        this.sortables = [this.availableTarget, this.selectedTarget].map((list) => new Sortable(list, options));
+        }));
         this.sync();
     }
 

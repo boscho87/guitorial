@@ -59,7 +59,7 @@
                 <div class="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ 'routine.form.available_heading'|trans }}</p>
-                        <ul class="mt-2 flex min-h-[3rem] flex-col gap-1.5 rounded-box border border-dashed border-base-300 p-2" data-routine-picker-target="available">
+                        <ul class="mt-2 flex min-h-32 flex-col gap-1.5 rounded-box border border-dashed border-base-300 p-2" data-routine-picker-target="available">
                             {% for entry in availableExercises %}
                                 <li class="card-tile cursor-grab !p-2 text-sm active:cursor-grabbing" data-id="{{ entry.exercise.id }}">{{ entry.version.title }}</li>
                             {% endfor %}
@@ -67,7 +67,7 @@
                     </div>
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50" data-hint-id="routines.order" data-hint="{{ 'hints.routines.order'|trans }}">{{ 'routine.form.selected_heading'|trans }}</p>
-                        <ul class="mt-2 flex min-h-[3rem] flex-col gap-1.5 rounded-box border border-dashed border-primary/40 bg-primary/5 p-2" data-routine-picker-target="selected">
+                        <ul class="mt-2 flex min-h-32 flex-col gap-1.5 rounded-box border border-dashed border-primary/40 bg-primary/5 p-2" data-routine-picker-target="selected">
                             {% for entry in selectedExercises %}
                                 <li class="card-tile cursor-grab !p-2 text-sm active:cursor-grabbing" data-id="{{ entry.exercise.id }}">{{ entry.version.title }}</li>
                             {% endfor %}
