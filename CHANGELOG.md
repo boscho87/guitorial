@@ -1,3 +1,10 @@
+# [1.31.0](https://github.com/boscho87/guitorial/compare/v1.30.2...v1.31.0) (2026-10-27)
+
+
+### Features
+
+* **routine:** Zuordnungs-Dropdown um Entfernen ergaenzen und nur sinnvolle Optionen anzeigen ([023c1cc](https://github.com/boscho87/guitorial/commit/023c1cc5e0d71ee4e367cc490f89654f43e96695))
+
 ## [1.30.2](https://github.com/boscho87/guitorial/compare/v1.30.1...v1.30.2) (2026-10-27)
 
 
