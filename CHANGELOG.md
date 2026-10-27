@@ -1,3 +1,10 @@
+## [1.30.2](https://github.com/boscho87/guitorial/compare/v1.30.1...v1.30.2) (2026-10-27)
+
+
+### Bug Fixes
+
+* **routine:** Drag-and-Drop durch intuitivere Buttons ersetzen und Alle-auf-/zuklappen fuer Uebungsgruppen hinzufuegen ([bf1a304](https://github.com/boscho87/guitorial/commit/bf1a3046adcc6e3b3f6e33d0232a189905f4a1d5))
+
 ## [1.30.1](https://github.com/boscho87/guitorial/compare/v1.30.0...v1.30.1) (2026-10-27)
 
 
