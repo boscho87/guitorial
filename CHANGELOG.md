@@ -1,3 +1,10 @@
+# [1.28.0](https://github.com/boscho87/guitorial/compare/v1.27.0...v1.28.0) (2026-10-27)
+
+
+### Features
+
+* **metronome:** eigenständiges Metronom mit Takt-Pausen (/metronom) ([3a16fe2](https://github.com/boscho87/guitorial/commit/3a16fe2fb3b6892d74f86c716409e8e062d0d329))
+
 # [1.27.0](https://github.com/boscho87/guitorial/compare/v1.26.0...v1.27.0) (2026-10-27)
 
 
