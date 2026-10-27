@@ -355,8 +355,6 @@ diary:
   active_routine:
     label: "Aktuelle Routine:"
     change: "Wechseln"
-  fast_switch:
-    label: "Schnellwechsel:"
   day_note:
     label: "Notiz zum Tag"
     placeholder: "Wie lief's? (optional)"

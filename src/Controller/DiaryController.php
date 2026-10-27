@@ -21,6 +21,7 @@ use App\Entity\Exercise;
 use App\Entity\ExerciseGroup;
 use App\Entity\ExerciseResource;
 use App\Entity\ExerciseVersion;
+use App\Entity\Routine;
 use App\Entity\User;
 use App\Repository\DayNoteRepository;
 use App\Repository\ExerciseGroupRepository;
@@ -84,7 +85,6 @@ final class DiaryController extends AbstractController
         $viewDate = $this->readViewDate($request, $today);
         $isToday = $viewDate->format('Y-m-d') === $today->format('Y-m-d');
         $dayNote = $visitorId !== '' ? $dayNotes->forVisitorOnDate($visitorId, $viewDate) : null;
-        $favoriteRoutines = $isToday && $visitorId !== '' ? $routines->findFavoritesForVisitor($visitorId) : [];
 
         $allVersions = $visitorId !== '' ? $versions->forVisitor($visitorId) : [];
         $allSessions = $visitorId !== '' ? $sessions->forVisitor($visitorId, 300) : [];
@@ -92,6 +92,15 @@ final class DiaryController extends AbstractController
         // exercise always has an active routine (see RoutineProvisioner);
         // a visitor with none yet legitimately has no routine either.
         $activeRoutine = $visitorId !== '' ? $this->routineProvisioner->ensureActiveRoutine($visitorId) : null;
+        // Excludes the active routine itself - its name is already shown in
+        // the bar right next to these chips, so repeating it there read as
+        // cluttered rather than helpful.
+        $favoriteRoutines = $isToday && $visitorId !== ''
+            ? array_values(array_filter(
+                $routines->findFavoritesForVisitor($visitorId),
+                static fn (Routine $r): bool => $activeRoutine === null || $r->getId() !== $activeRoutine->getId(),
+            ))
+            : [];
 
         // A past day shows everything that was actually active/practiced
         // then, not just today's routine's membership - the routine
