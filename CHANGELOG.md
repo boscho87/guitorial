@@ -1,3 +1,10 @@
+# [1.27.0](https://github.com/boscho87/guitorial/compare/v1.26.0...v1.27.0) (2026-10-27)
+
+
+### Features
+
+* **streak:** Lückentage für den Streak einstellbar machen ([535ca17](https://github.com/boscho87/guitorial/commit/535ca1798938dd4b0a6723e478de4ca41f5effdc))
+
 # [1.26.0](https://github.com/boscho87/guitorial/compare/v1.25.1...v1.26.0) (2026-10-27)
 
 
