@@ -197,4 +197,15 @@ class Routine
     {
         $this->items->removeElement($item);
     }
+
+    public function hasExercise(Exercise $exercise): bool
+    {
+        foreach ($this->items as $item) {
+            if ($item->getExercise() === $exercise) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

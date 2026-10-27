@@ -178,9 +178,22 @@ final class DiaryController extends AbstractController
         ExerciseVersionRepository $versions,
         ExerciseResourceRepository $resources,
         ExerciseGroupRepository $groups,
+        RoutineRepository $routines,
     ): Response {
         $visitorId = $this->requireVisitorId($request);
         $today = new \DateTimeImmutable('today');
+        $visitorGroups = $groups->forVisitor($visitorId);
+
+        // Grouped by ExerciseGroup for the "Aktiv" tab's own display, so a
+        // visitor with many active exercises gets the same Theorie/Praxis/
+        // custom-group structure they already set up for the exercises
+        // themselves, instead of one long undifferentiated grid - the flat
+        // $active list stays as the count/empty-check (and drag-source)
+        // data, unchanged for every other caller of this value.
+        $activeByGroup = [];
+        foreach ($visitorGroups as $group) {
+            $activeByGroup[$group->getId()] = ['group' => $group, 'entries' => []];
+        }
 
         $active = [];
         $deactivated = [];
@@ -194,6 +207,10 @@ final class DiaryController extends AbstractController
             $entry = ['exercise' => $exercise, 'version' => $currentVersion, 'resources' => $resources->forExercise($exercise)];
             if ($exercise->isActiveOn($today)) {
                 $active[] = $entry;
+                $groupId = $currentVersion->getGroup()?->getId();
+                if ($groupId !== null && isset($activeByGroup[$groupId])) {
+                    $activeByGroup[$groupId]['entries'][] = $entry;
+                }
             } elseif ($exercise->isDeactivatedOn($today)) {
                 $deactivated[] = $entry;
             } else {
@@ -201,11 +218,18 @@ final class DiaryController extends AbstractController
             }
         }
 
+        foreach ($activeByGroup as $groupId => $bucket) {
+            usort($activeByGroup[$groupId]['entries'], static fn (array $a, array $b): int => $a['version']->getTitle() <=> $b['version']->getTitle());
+        }
+        $activeByGroup = array_values(array_filter($activeByGroup, static fn (array $bucket): bool => $bucket['entries'] !== []));
+
         return $this->render('diary/manage.html.twig', [
             'activeExercises' => $active,
+            'activeExercisesByGroup' => $activeByGroup,
             'deactivatedExercises' => $deactivated,
             'archivedExercises' => $archived,
-            'groups' => $groups->forVisitor($visitorId),
+            'groups' => $visitorGroups,
+            'routines' => $visitorId !== '' ? $routines->forVisitor($visitorId) : [],
             'rhythms' => ExerciseVersion::RHYTHMS,
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
@@ -565,6 +589,7 @@ final class DiaryController extends AbstractController
         if ($exercise !== null) {
             $exercise->reactivate();
             $em->flush();
+            $this->addFlash('frame_toast', 'diary.archive.reactivate_flash');
         }
 
         return $this->redirectToRoute('diary_manage');
@@ -578,6 +603,7 @@ final class DiaryController extends AbstractController
         if ($exercise !== null) {
             $exercise->reactivateFromStaleness();
             $em->flush();
+            $this->addFlash('frame_toast', 'diary.deactivate.reactivate_flash');
         }
 
         return $this->redirectToRoute('diary_manage');

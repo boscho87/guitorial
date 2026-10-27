@@ -30,33 +30,6 @@
             </form>
         {% endif %}
 
-        <section class="mt-8">
-            <h2 class="eyebrow">{{ 'routine.edit.order_heading'|trans }}</h2>
-            {% if routine.items is empty %}
-                <p class="mt-3 text-sm text-base-content/60">{{ 'routine.edit.no_items'|trans }}</p>
-            {% else %}
-                <ul class="mt-3 flex flex-col gap-2">
-                    {% for item in routine.items %}
-                        <li class="flex items-center justify-between gap-2 rounded-box border border-base-300 px-3 py-2">
-                            <span class="text-sm">{{ itemTitles[item.id] }}</span>
-                            <div class="flex shrink-0 gap-0.5">
-                                <form method="post" action="{{ path('routine_item_move', {id: routine.id, itemId: item.id}) }}">
-                                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                                    <input type="hidden" name="direction" value="up">
-                                    <button type="submit" class="btn btn-ghost btn-xs btn-square" {{ loop.first ? 'disabled' : '' }} title="{{ 'diary.groups.move_up'|trans }}" aria-label="{{ 'diary.groups.move_up'|trans }}">&uarr;</button>
-                                </form>
-                                <form method="post" action="{{ path('routine_item_move', {id: routine.id, itemId: item.id}) }}">
-                                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                                    <input type="hidden" name="direction" value="down">
-                                    <button type="submit" class="btn btn-ghost btn-xs btn-square" {{ loop.last ? 'disabled' : '' }} title="{{ 'diary.groups.move_down'|trans }}" aria-label="{{ 'diary.groups.move_down'|trans }}">&darr;</button>
-                                </form>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% endif %}
-        </section>
-
         <div class="mt-6">
             <p class="text-sm font-medium">{{ 'routine.form.quick_add_label'|trans }}</p>
             <form method="post" action="{{ path('diary_add') }}" class="mt-2 flex items-center gap-1">
@@ -79,28 +52,26 @@
 
         <div class="mt-6" data-controller="routine-picker" data-hint-id="routines.pick" data-hint="{{ 'hints.routines.pick'|trans }}">
             <p class="text-sm font-medium">{{ 'routine.form.exercises'|trans }}</p>
-            {% if availableExercises is empty %}
+            {% if availableExercises is empty and selectedExercises is empty %}
                 <p class="mt-2 text-sm text-base-content/60">{{ 'routine.form.no_exercises'|trans }} <a href="{{ path('diary_add_form') }}" class="font-medium text-primary hover:underline">{{ 'routine.form.no_exercises_cta'|trans }}</a></p>
             {% else %}
+                <p class="mt-1 text-xs text-base-content/50">{{ 'routine.form.drag_hint'|trans }}</p>
                 <div class="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <ul class="flex flex-col gap-1">
-                        {% for entry in availableExercises %}
-                            <li>
-                                <label class="flex items-center gap-2 rounded-box px-2 py-1.5 hover:bg-base-200">
-                                    <input
-                                            type="checkbox" value="{{ entry.exercise.id }}" class="checkbox checkbox-sm"
-                                            data-routine-picker-target="checkbox" data-action="change->routine-picker#toggle"
-                                            data-label="{{ entry.version.title }}"
-                                            {{ entry.exercise.id in selectedExerciseIds ? 'checked' : '' }}
-                                    >
-                                    <span class="text-sm">{{ entry.version.title }}</span>
-                                </label>
-                            </li>
-                        {% endfor %}
-                    </ul>
                     <div>
-                        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50" data-hint-id="routines.order" data-hint="{{ 'hints.routines.order'|trans }}">{{ 'routine.form.order_preview'|trans }}</p>
-                        <div class="mt-2 text-sm text-base-content/70" data-routine-picker-target="preview"></div>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ 'routine.form.available_heading'|trans }}</p>
+                        <ul class="mt-2 flex min-h-[3rem] flex-col gap-1.5 rounded-box border border-dashed border-base-300 p-2" data-routine-picker-target="available">
+                            {% for entry in availableExercises %}
+                                <li class="card-tile cursor-grab !p-2 text-sm active:cursor-grabbing" data-id="{{ entry.exercise.id }}">{{ entry.version.title }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-base-content/50" data-hint-id="routines.order" data-hint="{{ 'hints.routines.order'|trans }}">{{ 'routine.form.selected_heading'|trans }}</p>
+                        <ul class="mt-2 flex min-h-[3rem] flex-col gap-1.5 rounded-box border border-dashed border-primary/40 bg-primary/5 p-2" data-routine-picker-target="selected">
+                            {% for entry in selectedExercises %}
+                                <li class="card-tile cursor-grab !p-2 text-sm active:cursor-grabbing" data-id="{{ entry.exercise.id }}">{{ entry.version.title }}</li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
                 <div data-routine-picker-target="hiddenInputs"></div>

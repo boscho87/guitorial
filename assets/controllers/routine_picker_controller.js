@@ -1,35 +1,38 @@
 import { Controller } from '@hotwired/stimulus';
+import Sortable from 'sortablejs';
 
 /**
- * Tracks the order exercises get checked in and mirrors it into hidden
- * exercise_ids[] inputs - plain checkboxes submit in DOM order, not click
- * order, but the server already assigns sortIndex in whatever order
- * exercise_ids[] arrives (RoutineController::add()), so reordering the
- * hidden inputs here is enough; no backend change needed.
+ * Two-column drag board for the routine editor: dragging an exercise from
+ * "Verfügbare Übungen" into "In dieser Routine" adds it, dragging the other
+ * way removes it, and dragging within "In dieser Routine" reorders it - one
+ * gesture for all three, replacing the old checkbox list + separate
+ * up/down-button reorder section. The "selected" list's current DOM order
+ * is the single source of truth and is rebuilt into hidden exercise_ids[]
+ * inputs on every change; RoutineController::edit() treats that order as
+ * authoritative (see its own comment).
  */
 export default class extends Controller {
-    static targets = ['checkbox', 'hiddenInputs', 'preview'];
+    static targets = ['available', 'selected', 'hiddenInputs'];
 
     connect() {
-        this.order = this.checkboxTargets.filter((checkbox) => checkbox.checked).map((checkbox) => checkbox.value);
-        this.render();
+        const options = {
+            group: 'routine-exercises',
+            animation: 150,
+            ghostClass: 'opacity-40',
+            onEnd: () => this.sync(),
+        };
+        this.sortables = [this.availableTarget, this.selectedTarget].map((list) => new Sortable(list, options));
+        this.sync();
     }
 
-    toggle(event) {
-        const id = event.target.value;
-        if (event.target.checked) {
-            if (!this.order.includes(id)) {
-                this.order.push(id);
-            }
-        } else {
-            this.order = this.order.filter((existingId) => existingId !== id);
-        }
-        this.render();
+    disconnect() {
+        this.sortables?.forEach((sortable) => sortable.destroy());
     }
 
-    render() {
+    sync() {
+        const ids = [...this.selectedTarget.children].map((item) => item.dataset.id);
         this.hiddenInputsTarget.replaceChildren(
-            ...this.order.map((id) => {
+            ...ids.map((id) => {
                 const input = document.createElement('input');
                 input.type = 'hidden';
                 input.name = 'exercise_ids[]';
@@ -38,17 +41,5 @@ export default class extends Controller {
                 return input;
             }),
         );
-
-        if (this.hasPreviewTarget) {
-            const labelById = new Map(this.checkboxTargets.map((checkbox) => [checkbox.value, checkbox.dataset.label]));
-            this.previewTarget.replaceChildren(
-                ...this.order.map((id, index) => {
-                    const line = document.createElement('p');
-                    line.textContent = `${index + 1}. ${labelById.get(id) ?? ''}`;
-
-                    return line;
-                }),
-            );
-        }
     }
 }

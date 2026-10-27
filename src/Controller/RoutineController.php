@@ -13,7 +13,6 @@ use App\Repository\ExerciseRepository;
 use App\Repository\ExerciseResourceRepository;
 use App\Repository\ExerciseVersionRepository;
 use App\Repository\PracticeSessionRepository;
-use App\Repository\RoutineItemRepository;
 use App\Repository\RoutineRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -67,7 +66,7 @@ final class RoutineController extends AbstractController
         return $this->render('routine/form.html.twig', [
             'routine' => null,
             'availableExercises' => $this->activeExercisesForVisitor($visitorId, $exercises, $versions),
-            'selectedExerciseIds' => [],
+            'selectedExercises' => [],
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
     }
@@ -128,19 +127,25 @@ final class RoutineController extends AbstractController
         }
 
         $today = new \DateTimeImmutable('today');
+        $selectedExercises = [];
         $selectedIds = [];
-        $itemTitles = [];
         foreach ($routine->getItems() as $item) {
-            $selectedIds[] = $item->getExercise()->getId();
             $version = $versions->currentFor($item->getExercise(), $today);
-            $itemTitles[$item->getId()] = $version?->getTitle() ?? '';
+            if ($version !== null) {
+                $selectedExercises[] = ['exercise' => $item->getExercise(), 'version' => $version];
+                $selectedIds[] = $item->getExercise()->getId();
+            }
         }
+
+        $availableExercises = array_values(array_filter(
+            $this->activeExercisesForVisitor($visitorId, $exercises, $versions),
+            static fn (array $entry): bool => !in_array($entry['exercise']->getId(), $selectedIds, true),
+        ));
 
         return $this->render('routine/form.html.twig', [
             'routine' => $routine,
-            'itemTitles' => $itemTitles,
-            'availableExercises' => $this->activeExercisesForVisitor($visitorId, $exercises, $versions),
-            'selectedExerciseIds' => $selectedIds,
+            'availableExercises' => $availableExercises,
+            'selectedExercises' => $selectedExercises,
             'csrfIntention' => self::CSRF_INTENTION,
         ]);
     }
@@ -165,30 +170,32 @@ final class RoutineController extends AbstractController
             $routine->rename($name);
         }
 
-        $checkedIds = $this->readExerciseIds($request);
+        // The drag board always submits the complete, authoritative order
+        // (routine_picker_controller.js rebuilds exercise_ids[] from the
+        // "in this routine" list's current DOM order on every change) - so
+        // sortIndex is simply resynced to match the submitted position for
+        // every item, not just newly added ones. There's no separate
+        // reorder step anymore to protect from an unrelated add/remove edit.
+        $orderedIds = $this->readExerciseIds($request);
         $existingByExerciseId = [];
-        $maxSortIndex = -1;
         foreach ($routine->getItems() as $item) {
             $existingByExerciseId[$item->getExercise()->getId()] = $item;
-            $maxSortIndex = max($maxSortIndex, $item->getSortIndex());
         }
 
-        // Bulk add/remove via the checkbox list never touches the sortIndex
-        // of items that stay checked - manual reordering (routine_item_move)
-        // must survive an unrelated add/remove edit.
         foreach ($existingByExerciseId as $exerciseId => $item) {
-            if (!in_array($exerciseId, $checkedIds, true)) {
+            if (!in_array($exerciseId, $orderedIds, true)) {
                 $routine->removeItem($item);
                 $em->remove($item);
             }
         }
-        foreach ($checkedIds as $exerciseId) {
+        foreach ($orderedIds as $sortIndex => $exerciseId) {
             if (isset($existingByExerciseId[$exerciseId])) {
+                $existingByExerciseId[$exerciseId]->moveTo($sortIndex);
                 continue;
             }
             $exercise = $exercises->findForVisitor($exerciseId, $visitorId);
             if ($exercise !== null) {
-                $em->persist(new RoutineItem($routine, $exercise, ++$maxSortIndex));
+                $em->persist(new RoutineItem($routine, $exercise, $sortIndex));
             }
         }
 
@@ -196,39 +203,6 @@ final class RoutineController extends AbstractController
         $this->addFlash('success', 'routine.save_flash');
 
         return $this->redirectToRoute('routine_index');
-    }
-
-    #[Route('/{id}/element/{itemId}/verschieben', name: 'routine_item_move', methods: ['POST'], requirements: ['id' => '\d+', 'itemId' => '\d+'])]
-    public function moveItem(
-        int $id,
-        int $itemId,
-        Request $request,
-        RoutineRepository $routines,
-        RoutineItemRepository $items,
-        EntityManagerInterface $em,
-    ): Response {
-        $this->assertValidCsrf($request);
-        $visitorId = $this->requireVisitorId($request);
-        $routine = $routines->findForVisitor($id, $visitorId);
-        $item = $items->find($itemId);
-        $direction = (string) $request->request->get('direction');
-
-        if ($routine !== null && $item !== null && $item->getRoutine() === $routine && in_array($direction, ['up', 'down'], true)) {
-            $ordered = $routine->getItems()->toArray();
-            $index = array_search($item, $ordered, true);
-            $swapWith = $direction === 'up' ? $index - 1 : $index + 1;
-
-            if ($index !== false && $swapWith >= 0 && $swapWith < count($ordered)) {
-                $a = $ordered[$index];
-                $b = $ordered[$swapWith];
-                $aSortIndex = $a->getSortIndex();
-                $a->moveTo($b->getSortIndex());
-                $b->moveTo($aSortIndex);
-                $em->flush();
-            }
-        }
-
-        return $this->redirectToRoute('routine_edit_form', ['id' => $id]);
     }
 
     #[Route('/{id}/loeschen', name: 'routine_delete', methods: ['POST'], requirements: ['id' => '\d+'])]
@@ -306,6 +280,30 @@ final class RoutineController extends AbstractController
         }
 
         return $this->redirectToRoute('routine_index');
+    }
+
+    /**
+     * The "Übung verwalten" page's drag-an-exercise-onto-a-routine-chip
+     * shortcut - same membership change the routine editor's drag board
+     * makes, without opening that page first. Appends at the end; a drop
+     * on a routine the exercise already belongs to is a no-op rather than
+     * a duplicate RoutineItem.
+     */
+    #[Route('/{id}/uebung-hinzufuegen', name: 'routine_add_exercise', methods: ['POST'], requirements: ['id' => '\d+'])]
+    public function addExercise(int $id, Request $request, RoutineRepository $routines, ExerciseRepository $exercises, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $visitorId = $this->requireVisitorId($request);
+        $routine = $routines->findForVisitor($id, $visitorId);
+        $exercise = $exercises->findForVisitor($request->request->getInt('exercise_id'), $visitorId);
+
+        if ($routine !== null && $exercise !== null && !$routine->hasExercise($exercise)) {
+            $this->routineProvisioner->appendToRoutine($routine, $exercise);
+            $em->flush();
+            $this->addFlash('frame_toast', 'diary.manage.add_to_routine_flash');
+        }
+
+        return $this->redirectToRoute('diary_manage');
     }
 
     #[Route('/{id}', name: 'routine_show', methods: ['GET'], requirements: ['id' => '\d+'])]

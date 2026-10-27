@@ -388,6 +388,8 @@ diary:
     add_flash: "Übung hinzugefügt."
     back_to_diary: "Zurück zu Meine Übungen"
     back_to_list: "Zurück zur Liste"
+    drag_to_routine_hint: "Übung auf eine Routine ziehen, um sie hinzuzufügen."
+    add_to_routine_flash: "Zur Routine hinzugefügt."
   item:
     linked_to: "Verknüpft mit %tool%"
     of_target: "von %target% Min."
@@ -425,11 +427,13 @@ diary:
   archive:
     title: Archiviert
     reactivate: Reaktivieren
+    reactivate_flash: "Übung reaktiviert."
     empty: "Keine archivierten Übungen."
   deactivate:
     title: Deaktiviert
     empty: "Keine deaktivierten Übungen."
     hint: "Seit 14 Tagen nicht geübt – automatisch deaktiviert."
+    reactivate_flash: "Übung reaktiviert."
   setup:
     title: "Übung einrichten"
     intro: "Die Übung ist bereits angelegt. Ergänze hier optional, womit du übst, wie lange, wie oft und in welcher Gruppe."
@@ -485,14 +489,14 @@ routine:
     title: "Neue Routine"
   edit:
     title: "Routine bearbeiten"
-    order_heading: Reihenfolge
-    no_items: "Noch keine Übungen in dieser Routine."
   form:
     name: Name
     exercises: Übungen
     no_exercises: "Du hast noch keine aktiven Übungen."
     no_exercises_cta: "Jetzt eine Übung erfassen"
-    order_preview: "Reihenfolge"
+    drag_hint: "Übungen zwischen den Listen hin- und herziehen: hinzufügen, entfernen und die Reihenfolge ändern funktioniert alles per Ziehen."
+    available_heading: "Verfügbare Übungen"
+    selected_heading: "In dieser Routine"
     save: Speichern
     quick_add_label: "Neue Übung direkt hinzufügen"
     quick_add_placeholder: "z. B. Another Brick in the Wall"

@@ -25,14 +25,14 @@
     <turbo-frame id="diary-manage-list" class="block">
     {{ include('_components/_frame_toast.html.twig') }}
 
-    <div class="mt-10" data-controller="manage-tabs">
+    <div class="mt-10" data-controller="manage-tabs exercise-routine-drop">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div class="flex flex-wrap gap-1" role="tablist">
-                <input type="radio" name="manage-tab" id="manage-tab-active" value="active" class="sr-only" checked data-action="change->manage-tabs#switch">
+                <input type="radio" name="manage-tab" id="manage-tab-active" value="active" class="sr-only" checked data-manage-tabs-target="radio" data-action="change->manage-tabs#switch">
                 <label for="manage-tab-active" class="chip-toggle">{{ 'diary.manage.active_heading'|trans }} ({{ activeExercises|length }})</label>
-                <input type="radio" name="manage-tab" id="manage-tab-deactivated" value="deactivated" class="sr-only" data-action="change->manage-tabs#switch">
+                <input type="radio" name="manage-tab" id="manage-tab-deactivated" value="deactivated" class="sr-only" data-manage-tabs-target="radio" data-action="change->manage-tabs#switch">
                 <label for="manage-tab-deactivated" class="chip-toggle">{{ 'diary.deactivate.title'|trans }} ({{ deactivatedExercises|length }})</label>
-                <input type="radio" name="manage-tab" id="manage-tab-archived" value="archived" class="sr-only" data-action="change->manage-tabs#switch">
+                <input type="radio" name="manage-tab" id="manage-tab-archived" value="archived" class="sr-only" data-manage-tabs-target="radio" data-action="change->manage-tabs#switch">
                 <label for="manage-tab-archived" class="chip-toggle">{{ 'diary.archive.title'|trans }} ({{ archivedExercises|length }})</label>
             </div>
             <div class="flex items-center gap-2">
@@ -46,66 +46,88 @@
             </div>
         </div>
 
-    <section class="mt-4" data-manage-tabs-target="panel" data-tab="active">
+    <section class="mt-4" data-manage-tabs-target="panel" data-tab="active" data-hint-id="manage.list" data-hint="{{ 'hints.manage.list'|trans }}">
         {% if activeExercises is empty %}
             <p class="mt-4 text-sm text-base-content/60">{{ 'diary.empty'|trans }}</p>
         {% else %}
-            <ul class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2" data-hint-id="manage.list" data-hint="{{ 'hints.manage.list'|trans }}">
-                {% for entry in activeExercises %}
-                    <li class="card-tile">
-                        <div class="flex items-start justify-between gap-2">
-                            <p class="min-w-0 flex-1 text-sm font-medium sm:text-base">{{ entry.version.title }}</p>
-                            <div class="flex shrink-0 gap-0.5">
-                                <a href="{{ path('history_exercise_detail', {id: entry.exercise.id}) }}" data-turbo-frame="_top" class="btn btn-ghost btn-xs btn-square text-base-content/60" title="{{ 'history.title'|trans }}" aria-label="{{ 'history.title'|trans }}">
-                                    {{ icons.icon('history') }}
-                                </a>
-                                <a href="{{ path('diary_setup', {id: entry.exercise.id}) }}" data-turbo-frame="_top" class="btn btn-ghost btn-xs btn-square text-base-content/60" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}">
-                                    {{ icons.icon('edit') }}
-                                </a>
-                                <form method="post" action="{{ path('diary_archive', {id: entry.exercise.id}) }}" data-controller="submit-loading" data-submit-loading-spinner-value="false" data-action="submit->submit-loading#submit">
-                                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                                    <button type="submit" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.item.archive'|trans }}" aria-label="{{ 'diary.item.archive'|trans }}">
-                                        {{ icons.icon('archive') }}
-                                    </button>
-                                </form>
-                                <form id="exercise-delete-{{ entry.exercise.id }}" method="post" action="{{ path('diary_delete', {id: entry.exercise.id}) }}">
-                                    <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                                </form>
-                                <div class="contents" data-controller="confirm-modal">
-                                    <button type="button" class="btn btn-ghost btn-xs btn-square text-error" data-action="confirm-modal#open" title="{{ 'diary.item.delete'|trans }}" aria-label="{{ 'diary.item.delete'|trans }}">
-                                        {{ icons.icon('trash') }}
-                                    </button>
-                                    {{ confirmModal.dialog('exercise-delete-' ~ entry.exercise.id, 'diary.item.delete_confirm'|trans, 'diary.item.delete'|trans) }}
+            {% if routines is not empty %}
+                <p class="mt-4 text-xs text-base-content/50">{{ 'diary.manage.drag_to_routine_hint'|trans }}</p>
+                <div class="mt-2 flex flex-wrap gap-2">
+                    {% for routine in routines %}
+                        <div
+                                class="badge badge-outline badge-lg gap-1 border-dashed transition-colors"
+                                data-exercise-routine-drop-target="dropZone"
+                                data-action="dragover->exercise-routine-drop#dragOver dragleave->exercise-routine-drop#dragLeave drop->exercise-routine-drop#drop"
+                        >
+                            {{ routine.name }}
+                            <form method="post" action="{{ path('routine_add_exercise', {id: routine.id}) }}">
+                                <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
+                                <input type="hidden" name="exercise_id" value="">
+                            </form>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% for bucket in activeExercisesByGroup %}
+                <h3 class="{{ loop.first ? 'mt-4' : 'mt-6' }} text-xs font-semibold uppercase tracking-wide text-base-content/50">{{ bucket.group.name }} ({{ bucket.entries|length }})</h3>
+                <ul class="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {% for entry in bucket.entries %}
+                        <li class="card-tile cursor-grab active:cursor-grabbing" draggable="true" data-exercise-id="{{ entry.exercise.id }}" data-action="dragstart->exercise-routine-drop#dragStart">
+                            <div class="flex items-start justify-between gap-2">
+                                <p class="min-w-0 flex-1 text-sm font-medium sm:text-base">{{ entry.version.title }}</p>
+                                <div class="flex shrink-0 gap-0.5">
+                                    <a href="{{ path('history_exercise_detail', {id: entry.exercise.id}) }}" data-turbo-frame="_top" class="btn btn-ghost btn-xs btn-square text-base-content/60" title="{{ 'history.title'|trans }}" aria-label="{{ 'history.title'|trans }}">
+                                        {{ icons.icon('history') }}
+                                    </a>
+                                    <a href="{{ path('diary_setup', {id: entry.exercise.id}) }}" data-turbo-frame="_top" class="btn btn-ghost btn-xs btn-square text-base-content/60" title="{{ 'diary.item.edit'|trans }}" aria-label="{{ 'diary.item.edit'|trans }}">
+                                        {{ icons.icon('edit') }}
+                                    </a>
+                                    <form method="post" action="{{ path('diary_archive', {id: entry.exercise.id}) }}" data-controller="submit-loading" data-submit-loading-spinner-value="false" data-action="submit->submit-loading#submit">
+                                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                                        <button type="submit" class="btn btn-ghost btn-xs btn-square" title="{{ 'diary.item.archive'|trans }}" aria-label="{{ 'diary.item.archive'|trans }}">
+                                            {{ icons.icon('archive') }}
+                                        </button>
+                                    </form>
+                                    <form id="exercise-delete-{{ entry.exercise.id }}" method="post" action="{{ path('diary_delete', {id: entry.exercise.id}) }}">
+                                        <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                                    </form>
+                                    <div class="contents" data-controller="confirm-modal">
+                                        <button type="button" class="btn btn-ghost btn-xs btn-square text-error" data-action="confirm-modal#open" title="{{ 'diary.item.delete'|trans }}" aria-label="{{ 'diary.item.delete'|trans }}">
+                                            {{ icons.icon('trash') }}
+                                        </button>
+                                        {{ confirmModal.dialog('exercise-delete-' ~ entry.exercise.id, 'diary.item.delete_confirm'|trans, 'diary.item.delete'|trans) }}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <form
-                                method="post" action="{{ path('diary_quick_edit', {id: entry.exercise.id}) }}"
-                                data-controller="auto-submit" class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1"
-                        >
-                            <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-                            <select name="group_id" class="select select-xs select-bordered" data-action="change->auto-submit#submit">
-                                {% for group in groups %}
-                                    <option value="{{ group.id }}" {{ entry.version.group and entry.version.group.id == group.id ? 'selected' : '' }}>{{ group.name }}</option>
-                                {% endfor %}
-                            </select>
-                            <select name="rhythm" class="select select-xs select-bordered" data-action="change->auto-submit#submit">
-                                {% for r in rhythms %}
-                                    <option value="{{ r }}" {{ entry.version.repeatRhythm == r ? 'selected' : '' }}>{{ ('diary.rhythm.' ~ r)|trans }}</option>
-                                {% endfor %}
-                            </select>
-                            {% if entry.version.repeatRhythm == 'pro_woche' %}
-                                <span class="text-xs text-base-content/60">({{ entry.version.repeatCount }}x)</span>
-                            {% endif %}
-                            {% if entry.version.targetMinutes %}
-                                <span class="text-xs text-base-content/60">&middot; {{ entry.version.targetMinutes }} Min.</span>
-                            {% endif %}
-                        </form>
-                        {% if entry.exercise.note %}<p class="mt-2 line-clamp-2 text-xs text-base-content/50">{{ entry.exercise.note }}</p>{% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
+                            <form
+                                    method="post" action="{{ path('diary_quick_edit', {id: entry.exercise.id}) }}"
+                                    data-controller="auto-submit" class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1"
+                            >
+                                <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                                <select name="group_id" class="select select-xs select-bordered" data-action="change->auto-submit#submit">
+                                    {% for group in groups %}
+                                        <option value="{{ group.id }}" {{ entry.version.group and entry.version.group.id == group.id ? 'selected' : '' }}>{{ group.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <select name="rhythm" class="select select-xs select-bordered" data-action="change->auto-submit#submit">
+                                    {% for r in rhythms %}
+                                        <option value="{{ r }}" {{ entry.version.repeatRhythm == r ? 'selected' : '' }}>{{ ('diary.rhythm.' ~ r)|trans }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% if entry.version.repeatRhythm == 'pro_woche' %}
+                                    <span class="text-xs text-base-content/60">({{ entry.version.repeatCount }}x)</span>
+                                {% endif %}
+                                {% if entry.version.targetMinutes %}
+                                    <span class="text-xs text-base-content/60">&middot; {{ entry.version.targetMinutes }} Min.</span>
+                                {% endif %}
+                            </form>
+                            {% if entry.exercise.note %}<p class="mt-2 line-clamp-2 text-xs text-base-content/50">{{ entry.exercise.note }}</p>{% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endfor %}
         {% endif %}
     </section>
 
