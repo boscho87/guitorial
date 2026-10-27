@@ -88,7 +88,7 @@ final class HistoryStatsBuilderTest extends TestCase
         self::assertSame(3, $result['currentStreak']);
     }
 
-    public function testStreakBreaksOnAGapBeforeToday(): void
+    public function testStreakBreaksOnAGapBeforeTodayWithNoGraceDays(): void
     {
         $today = new \DateTimeImmutable('today');
         $sessions = [
@@ -96,9 +96,45 @@ final class HistoryStatsBuilderTest extends TestCase
             $this->finishedOn($today->modify('-3 days')),
         ];
 
-        $result = $this->builder->build($sessions);
+        $result = $this->builder->build($sessions, graceDays: 0);
 
         self::assertSame(1, $result['currentStreak']);
+    }
+
+    public function testStreakGraceDaysToleratesGapsUpToTheConfiguredCount(): void
+    {
+        $today = new \DateTimeImmutable('today');
+        // Gap of exactly 3 missing days (-1, -2, -3) - exactly uses up all
+        // 3 grace days, so the run on either side of the gap still counts
+        // as one continuous streak instead of breaking.
+        $sessions = [
+            $this->finishedOn($today),
+            $this->finishedOn($today->modify('-4 days')),
+        ];
+
+        $result = $this->builder->build($sessions, graceDays: 3);
+
+        self::assertSame(2, $result['currentStreak']);
+    }
+
+    public function testStreakBreaksOnceGraceDaysAreExhausted(): void
+    {
+        $today = new \DateTimeImmutable('today');
+        // One day further than the previous test - the 4-day gap outlasts
+        // the 3 grace days, so the streak still breaks after them.
+        $sessions = [
+            $this->finishedOn($today),
+            $this->finishedOn($today->modify('-5 days')),
+        ];
+
+        $result = $this->builder->build($sessions, graceDays: 3);
+
+        self::assertSame(1, $result['currentStreak']);
+    }
+
+    public function testDefaultGraceDaysMatchesTheDocumentedConstant(): void
+    {
+        self::assertSame(3, HistoryStatsBuilder::DEFAULT_GRACE_DAYS);
     }
 
     public function testStreakHasGraceDayWhenTodayNotYetPracticed(): void

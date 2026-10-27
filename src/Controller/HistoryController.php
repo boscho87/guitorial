@@ -13,6 +13,7 @@ use App\Entity\Exercise;
 use App\Entity\ExerciseResource;
 use App\Entity\ExerciseVersion;
 use App\Entity\PracticeSession;
+use App\Entity\User;
 use App\Repository\ExerciseGroupRepository;
 use App\Repository\ExerciseRepository;
 use App\Repository\ExerciseVersionRepository;
@@ -76,7 +77,7 @@ final class HistoryController extends AbstractController
 
         return $this->render('history/index.html.twig', [
             'sessions' => $rows,
-            'stats' => $this->statsBuilder->build($statsWindow),
+            'stats' => $this->statsBuilder->build($statsWindow, $this->streakGraceDays()),
             'page' => $page,
             'totalPages' => $totalPages,
             'totalSessions' => $totalSessions,
@@ -256,6 +257,13 @@ final class HistoryController extends AbstractController
         $v = $request->attributes->get('visitorId');
 
         return is_string($v) ? $v : '';
+    }
+
+    private function streakGraceDays(): int
+    {
+        $user = $this->getUser();
+
+        return $user instanceof User ? $user->getStreakGraceDays() : HistoryStatsBuilder::DEFAULT_GRACE_DAYS;
     }
 
     private function assertValidCsrf(Request $request): void

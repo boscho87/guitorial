@@ -58,6 +58,23 @@ final class ProfileController extends AbstractController
         return $this->redirectToRoute('profile_index');
     }
 
+    /**
+     * How many missing days HistoryStatsBuilder::currentStreak() forgives
+     * before a streak actually breaks - see User::$streakGraceDays.
+     */
+    #[Route('/profil/streak-einstellungen', name: 'profile_streak_preferences', methods: ['POST'])]
+    public function updateStreakPreferences(Request $request, EntityManagerInterface $em): Response
+    {
+        $this->assertValidCsrf($request);
+        $user = $this->getUser();
+        if ($user instanceof User) {
+            $user->setStreakGraceDays($request->request->getInt('grace_days'));
+            $em->flush();
+        }
+
+        return $this->redirectToRoute('profile_index');
+    }
+
     private function assertValidCsrf(Request $request): void
     {
         $token = (string) $request->request->get('_token');

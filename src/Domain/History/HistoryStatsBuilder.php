@@ -20,6 +20,15 @@ final class HistoryStatsBuilder
     private const GRADED_TOOLS = ['tonart-erkennen', 'kapo-trainer', 'funktion-bestimmen', 'griffbrett'];
 
     /**
+     * Used whenever no account-level override applies (anonymous visitors,
+     * or a logged-in User whose own streakGraceDays isn't read for some
+     * reason) - see User::$streakGraceDays, which defaults to the same
+     * value so a brand-new account's streak behaves identically to an
+     * anonymous visitor's until they change it.
+     */
+    public const DEFAULT_GRACE_DAYS = 3;
+
+    /**
      * Deliberately based on monotonic counters (practice days, completed
      * sessions) rather than the resettable current streak - a broken streak
      * must never take an already-earned milestone away again.
@@ -46,7 +55,7 @@ final class HistoryStatsBuilder
      *     series: array<string, array{label: string, points: list<array{date: \DateTimeImmutable, accuracy: float}>}>,
      * }
      */
-    public function build(array $sessions): array
+    public function build(array $sessions, int $graceDays = self::DEFAULT_GRACE_DAYS): array
     {
         $finished = array_values(array_filter($sessions, static fn (PracticeSession $s): bool => $s->isFinished()));
         // "Zäh"/"wird besser" (STATUS_STARTED) still counts as real practice
@@ -62,7 +71,7 @@ final class HistoryStatsBuilder
         return [
             'totalFinishedRounds' => $totalFinishedRounds,
             'averageAccuracy' => self::averageAccuracy($graded),
-            'currentStreak' => self::currentStreak($days),
+            'currentStreak' => self::currentStreak($days, $graceDays),
             'longestStreak' => self::longestStreak($days),
             'totalPracticeDays' => count($days),
             'totalDurationMinutes' => self::totalDurationMinutes($creditable),
@@ -125,9 +134,17 @@ final class HistoryStatsBuilder
      * timezone; the app stores no per-visitor timezone, same simplification
      * as the rest of this anonymous-history prototype.
      *
+     * $graceDays is a separate, bigger leniency on top of that: up to that
+     * many missing days total can be skipped over (not counted, but not
+     * breaking the streak either) before a further gap finally ends it -
+     * see User::$streakGraceDays. A missing day only ever consumes grace
+     * once the streak has actually started (the today-or-yesterday check
+     * above still applies first), so an all-gap history still correctly
+     * reports 0 rather than burning through the grace budget pointlessly.
+     *
      * @param array<string, true> $days
      */
-    private static function currentStreak(array $days): int
+    private static function currentStreak(array $days, int $graceDays = 0): int
     {
         $cursor = new \DateTimeImmutable('today');
         if (!isset($days[$cursor->format('Y-m-d')])) {
@@ -138,8 +155,15 @@ final class HistoryStatsBuilder
         }
 
         $streak = 0;
-        while (isset($days[$cursor->format('Y-m-d')])) {
-            $streak++;
+        $graceLeft = $graceDays;
+        while (true) {
+            if (isset($days[$cursor->format('Y-m-d')])) {
+                $streak++;
+            } elseif ($graceLeft > 0) {
+                $graceLeft--;
+            } else {
+                break;
+            }
             $cursor = $cursor->modify('-1 day');
         }
 

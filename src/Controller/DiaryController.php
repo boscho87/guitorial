@@ -21,6 +21,7 @@ use App\Entity\Exercise;
 use App\Entity\ExerciseGroup;
 use App\Entity\ExerciseResource;
 use App\Entity\ExerciseVersion;
+use App\Entity\User;
 use App\Repository\DayNoteRepository;
 use App\Repository\ExerciseGroupRepository;
 use App\Repository\ExerciseRepository;
@@ -151,7 +152,7 @@ final class DiaryController extends AbstractController
             'toolPracticeRoutes' => $toolPracticeRoutes,
             'recentRatios' => $recentRatios,
             'sortByPriority' => $sortByPriority,
-            'currentStreak' => $this->statsBuilder->build($allSessions)['currentStreak'],
+            'currentStreak' => $this->statsBuilder->build($allSessions, $this->streakGraceDays())['currentStreak'],
             'csrfIntention' => self::CSRF_INTENTION,
             'sessionCsrfIntention' => 'exercise_session',
         ]);
@@ -691,6 +692,13 @@ final class DiaryController extends AbstractController
         $v = $request->attributes->get('visitorId');
 
         return is_string($v) ? $v : '';
+    }
+
+    private function streakGraceDays(): int
+    {
+        $user = $this->getUser();
+
+        return $user instanceof User ? $user->getStreakGraceDays() : HistoryStatsBuilder::DEFAULT_GRACE_DAYS;
     }
 
     /**

@@ -70,7 +70,7 @@ final class SendStreakRemindersCommand extends Command
             }
 
             $sessions = $this->sessions->forVisitor($user->getVisitorId(), self::SESSION_WINDOW);
-            $stats = $this->statsBuilder->build($sessions);
+            $stats = $this->statsBuilder->build($sessions, $user->getStreakGraceDays());
             if ($stats['currentStreak'] < self::MIN_STREAK) {
                 continue;
             }

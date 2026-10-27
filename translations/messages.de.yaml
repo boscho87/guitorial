@@ -731,6 +731,11 @@ profile:
     priority:
       title: "Empfohlene Prioritäten"
       description: "Innerhalb deiner Routine kommt Zähes und lange Nicht-Geübtes zuerst, Erledigtes steht unten."
+  streak:
+    title: "Streak"
+    grace_days:
+      label: "Lückentage"
+      description: "So viele verpasste Tage verzeiht dein Streak, bevor er wirklich reisst."
   mail:
     title: "E-Mail-Erinnerungen"
     streak_reminders:

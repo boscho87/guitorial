@@ -65,6 +65,24 @@
 
     {% if app.user %}
         <section class="mt-10">
+            <h2 class="eyebrow">{{ 'profile.streak.title'|trans }}</h2>
+            <form method="post" action="{{ path('profile_streak_preferences') }}" data-controller="auto-submit">
+                <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
+                <div class="card-tile mt-3 flex items-start justify-between gap-4 !p-4">
+                    <label class="min-w-0 flex-1" for="streak-grace-days">
+                        <span class="block text-sm font-medium">{{ 'profile.streak.grace_days.label'|trans }}</span>
+                        <span class="mt-1 block text-xs text-base-content/60">{{ 'profile.streak.grace_days.description'|trans }}</span>
+                    </label>
+                    <select id="streak-grace-days" name="grace_days" class="select select-sm select-bordered" data-action="change->auto-submit#submit">
+                        {% for value in [0, 1, 2, 3] %}
+                            <option value="{{ value }}" {{ app.user.streakGraceDays == value ? 'selected' : '' }}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </form>
+        </section>
+
+        <section class="mt-10">
             <h2 class="eyebrow">{{ 'profile.mail.title'|trans }}</h2>
             <form method="post" action="{{ path('profile_mail_preferences') }}" data-controller="auto-submit">
                 <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">

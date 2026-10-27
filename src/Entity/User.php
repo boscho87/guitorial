@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Domain\History\HistoryStatsBuilder;
 use App\Repository\UserRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -65,6 +66,17 @@ class User implements UserInterface
      */
     #[ORM\Column]
     private bool $dailyDigestEnabled = false;
+
+    /**
+     * How many missing days HistoryStatsBuilder::currentStreak() tolerates
+     * before the streak actually breaks (profile setting, 0-3). Defaults to
+     * the same value as HistoryStatsBuilder::DEFAULT_GRACE_DAYS, the one
+     * anonymous visitors always get (they have no profile to change it in),
+     * so a brand-new account's streak behaves identically until they
+     * deliberately tighten it.
+     */
+    #[ORM\Column]
+    private int $streakGraceDays = HistoryStatsBuilder::DEFAULT_GRACE_DAYS;
 
     public function __construct(string $email, string $firstName, string $lastName, string $visitorId)
     {
@@ -143,6 +155,16 @@ class User implements UserInterface
     public function disableDailyDigest(): void
     {
         $this->dailyDigestEnabled = false;
+    }
+
+    public function getStreakGraceDays(): int
+    {
+        return $this->streakGraceDays;
+    }
+
+    public function setStreakGraceDays(int $days): void
+    {
+        $this->streakGraceDays = max(0, min(3, $days));
     }
 
     public function getRoles(): array

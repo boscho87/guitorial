@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Domain\History\HistoryStatsBuilder;
 use App\Domain\Quiz\ToolRegistry;
 use App\Domain\Session\PersonalRecords;
+use App\Entity\User;
 use App\Repository\PracticeSessionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -36,7 +37,7 @@ final class ProgressController extends AbstractController
     {
         $visitorId = $this->requireVisitorId($request);
         $allSessions = $visitorId !== '' ? $sessions->forVisitor($visitorId, self::STATS_WINDOW) : [];
-        $stats = $this->statsBuilder->build($allSessions);
+        $stats = $this->statsBuilder->build($allSessions, $this->streakGraceDays());
 
         $records = [];
         foreach (self::GRADED_TOOLS as $toolId) {
@@ -57,5 +58,12 @@ final class ProgressController extends AbstractController
         $v = $request->attributes->get('visitorId');
 
         return is_string($v) ? $v : '';
+    }
+
+    private function streakGraceDays(): int
+    {
+        $user = $this->getUser();
+
+        return $user instanceof User ? $user->getStreakGraceDays() : HistoryStatsBuilder::DEFAULT_GRACE_DAYS;
     }
 }

@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Domain\History\HistoryStatsBuilder;
 use App\Domain\Quiz\ToolRegistry;
+use App\Entity\User;
 use App\Repository\PracticeSessionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -44,12 +45,19 @@ final class HomeController extends AbstractController
         $visitorId = is_string($visitorId) ? $visitorId : '';
 
         $streak = $visitorId !== ''
-            ? $statsBuilder->build($sessions->forVisitor($visitorId, self::STATS_WINDOW))['currentStreak']
+            ? $statsBuilder->build($sessions->forVisitor($visitorId, self::STATS_WINDOW), $this->streakGraceDays())['currentStreak']
             : 0;
 
         return $this->render('home/training.html.twig', [
             'tools' => $toolRegistry->all(),
             'streak' => $streak,
         ]);
+    }
+
+    private function streakGraceDays(): int
+    {
+        $user = $this->getUser();
+
+        return $user instanceof User ? $user->getStreakGraceDays() : HistoryStatsBuilder::DEFAULT_GRACE_DAYS;
     }
 }

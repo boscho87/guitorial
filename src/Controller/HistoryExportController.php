@@ -7,6 +7,7 @@ namespace App\Controller;
 use App\Domain\History\HistoryStatsBuilder;
 use App\Domain\Quiz\ToolRegistry;
 use App\Entity\PracticeSession;
+use App\Entity\User;
 use App\Repository\ExerciseVersionRepository;
 use App\Repository\PracticeSessionRepository;
 use Dompdf\Dompdf;
@@ -55,7 +56,7 @@ final class HistoryExportController extends AbstractController
     {
         $visitorId = $this->requireVisitorId($request);
         $rows = $visitorId !== '' ? $sessions->forVisitor($visitorId, self::STATS_WINDOW) : [];
-        $stats = $this->statsBuilder->build($rows);
+        $stats = $this->statsBuilder->build($rows, $this->streakGraceDays());
         $exerciseTitles = $this->latestTitleByExerciseId($versions, $visitorId);
 
         $spreadsheet = new Spreadsheet();
@@ -86,7 +87,7 @@ final class HistoryExportController extends AbstractController
     {
         $visitorId = $this->requireVisitorId($request);
         $rows = $visitorId !== '' ? $sessions->forVisitor($visitorId, self::STATS_WINDOW) : [];
-        $stats = $this->statsBuilder->build($rows);
+        $stats = $this->statsBuilder->build($rows, $this->streakGraceDays());
 
         // Stats only, deliberately - the full row-by-row history belongs in
         // the XLSX export's own sheet, not duplicated onto paper here.
@@ -408,5 +409,12 @@ final class HistoryExportController extends AbstractController
         $v = $request->attributes->get('visitorId');
 
         return is_string($v) ? $v : '';
+    }
+
+    private function streakGraceDays(): int
+    {
+        $user = $this->getUser();
+
+        return $user instanceof User ? $user->getStreakGraceDays() : HistoryStatsBuilder::DEFAULT_GRACE_DAYS;
     }
 }
