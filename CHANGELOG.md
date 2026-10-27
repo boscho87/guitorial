@@ -1,3 +1,10 @@
+# [1.29.0](https://github.com/boscho87/guitorial/compare/v1.28.0...v1.29.0) (2026-10-27)
+
+
+### Features
+
+* **routine:** Favoriten-Schnellwechsel auf Heute + Schnell-Erfassung neuer Übungen im Routine-Editor ([816ec21](https://github.com/boscho87/guitorial/commit/816ec2182afe85425a555ba5ead68042b0dd3a3b))
+
 # [1.28.0](https://github.com/boscho87/guitorial/compare/v1.27.0...v1.28.0) (2026-10-27)
 
 
