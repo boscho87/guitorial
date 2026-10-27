@@ -183,6 +183,19 @@ final class DiaryController extends AbstractController
         $visitorId = $this->requireVisitorId($request);
         $today = new \DateTimeImmutable('today');
         $visitorGroups = $groups->forVisitor($visitorId);
+        $visitorRoutines = $visitorId !== '' ? $routines->forVisitor($visitorId) : [];
+
+        // Which routines each exercise already belongs to, so the "zu
+        // Routine hinzufügen/entfernen" dropdown on each card only ever
+        // offers options that actually change something - adding to a
+        // routine it's already in, or removing from one it isn't in,
+        // would both be no-ops the visitor can't make sense of.
+        $routineIdsByExerciseId = [];
+        foreach ($visitorRoutines as $routine) {
+            foreach ($routine->getItems() as $item) {
+                $routineIdsByExerciseId[$item->getExercise()->getId()][] = $routine->getId();
+            }
+        }
 
         // Grouped by ExerciseGroup for the "Aktiv" tab's own display, so a
         // visitor with many active exercises gets the same Theorie/Praxis/
@@ -229,7 +242,8 @@ final class DiaryController extends AbstractController
             'deactivatedExercises' => $deactivated,
             'archivedExercises' => $archived,
             'groups' => $visitorGroups,
-            'routines' => $visitorId !== '' ? $routines->forVisitor($visitorId) : [],
+            'routines' => $visitorRoutines,
+            'routineIdsByExerciseId' => $routineIdsByExerciseId,
             'rhythms' => ExerciseVersion::RHYTHMS,
             'csrfIntention' => self::CSRF_INTENTION,
         ]);

@@ -287,27 +287,42 @@ final class RoutineController extends AbstractController
     }
 
     /**
-     * The "Übung verwalten" page's per-card "zu Routine hinzufügen"
-     * dropdown - same membership change the routine editor's picker makes,
-     * without opening that page first. Not tied to a specific routine in
-     * the path (both ids travel in the body instead) since one dropdown
-     * per card needs to post to whichever routine was picked, the same
-     * auto-submit-on-change shape as this page's existing group/rhythm
-     * dropdowns. Picking a routine the exercise already belongs to is a
-     * no-op rather than a duplicate RoutineItem.
+     * The "Übung verwalten" page's per-card "zu Routine hinzufügen/aus
+     * Routine entfernen" dropdown - same membership change the routine
+     * editor's picker makes, without opening that page first. One endpoint
+     * for both directions since the dropdown only ever offers the option
+     * that actually changes something for that exercise+routine pair (see
+     * DiaryController::manage()'s $routineIdsByExerciseId) - "add" and
+     * "remove" never both apply at once, so there's nothing to disambiguate
+     * beyond the submitted action string ("<routineId>:add"/"<routineId>:remove").
      */
-    #[Route('/uebung-hinzufuegen', name: 'routine_add_exercise', methods: ['POST'])]
-    public function addExercise(Request $request, RoutineRepository $routines, ExerciseRepository $exercises, EntityManagerInterface $em): Response
+    #[Route('/uebung-zuordnen', name: 'routine_toggle_exercise', methods: ['POST'])]
+    public function toggleExercise(Request $request, RoutineRepository $routines, ExerciseRepository $exercises, EntityManagerInterface $em): Response
     {
         $this->assertValidCsrf($request);
         $visitorId = $this->requireVisitorId($request);
-        $routine = $routines->findForVisitor($request->request->getInt('routine_id'), $visitorId);
-        $exercise = $exercises->findForVisitor($request->request->getInt('exercise_id'), $visitorId);
+        [$routineId, $mode] = array_pad(explode(':', (string) $request->request->get('action'), 2), 2, '');
 
-        if ($routine !== null && $exercise !== null && !$routine->hasExercise($exercise)) {
+        $routine = $routines->findForVisitor((int) $routineId, $visitorId);
+        $exercise = $exercises->findForVisitor($request->request->getInt('exercise_id'), $visitorId);
+        if ($routine === null || $exercise === null) {
+            return $this->redirectToRoute('diary_manage');
+        }
+
+        if ($mode === 'add' && !$routine->hasExercise($exercise)) {
             $this->routineProvisioner->appendToRoutine($routine, $exercise);
             $em->flush();
             $this->addFlash('frame_toast', 'diary.manage.add_to_routine_flash');
+        } elseif ($mode === 'remove') {
+            foreach ($routine->getItems() as $item) {
+                if ($item->getExercise() === $exercise) {
+                    $routine->removeItem($item);
+                    $em->remove($item);
+                    $em->flush();
+                    $this->addFlash('frame_toast', 'diary.manage.remove_from_routine_flash');
+                    break;
+                }
+            }
         }
 
         return $this->redirectToRoute('diary_manage');

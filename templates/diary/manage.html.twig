@@ -119,13 +119,17 @@
                                 {% endif %}
                             </form>
                             {% if routines is not empty %}
-                                <form method="post" action="{{ path('routine_add_exercise') }}" data-controller="auto-submit" class="mt-2">
+                                <form method="post" action="{{ path('routine_toggle_exercise') }}" data-controller="auto-submit" class="mt-2">
                                     <input type="hidden" name="_token" value="{{ csrf_token('routine') }}">
                                     <input type="hidden" name="exercise_id" value="{{ entry.exercise.id }}">
-                                    <select name="routine_id" class="select select-xs select-bordered" data-action="change->auto-submit#submit">
-                                        <option value="" selected disabled>{{ 'diary.manage.add_to_routine_placeholder'|trans }}</option>
+                                    <select name="action" class="select select-xs select-bordered" data-action="change->auto-submit#submit">
+                                        <option value="" selected disabled>{{ 'diary.manage.routine_placeholder'|trans }}</option>
                                         {% for routine in routines %}
-                                            <option value="{{ routine.id }}">{{ routine.name }}</option>
+                                            {% if routine.id in routineIdsByExerciseId[entry.exercise.id]|default([]) %}
+                                                <option value="{{ routine.id }}:remove">{{ 'diary.manage.remove_from_routine_option'|trans({'%name%': routine.name}) }}</option>
+                                            {% else %}
+                                                <option value="{{ routine.id }}:add">{{ 'diary.manage.add_to_routine_option'|trans({'%name%': routine.name}) }}</option>
+                                            {% endif %}
                                         {% endfor %}
                                     </select>
                                 </form>
