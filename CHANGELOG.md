@@ -1,3 +1,10 @@
+## [1.30.1](https://github.com/boscho87/guitorial/compare/v1.30.0...v1.30.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* **routine:** Drag-and-Drop-Bugs beheben (geteiltes Sortable-Options-Objekt, fehlende Touch-Unterstuetzung, zu kleine Drop-Ziele) und Uebungsgruppen in Uebung verwalten aufklappbar machen ([52c95c5](https://github.com/boscho87/guitorial/commit/52c95c5b68f7af4ce7b5209fb86cbf3788884888))
+
 # [1.30.0](https://github.com/boscho87/guitorial/compare/v1.29.1...v1.30.0) (2026-10-27)
 
 
