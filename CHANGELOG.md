@@ -1,3 +1,10 @@
+## [1.29.1](https://github.com/boscho87/guitorial/compare/v1.29.0...v1.29.1) (2026-10-27)
+
+
+### Bug Fixes
+
+* **routine:** Favoriten-Schnellwechsel in die Aktuelle-Routine-Leiste auf Heute zusammenfassen statt separate Zeile ([ccf829a](https://github.com/boscho87/guitorial/commit/ccf829a9c02500be8643f1cfba2a0d0590a01bcd))
+
 # [1.29.0](https://github.com/boscho87/guitorial/compare/v1.28.0...v1.29.0) (2026-10-27)
 
 
