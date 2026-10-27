@@ -1,3 +1,10 @@
+# [1.26.0](https://github.com/boscho87/guitorial/compare/v1.25.1...v1.26.0) (2026-10-27)
+
+
+### Features
+
+* **diary:** BPM-Zahl beim eingebetteten Metronom immer sichtbar ([e90b2c8](https://github.com/boscho87/guitorial/commit/e90b2c81554bd1d1c4ba6494c4c0f2cb713f5a58))
+
 ## [1.25.1](https://github.com/boscho87/guitorial/compare/v1.25.0...v1.25.1) (2026-10-27)
 
 
