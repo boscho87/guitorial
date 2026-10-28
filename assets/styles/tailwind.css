@@ -34,9 +34,9 @@
   --color-error: #b5533d;
   --color-error-content: #fbeae6;
 
-  --radius-selector: 0.65rem;
-  --radius-field: 0.65rem;
-  --radius-box: 1rem;
+  --radius-selector: 0.4rem;
+  --radius-field: 0.4rem;
+  --radius-box: 0.65rem;
   --border: 1.5px;
 }
 
@@ -68,9 +68,9 @@
   --color-error: #e08469;
   --color-error-content: #2a1712;
 
-  --radius-selector: 0.65rem;
-  --radius-field: 0.65rem;
-  --radius-box: 1rem;
+  --radius-selector: 0.4rem;
+  --radius-field: 0.4rem;
+  --radius-box: 0.65rem;
   --border: 1.5px;
 }
 
@@ -104,9 +104,9 @@
   --color-error: #b5533d;
   --color-error-content: #fbeae6;
 
-  --radius-selector: 0.65rem;
-  --radius-field: 0.65rem;
-  --radius-box: 1rem;
+  --radius-selector: 0.4rem;
+  --radius-field: 0.4rem;
+  --radius-box: 0.65rem;
   --border: 1.5px;
 }
 
@@ -139,9 +139,9 @@
   --color-error: #ff5252;
   --color-error-content: #000000;
 
-  --radius-selector: 0.65rem;
-  --radius-field: 0.65rem;
-  --radius-box: 1rem;
+  --radius-selector: 0.4rem;
+  --radius-field: 0.4rem;
+  --radius-box: 0.65rem;
   /* Dickere Border als die anderen 3 Themes - bessere Sichtbarkeit von
      Eingabefeldern/Buttons, gängige A11y-Verbesserung. */
   --border: 2px;
