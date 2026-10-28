@@ -345,8 +345,6 @@ diary:
   empty_cta: "Jetzt eine Übung anlegen"
   empty_past: "An diesem Tag gab es noch keine Übungen im Plan."
   priority:
-    note: "Sortiert nach Empfehlung."
-    change: ändern
     zaeh: "zäh zuletzt"
     wochenziel: "Wochenziel offen"
     lange_nicht: "lange nicht geübt"
@@ -355,6 +353,8 @@ diary:
   active_routine:
     label: "Aktuelle Routine:"
     change: "Wechseln"
+  fast_switch:
+    label: "Schnellwechsel:"
   day_note:
     label: "Notiz zum Tag"
     placeholder: "Wie lief's? (optional)"

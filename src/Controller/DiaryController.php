@@ -164,7 +164,6 @@ final class DiaryController extends AbstractController
             'toolSettingsRoutes' => $toolSettingsRoutes,
             'toolPracticeRoutes' => $toolPracticeRoutes,
             'recentRatios' => $recentRatios,
-            'sortByPriority' => $sortByPriority,
             'currentStreak' => $this->statsBuilder->build($allSessions, $this->streakGraceDays())['currentStreak'],
             'csrfIntention' => self::CSRF_INTENTION,
             'sessionCsrfIntention' => 'exercise_session',
