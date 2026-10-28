@@ -1,3 +1,10 @@
+## [1.31.1](https://github.com/boscho87/guitorial/compare/v1.31.0...v1.31.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* **diary:** Schnellwechsel-Buttons auf Heute deutlicher machen und ueberfluessigen Prioritaets-Hinweis entfernen ([9c552ef](https://github.com/boscho87/guitorial/commit/9c552ef12aa11e4bf09e9182d2b23a24364ba934))
+
 # [1.31.0](https://github.com/boscho87/guitorial/compare/v1.30.2...v1.31.0) (2026-10-27)
 
 
