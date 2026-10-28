@@ -1,3 +1,10 @@
+## [1.31.2](https://github.com/boscho87/guitorial/compare/v1.31.1...v1.31.2) (2026-10-28)
+
+
+### Bug Fixes
+
+* **design:** Eckenradius in allen Themes reduzieren (weniger stark gerundet) ([b405bcf](https://github.com/boscho87/guitorial/commit/b405bcf8a7c413eb17bd0243578c9e347116d421))
+
 ## [1.31.1](https://github.com/boscho87/guitorial/compare/v1.31.0...v1.31.1) (2026-10-28)
 
 
