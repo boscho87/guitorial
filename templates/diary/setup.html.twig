@@ -4,7 +4,7 @@
 {% block title %}{{ 'diary.setup.title'|trans }} – Guitorial{% endblock %}
 
 {% block body %}
-    <a href="{{ returnRouteId ? path('routine_show', {id: returnRouteId}) : path('diary_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
+    <a href="{{ returnRoute and returnRouteId ? path(returnRoute, {id: returnRouteId}) : path('diary_index') }}" class="inline-flex items-center gap-1 text-sm text-base-content/70 hover:text-primary">
         {{ icons.icon('back') }}
         {{ 'diary.manage.back_to_diary'|trans }}
     </a>
@@ -26,8 +26,8 @@
 
     <form method="post" action="{{ path('diary_edit', {id: exercise.id}) }}" class="mt-8 space-y-8" data-controller="exercise-form">
         <input type="hidden" name="_token" value="{{ csrf_token(csrfIntention) }}">
-        {% if returnRouteId %}
-            <input type="hidden" name="return_route" value="routine_show">
+        {% if returnRoute and returnRouteId %}
+            <input type="hidden" name="return_route" value="{{ returnRoute }}">
             <input type="hidden" name="return_route_id" value="{{ returnRouteId }}">
         {% endif %}
 

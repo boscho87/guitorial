@@ -476,6 +476,7 @@ final class DiaryController extends AbstractController
             'tools' => $this->tools->all(),
             'rhythms' => ExerciseVersion::RHYTHMS,
             'csrfIntention' => self::CSRF_INTENTION,
+            'returnRoute' => $target['route'] ?? null,
             'returnRouteId' => $target['id'] ?? null,
         ]);
     }

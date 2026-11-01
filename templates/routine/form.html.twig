@@ -57,6 +57,8 @@
                 data-routine-picker-selected-value="{{ selectedExerciseIds|json_encode|e('html_attr') }}"
                 data-routine-picker-add-label-value="{{ 'routine.form.add_aria'|trans }}"
                 data-routine-picker-remove-label-value="{{ 'routine.form.remove_aria'|trans }}"
+                data-routine-picker-edit-label-value="{{ 'routine.form.edit_aria'|trans }}"
+                data-routine-picker-setup-url-template-value="{{ routine ? path('diary_setup', {id: 0, return_route: 'routine_edit_form', return_route_id: routine.id}) : '' }}"
                 data-hint-id="routines.pick" data-hint="{{ 'hints.routines.pick'|trans }}"
         >
             <p class="text-sm font-medium">{{ 'routine.form.exercises'|trans }}</p>

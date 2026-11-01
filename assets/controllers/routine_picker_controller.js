@@ -2,6 +2,7 @@ import { Controller } from '@hotwired/stimulus';
 import Sortable from 'sortablejs';
 
 const GRIP_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="18" r="1.2"/></svg>';
+const EDIT_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5Z"/></svg>';
 
 /**
  * Two-column exercise picker for the routine editor. Add/remove is a plain
@@ -17,7 +18,14 @@ const GRIP_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentC
  */
 export default class extends Controller {
     static targets = ['available', 'selected', 'hiddenInputs'];
-    static values = { exercises: Array, selected: Array, addLabel: String, removeLabel: String };
+    static values = {
+        exercises: Array,
+        selected: Array,
+        addLabel: String,
+        removeLabel: String,
+        editLabel: String,
+        setupUrlTemplate: String,
+    };
 
     connect() {
         this.titleById = new Map(this.exercisesValue.map((entry) => [String(entry.id), entry.title]));
@@ -82,6 +90,21 @@ export default class extends Controller {
         label.className = 'min-w-0 flex-1 truncate';
         label.textContent = this.titleById.get(id) ?? '';
         li.append(label);
+
+        if (this.setupUrlTemplateValue) {
+            // The template carries a placeholder id (0, chosen because it
+            // satisfies the route's \d+ requirement) generated server-side
+            // via Twig's path() - substituting it here avoids hand-building
+            // a URL pattern in JS that would silently drift if the route's
+            // path ever changes.
+            const link = document.createElement('a');
+            link.href = this.setupUrlTemplateValue.replace('/0/', `/${id}/`);
+            link.className = 'btn btn-ghost btn-xs btn-square shrink-0';
+            link.setAttribute('aria-label', this.editLabelValue);
+            link.title = this.editLabelValue;
+            link.innerHTML = EDIT_SVG;
+            li.append(link);
+        }
 
         const button = document.createElement('button');
         button.type = 'button';

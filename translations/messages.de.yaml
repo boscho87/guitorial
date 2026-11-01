@@ -504,6 +504,7 @@ routine:
     selected_heading: "In dieser Routine"
     add_aria: "Zur Routine hinzufügen"
     remove_aria: "Aus der Routine entfernen"
+    edit_aria: "Übung bearbeiten"
     save: Speichern
     quick_add_label: "Neue Übung direkt hinzufügen"
     quick_add_placeholder: "z. B. Another Brick in the Wall"

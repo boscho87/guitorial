@@ -9,10 +9,11 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * Resolves the optional "come back here, not to Heute" hint (return_route/
  * return_route_id) a start/edit/mark-done form can carry - set when the
- * action was launched from a Routine's own "starten" page, so finishing,
- * discarding, saving an edit, or just resuming should land back on that
- * Routine instead of always bouncing to diary_index. Deliberately returns
- * plain route+params rather than a Response, so it stays framework-router-
+ * action was launched from a Routine's own "starten" page (routine_show)
+ * or its "bearbeiten" page (routine_edit_form), so finishing, discarding,
+ * saving an edit, or just resuming should land back on that Routine
+ * instead of always bouncing to diary_index. Deliberately returns plain
+ * route+params rather than a Response, so it stays framework-router-
  * agnostic and every caller decides its own fallback.
  *
  * Shared by DiaryController, ExerciseSessionController, and the 5 tool
@@ -22,16 +23,18 @@ use Symfony\Component\HttpFoundation\Request;
  */
 final class ReturnRouteResolver
 {
+    private const ALLOWED_ROUTES = ['routine_show', 'routine_edit_form'];
+
     /**
      * @return array{route: string, id: int}|null
      */
     public function resolve(?string $returnRoute, mixed $returnRouteId): ?array
     {
-        if ($returnRoute !== 'routine_show' || $returnRouteId === null || $returnRouteId === '') {
+        if ($returnRoute === null || !in_array($returnRoute, self::ALLOWED_ROUTES, true) || $returnRouteId === null || $returnRouteId === '') {
             return null;
         }
 
-        return ['route' => 'routine_show', 'id' => (int) $returnRouteId];
+        return ['route' => $returnRoute, 'id' => (int) $returnRouteId];
     }
 
     /**
