@@ -1,3 +1,10 @@
+# [1.32.0](https://github.com/boscho87/guitorial/compare/v1.31.2...v1.32.0) (2026-11-01)
+
+
+### Features
+
+* **routine:** Uebung direkt aus dem Routine-Editor bearbeiten und danach wieder zur Routine zurueckkehren ([6d13be8](https://github.com/boscho87/guitorial/commit/6d13be89269ada60c8a54c3629d5196de84739ca))
+
 ## [1.31.2](https://github.com/boscho87/guitorial/compare/v1.31.1...v1.31.2) (2026-10-28)
 
 
