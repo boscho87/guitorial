@@ -1,3 +1,10 @@
+## [1.32.1](https://github.com/boscho87/guitorial/compare/v1.32.0...v1.32.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* **diary:** Letzte-7-Tage-Anzeige auf Übezeit statt Routine-Quote umstellen ([308a134](https://github.com/boscho87/guitorial/commit/308a134ade5a763ba0f9da82b97e83ebf2746da7))
+
 # [1.32.0](https://github.com/boscho87/guitorial/compare/v1.31.2...v1.32.0) (2026-11-01)
 
 
