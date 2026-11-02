@@ -132,7 +132,7 @@ final class DiaryController extends AbstractController
             // whatever relative order they already had.
             usort($rows, static fn (array $a, array $b): int => (int) $b['version']->getExercise()->isPrioritized() <=> (int) $a['version']->getExercise()->isPrioritized());
         }
-        $recentRatios = $this->dayViewBuilder->buildRecentRatios($allVersions, $allSessions, $today, self::RECENT_DAYS);
+        $recentPracticeTime = $this->dayViewBuilder->buildRecentPracticeTime($allSessions, $today, self::RECENT_DAYS);
 
         $resourcesByExerciseId = [];
         foreach ($rows as $row) {
@@ -163,7 +163,7 @@ final class DiaryController extends AbstractController
             'toolTitles' => $toolTitles,
             'toolSettingsRoutes' => $toolSettingsRoutes,
             'toolPracticeRoutes' => $toolPracticeRoutes,
-            'recentRatios' => $recentRatios,
+            'recentPracticeTime' => $recentPracticeTime,
             'currentStreak' => $this->statsBuilder->build($allSessions, $this->streakGraceDays())['currentStreak'],
             'csrfIntention' => self::CSRF_INTENTION,
             'sessionCsrfIntention' => 'exercise_session',

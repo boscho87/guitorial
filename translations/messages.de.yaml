@@ -813,7 +813,7 @@ hints:
     note: "Eine kurze Notiz zum Tag: wie lief's, was war schwierig?"
     routine: "Die aktuelle Routine bestimmt, welche Übungen du hier siehst. Unter Wechseln stellst du eine andere ein."
     list: "Der Kreis links startet die Übung, der Haken rechts markiert sie als erledigt. Der Balken zeigt deine Zielzeit."
-    week: "Deine letzten 7 Tage: wie viele Übungen du erledigt hast. Tippe auf einen Tag, um ihn anzusehen."
+    week: "Deine letzten 7 Tage: wie lange du geübt hast. Tippe auf einen Tag, um zu sehen, was du gemacht hast."
   session:
     timer: "Deine Übungszeit läuft mit. Ist eine Zielzeit gesetzt, füllt sich der Balken."
     pause: "Mit Pause (Taste P) hältst du die Zeit an - pausierte Zeit wird nicht angerechnet."

@@ -166,69 +166,47 @@ final class ExerciseDayViewBuilderTest extends TestCase
         self::assertSame(42, $row['runningSessionId']);
     }
 
-    public function testBuildRecentRatiosExcludesOhneVorgabeFromTheDenominator(): void
+    public function testBuildRecentPracticeTimeSumsCreditableMinutesPerDayAcrossAllExercises(): void
+    {
+        $today = new \DateTimeImmutable('today');
+        $exerciseA = $this->exercise(1);
+        $exerciseB = $this->exercise(2);
+
+        // One rhythm-tracked, one "ohne Vorgabe" (e.g. a bundled band-songs
+        // exercise) - both must count, since this is no longer filtered by
+        // rhythm or by which routine (if any) the exercise belongs to.
+        $sessions = [
+            $this->finishedSession($exerciseA, $today, 10),
+            $this->finishedSession($exerciseB, $today, 5),
+        ];
+
+        $result = $this->builder->buildRecentPracticeTime($sessions, $today, 7);
+        $todayRow = $result[array_search($today->format('Y-m-d'), array_map(static fn (array $r) => $r['date']->format('Y-m-d'), $result), true)];
+
+        self::assertSame(15, $todayRow['minutes']);
+    }
+
+    public function testBuildRecentPracticeTimeCountsStartedSessionsButNotUnfinishedRunningOnes(): void
     {
         $today = new \DateTimeImmutable('today');
         $exercise = $this->exercise(1);
-        $version = $this->version($exercise, 'Frei üben', null, ExerciseVersion::RHYTHM_NONE, null, $today->modify('-10 days'));
 
-        $ratios = $this->builder->buildRecentRatios([$version], [], $today, 7);
+        $sessions = [$this->startedSession($exercise, $today, 7)];
+        $result = $this->builder->buildRecentPracticeTime($sessions, $today, 7);
+        $todayRow = $result[array_search($today->format('Y-m-d'), array_map(static fn (array $r) => $r['date']->format('Y-m-d'), $result), true)];
 
-        foreach ($ratios as $day) {
-            self::assertSame(0, $day['total']);
-        }
+        self::assertSame(7, $todayRow['minutes']); // "zäh"/"wird besser" is still real, creditable practice
     }
 
-    public function testBuildRecentRatiosStopsCountingAWeeklyExerciseAsPlannedOnceItsGoalIsMet(): void
-    {
-        $today = new \DateTimeImmutable('2026-09-09'); // a Wednesday
-        $exercise = $this->exercise(1);
-        $version = $this->version($exercise, 'Wöchentlich', null, ExerciseVersion::RHYTHM_WEEKLY, 1, $today->modify('-30 days'));
-
-        // goal (1x/week) already met on Monday this week
-        $sessions = [$this->finishedSession($exercise, $today->modify('-2 days'), 1)];
-
-        $ratios = $this->builder->buildRecentRatios([$version], $sessions, $today, 7);
-        $todayRatio = $ratios[array_search($today->format('Y-m-d'), array_map(static fn (array $r) => $r['date']->format('Y-m-d'), $ratios), true)];
-
-        self::assertSame(0, $todayRatio['total']); // no longer "planned" today - already fulfilled this week
-    }
-
-    public function testBuildRecentRatiosShowsEveryDayAsUntrackedWithoutAnySessionOnRecord(): void
+    public function testBuildRecentPracticeTimeIsZeroForDaysWithNoSessions(): void
     {
         $today = new \DateTimeImmutable('today');
-        $exercise = $this->exercise(1);
-        $version = $this->version($exercise, 'Aufwärmen', null, ExerciseVersion::RHYTHM_DAILY, null, $today->modify('-10 days'));
 
-        // No sessions at all - e.g. right after "gesamten Verlauf löschen" -
-        // every day, including today, should read as untracked (total: 0),
-        // never as a 0/X miss for a day nothing proves happened or not.
-        $ratios = $this->builder->buildRecentRatios([$version], [], $today, 7);
+        $result = $this->builder->buildRecentPracticeTime([], $today, 7);
 
-        foreach ($ratios as $day) {
-            self::assertSame(0, $day['total']);
+        foreach ($result as $day) {
+            self::assertSame(0, $day['minutes']);
         }
-    }
-
-    public function testBuildRecentRatiosOnlyCountsDaysFromTheOldestRemainingSessionOnwards(): void
-    {
-        $today = new \DateTimeImmutable('today');
-        $exercise = $this->exercise(1);
-        $version = $this->version($exercise, 'Aufwärmen', null, ExerciseVersion::RHYTHM_DAILY, null, $today->modify('-10 days'));
-
-        // Only one session left, from today - as if history was just wiped
-        // and today is the first thing logged since.
-        $sessions = [$this->finishedSession($exercise, $today, 1)];
-        $ratios = $this->builder->buildRecentRatios([$version], $sessions, $today, 7);
-
-        $byDate = [];
-        foreach ($ratios as $day) {
-            $byDate[$day['date']->format('Y-m-d')] = $day;
-        }
-
-        self::assertSame(0, $byDate[$today->modify('-1 day')->format('Y-m-d')]['total']);
-        self::assertSame(1, $byDate[$today->format('Y-m-d')]['total']);
-        self::assertSame(1, $byDate[$today->format('Y-m-d')]['done']);
     }
 
     public function testBuildDayForRoutineOrdersRowsByRoutineNotByVersionOrder(): void

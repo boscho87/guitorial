@@ -107,68 +107,37 @@ final class ExerciseDayViewBuilder
     }
 
     /**
-     * Trailing window as a per-day completion RATIO of only the exercises
-     * that were actually "geplant" that day (täglich, or pro_woche whose
-     * weekly target wasn't already met) - ohne_vorgabe exercises are
-     * opportunistic and never count toward this denominator, a deliberate
-     * decision (see the planning doc) distinct from buildDay()'s full
-     * display list, which shows every active exercise regardless of rhythm.
+     * Trailing window of total practiced minutes per day, across every
+     * creditable session regardless of exercise rhythm/target or which
+     * routine (if any) the exercise belonged to. Replaces an earlier
+     * done/total ratio that only counted täglich/pro_woche exercises toward
+     * its denominator - ohne_vorgabe exercises (e.g. a bundled "Songs Band"
+     * exercise practiced opportunistically) never showed up there at all,
+     * which read as "only today's routine counts" even though the real
+     * cause was the rhythm filter, not routine membership.
      *
-     * @param ExerciseVersion[] $allVersions
      * @param PracticeSession[] $sessions
-     * @return list<array{date: \DateTimeImmutable, weekdayLabel: string, done: int, total: int}>
+     * @return list<array{date: \DateTimeImmutable, weekdayLabel: string, minutes: int}>
      */
-    public function buildRecentRatios(array $allVersions, array $sessions, \DateTimeImmutable $today, int $days = 7): array
+    public function buildRecentPracticeTime(array $sessions, \DateTimeImmutable $today, int $days = 7): array
     {
-        $dailyStats = $this->dailyStatsByExercise($sessions);
-        $trackingStart = $this->earliestSessionDate($sessions);
+        $minutesByDay = [];
+        foreach ($sessions as $s) {
+            if (!$s->isCreditable()) {
+                continue;
+            }
+            $dateKey = $s->getFinishedAt()->format('Y-m-d');
+            $minutesByDay[$dateKey] = ($minutesByDay[$dateKey] ?? 0.0)
+                + ($s->getFinishedAt()->getTimestamp() - $s->getStartedAt()->getTimestamp()) / 60;
+        }
 
         $result = [];
         for ($i = $days - 1; $i >= 0; $i--) {
             $date = $today->modify("-{$i} days");
-            $dateKey = $date->format('Y-m-d');
-            $done = 0;
-            $total = 0;
-
-            // A day before the oldest session still on record shows as
-            // untracked ("–"), not as a wall of 0/X misses - most visibly
-            // after "gesamten Verlauf löschen", which deletes the sessions
-            // that proved those days happened but leaves already-active
-            // exercises "geplant" for them. Without this, wiping the
-            // history would retroactively turn past good days into
-            // apparent failures instead of just starting fresh from today.
-            foreach ($trackingStart !== null && $date >= $trackingStart ? $allVersions : [] as $version) {
-                $exercise = $version->getExercise();
-                if (!$version->isActiveOn($date) || !$exercise->isActiveOn($date)) {
-                    continue;
-                }
-                if ($version->getRepeatRhythm() === ExerciseVersion::RHYTHM_NONE) {
-                    continue;
-                }
-
-                $exerciseId = $exercise->getId();
-                $targetMinutes = $version->getTargetMinutes();
-                $stat = $dailyStats[$exerciseId][$dateKey] ?? ['minutes' => 0.0, 'count' => 0, 'completedMinutes' => 0.0, 'completedCount' => 0];
-                $checkedToday = $targetMinutes !== null ? $stat['completedMinutes'] >= $targetMinutes : $stat['completedCount'] >= 1;
-
-                if ($version->getRepeatRhythm() === ExerciseVersion::RHYTHM_WEEKLY) {
-                    $doneBeforeToday = $this->weeklyDoneCount($dailyStats, $exerciseId, $targetMinutes, $date->modify('-1 day'));
-                    if ($doneBeforeToday >= ($version->getRepeatCount() ?? PHP_INT_MAX)) {
-                        continue; // weekly goal already met before today - purely opportunistic from here
-                    }
-                }
-
-                $total++;
-                if ($checkedToday) {
-                    $done++;
-                }
-            }
-
             $result[] = [
                 'date' => $date,
                 'weekdayLabel' => self::WEEKDAY_LABELS[(int) $date->format('N')],
-                'done' => $done,
-                'total' => $total,
+                'minutes' => (int) round($minutesByDay[$date->format('Y-m-d')] ?? 0.0),
             ];
         }
 
@@ -195,26 +164,6 @@ final class ExerciseDayViewBuilder
         }
 
         return $done;
-    }
-
-    /**
-     * The calendar day of the oldest session still on record (any status),
-     * or null if there are none at all - e.g. right after a full history
-     * wipe, before anything new has been logged yet.
-     *
-     * @param PracticeSession[] $sessions
-     */
-    private function earliestSessionDate(array $sessions): ?\DateTimeImmutable
-    {
-        $earliest = null;
-        foreach ($sessions as $s) {
-            $date = $s->getStartedAt()->setTime(0, 0);
-            if ($earliest === null || $date < $earliest) {
-                $earliest = $date;
-            }
-        }
-
-        return $earliest;
     }
 
     /**
