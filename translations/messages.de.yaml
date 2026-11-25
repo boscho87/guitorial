@@ -540,6 +540,13 @@ exercise_session:
   reopen_resource: "Ressource öffnen"
   play_inline: Abspielen
   close_player: Schliessen
+  player:
+    back: "5 Sekunden zurück"
+    forward: "5 Sekunden vor"
+    play: Abspielen
+    pause: Pausieren
+    enlarge: Vergrössern
+    shrink: Verkleinern
   open_external: "In neuem Tab öffnen"
   pause: Pause
   resume: Fortsetzen
