@@ -4,9 +4,9 @@ import { Controller } from '@hotwired/stimulus';
  * Global "still here" ping so a page left open and idle - reading, typing
  * a long note, ... - doesn't quietly lose its PHP session to the host's
  * out-of-band session cleanup (session.gc_maxlifetime is far shorter than
- * people realistically leave a tab open for). Once that happens, the CSRF
- * token already baked into any open form's _token field stops matching -
- * see SessionKeepAliveController's doc comment for the full mechanism.
+ * people realistically leave a tab open for) - the tools' in-progress
+ * rounds live in it. See SessionKeepAliveController's doc comment for the
+ * full mechanism.
  * Attached once, globally, on <body> (base.html.twig) - every page gets
  * this for free, not just ones with their own heartbeat (session-heartbeat
  * is a different, narrower mechanism scoped to the exercise-running page's

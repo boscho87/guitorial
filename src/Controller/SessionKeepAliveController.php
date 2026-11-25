@@ -15,10 +15,10 @@ use Symfony\Component\Routing\Attribute\Route;
  * collection - session.gc_probability is 0 here, so cleanup isn't the usual
  * per-request lottery but an out-of-band sweep keyed purely off each
  * session file's mtime, and session.lazy_write means merely *starting* the
- * session without writing a changed value never bumps that mtime. Once the
- * session is gone, the CSRF token already baked into any open form's
- * _token field no longer matches the (new, empty) session's - see
- * error401.html.twig. Pinged from session_keepalive_controller.js, attached
+ * session without writing a changed value never bumps that mtime. CSRF
+ * tokens no longer depend on the session (stateless_token_ids in
+ * framework.yaml), but the tools' in-progress rounds still live in it.
+ * Pinged from session_keepalive_controller.js, attached
  * globally on <body> in base.html.twig, well inside session.gc_maxlifetime.
  */
 #[Route('/api')]

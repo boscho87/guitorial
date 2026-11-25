@@ -6,6 +6,23 @@ framework:
     # Note that the session will be started ONLY if you read or write from it.
     session: true
 
+    # Session-stored CSRF tokens broke every form left open long enough for the
+    # host's session sweep to delete the session (a backgrounded tab never
+    # pings session-keepalive). Stateless tokens are validated via
+    # Sec-Fetch-Site/Origin instead, so they can't expire.
+    csrf_protection:
+        stateless_token_ids:
+            - capo_trainer
+            - diary
+            - exercise_session
+            - fretboard
+            - harmonic_function
+            - history
+            - key_recognition
+            - profile
+            - routine
+            - scale-generator
+
     #esi: true
     #fragments: true
 
