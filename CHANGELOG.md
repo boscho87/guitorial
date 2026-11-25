@@ -1,3 +1,15 @@
+# [1.33.0](https://github.com/boscho87/guitorial/compare/v1.32.1...v1.33.0) (2026-11-25)
+
+
+### Bug Fixes
+
+* **csrf:** CSRF-Tokens sessionlos validieren, damit lange offene Formulare nicht mehr fehlschlagen ([a0ae523](https://github.com/boscho87/guitorial/commit/a0ae5230e9b66469c9518cbffe4b60fe6868aebe))
+
+
+### Features
+
+* **player:** Eigene Steuerleiste (Play/Pause, 5 s zurück/vor) und vergrösserbarer YouTube-Player ([46bd96b](https://github.com/boscho87/guitorial/commit/46bd96bce8367b5e3ed5a139151161692d4bac8e))
+
 ## [1.32.1](https://github.com/boscho87/guitorial/compare/v1.32.0...v1.32.1) (2026-11-02)
 
 
